@@ -23,19 +23,20 @@ fun mkIssueProcess() = session{
   }
 }
 
-fun mainMenu(): Unit  { session {
-  section {
-    textLine("Welcome!")
-    textLine("Please select one of the options below by entering the number associated with it")
-    textLine("1) Create issue")
-    textLine("2) Edit issue")
-    textLine("3) List issues")
-    textLine("4) Create release")
-    textLine("5) Add person")
-    input()
-  }.runUntilInputEntered{
-    onInputEntered{mkIssueProcess()}
-  }
-}}
+fun mainMenu(): Unit  {
+  session {
+    section {
+      textLine("Welcome!")
+      textLine("Please select one of the options below by entering the number associated with it")
+      textLine("1) Create issue")
+      textLine("2) Edit issue")
+      textLine("3) List issues")
+      textLine("4) Create release")
+      textLine("5) Add person")
+      input()
+    }.runUntilInputEntered{
+      onInputEntered{mkIssueProcess()}
+    }
+  }}
 
 fun main() = mainMenu()
