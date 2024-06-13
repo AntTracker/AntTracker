@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "1.9.23"
+    id("application")
 }
 
 group = "org.example"
@@ -18,6 +19,11 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
+application {
+    mainClass = "MainKt"
+}
+
 kotlin {
     jvmToolchain(8)
 }
