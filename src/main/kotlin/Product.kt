@@ -1,3 +1,1 @@
-fun validateProductName(name: String): Boolean {
-    return true
-}
+fun validateProductName(name: String): Boolean = true
