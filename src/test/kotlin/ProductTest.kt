@@ -1,6 +1,10 @@
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 
+/**
+ * The goal of this test is to confirm that validateProductName returns false on
+ * empty names and names longer than thirty characters
+ */
 class ProductTest :
     DescribeSpec({
         describe("validateProductName") {
@@ -15,13 +19,35 @@ class ProductTest :
                 }
             }
             describe("When name length is within 1 to 30 characters") {
-                it("Returns true") {
-                    // Given
-                    val name = "Cain"
-                    // When
-                    val actual = validateProductName(name)
-                    // Then
-                    actual shouldBe true
+                describe("When the name is four characters long") {
+                    it("Returns true") {
+                        // Given
+                        val name = "Cain"
+                        // When
+                        val actual = validateProductName(name)
+                        // Then
+                        actual shouldBe true
+                    }
+                }
+                describe("When the name is one character long") {
+                    it("Returns true") {
+                        // Given
+                        val name = "C"
+                        // When
+                        val actual = validateProductName(name)
+                        // Then
+                        actual shouldBe true
+                    }
+                }
+                describe("When the name is 30 characters long") {
+                    it("Returns true") {
+                        // Given
+                        val name = "012345678901234567890123456789"
+                        // When
+                        val actual = validateProductName(name)
+                        // Then
+                        actual shouldBe true
+                    }
                 }
             }
             describe("When name length is longer than 30 characters") {

@@ -13,7 +13,10 @@ and searching for issues are also present in this file.
 ---------------------------------
  */
 
-import kotlin.time.*
+// ------
+import kotlin.time.TimeSource
+
+// ------
 
 @JvmInline
 value class Description(
@@ -22,28 +25,6 @@ value class Description(
     init {
         require(description.length in 1..30) {
             "Description length must be between 1 and 30 characters"
-        }
-    }
-}
-
-@JvmInline
-value class Product(
-    private val name: String,
-) {
-    init {
-        require(name.length in 1..30) {
-            "Name length must be between 1 and 30 characters"
-        }
-    }
-}
-
-@JvmInline
-value class ReleaseId(
-    private val id: String,
-) {
-    init {
-        require(id.length in 1..8) {
-            "Release id length must be between 1 and 8 characters"
         }
     }
 }
@@ -85,46 +66,102 @@ data class Issue(
 )
 
 @JvmInline
-value class IssueFilter(
-    val predicate: (Issue) -> Boolean,
+value class Days(
+    val numOfDays: Int,
+) {
+    init {
+        require(numOfDays >= 0) {
+            "The number of days must be non-negative"
+        }
+    }
+}
+
+sealed class Status {
+    data object Assessed : Status()
+
+    data object Created : Status()
+
+    data object Done : Status()
+
+    data object Cancelled : Status()
+
+    data object InProgress : Status()
+}
+
+sealed class IssueFilter {
+    data class ByDescription(
+        val description: Regex,
+    ) : IssueFilter()
+
+    data class SinceDaysAgo(
+        val days: Days,
+    )
+
+    data class ByPriority(
+        val priority: Priority,
+    ) : IssueFilter()
+
+    data class ByStatus(
+        val status: Status,
+    ) : IssueFilter()
+
+    data class ById(
+        val id: IssueId,
+    ) : IssueFilter()
+
+    data class ByProduct(
+        val product: Product,
+    ) : IssueFilter()
+
+    data class Composite(
+        val filter: List<IssueFilter>,
+    ) : IssueFilter()
+}
+
+data class PageOf<T>(
+    val page: List<T>,
+    val offset: Int,
+    val limit: Int,
+)
+
+data class IssuePage(
+    val filter: IssueFilter,
+    val pageInfo: PageOf<Issue>,
+)
+
+data class RequestPage(
+    val pageInfo: PageOf<Request>,
 )
 
 // -----------------
 
 /* ---------
 This function takes a predicate to be applied on an issue
-and returns the issues in the database which satisfy the predicate.
-The predicate passed to the function can be a composition of other
-predicates. An example usage of the function is demonstrated below.
-searchIssues(isDone) will return all the issues in the database
-that have done as their status.
+and returns the first issue in the database which satisfy the predicate.
+ An example usage of the function is demonstrated below.
+searchIssues(isDone) will return the first issues in the database
+that is marked as done.
 --------*/
 fun searchIssues(
     filter: IssueFilter, // in
-): List<Issue> {
+): IssuePage {
     TODO()
 }
 
-@JvmInline
-value class IssuePage(
-    val page: List<Issue>,
-)
-
-data class IssuePages(
-    val pages: List<IssuePage>,
-    val currentPage: Int,
-)
+fun nextPage(oldPage: IssuePage): IssuePage {
+    TODO()
+}
 
 /* -----
 This function takes a predicate to apply on an issue and the maximum number of issues to
 display at a time and returns all the issues from the database which satisfy the predicate
-in pages of size issuesPerPage. For example, listIssues(createdYesterday, 10) will return
+in pages of size issuesPerPage. For example, searchIssues(createdYesterday, 10) will return
 all the issues created yesterday partitioned into groups of ten.
  ----- */
-fun listIssues(
+fun searchIssues(
     filter: IssueFilter, // in
     issuesPerPage: Int, // in
-): IssuePages {
+): IssuePage {
     TODO()
 }
 
@@ -142,24 +179,31 @@ fun editIssue(
 }
 
 /* -----
-This function takes an issue id I and prints out all the requests associated with
-the issue that has id I.
+This function takes an issue id I, the number of requests to show per page, and
+ returns the requests associated with issue I partitioned into groups of size
+ requestsPerPage. For example, listRequests(1, 5) will obtain all the requests
+ associated with the issue having id 1 and will show them to the user five
+ requests at a time.
  ------ */
-fun viewRequests(
+fun listRequests(
     issueId: Int, // in
-) {
+    requestsPerPage: Int, // in
+): RequestPage {
+    TODO()
 }
 
 /* ------
 This function prints out a message asking the user how they would like
 to search for an issue.
 ----- */
-fun issuesMenu() {}
+fun issuesMenu() {
+    TODO()
+}
 
 /**
  * This function takes the information given and creates a new issue
  * using the passed information. The issue is then added to the
- * database. For example, createIssue("hi", "a", "1", "1.2", 2) will
+ * database. For example, createIssue(IssueInformation("hi", "a", "1", "1.2", 2)) will
  * create an issue with the description "hi" belonging to product "a"
  * with an affectedRelease of "1" and a priority of 2 in the database.
  */
