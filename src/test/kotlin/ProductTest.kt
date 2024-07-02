@@ -1,3 +1,17 @@
+// ProductTest.kt
+
+/**
+ *
+-----------------
+Revision History
+Rev 1 - 7/1/2024 Modified by Eitan
+- Added tests for validateProductName
+
+-------------------------------------------
+This file contains the tests for the function
+validateProductName.
+---------------------------------
+ */
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 
