@@ -158,11 +158,11 @@ fun nextPage(
 }
 
 /* -----
-This function takes a predicate to apply on an issue and the maximum number of issues to
-display at a time and returns all the issues from the database which satisfy the predicate
-in pages of size issuesPerPage. For example, searchIssues(createdYesterday, 10) will return
-all the issues created yesterday partitioned into groups of ten.
- ----- */
+//This function takes a predicate to apply on an issue and the maximum number of issues to
+//display at a time and returns the first issue from the database which satisfies the predicate
+//For example, searchIssues(createdYesterday, 10) will return the first issue from the database
+which was created yesterday
+// ----- */
 fun searchIssues(
     filter: IssueFilter, // in
     issuesPerPage: Int, // in
@@ -185,14 +185,21 @@ fun editIssue(
 
 /* -----
 This function takes an issue id I, the number of requests to show per page, and
- returns the requests associated with issue I partitioned into groups of size
- requestsPerPage. For example, listRequests(1, 5) will obtain all the requests
- associated with the issue having id 1 and will show them to the user five
- requests at a time.
+ returns the first request associated with issue I. For example, listRequests(1, 5)
+  will obtain all the first request associated with the issue having id 1.
  ------ */
 fun listRequests(
     issueId: Int, // in
     requestsPerPage: Int, // in
+): RequestPage {
+    TODO()
+}
+
+/**
+ * This function returns the next page of requests to display based on the current page
+ */
+fun nextPage(
+    oldPage: RequestPage, // in
 ): RequestPage {
     TODO()
 }
