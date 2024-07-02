@@ -148,7 +148,12 @@ fun searchIssues(
     TODO()
 }
 
-fun nextPage(oldPage: IssuePage): IssuePage {
+/**
+ * This function returns the next page of issues to display based on the current page
+ */
+fun nextPage(
+    oldPage: IssuePage, // in
+): IssuePage {
     TODO()
 }
 
@@ -200,10 +205,17 @@ fun issuesMenu() {
     TODO()
 }
 
+/** ---
+ * This function collects from the user all the information needed to create an issue.
+---- */
+fun enterIssueInformation(): IssueInformation {
+    TODO()
+}
+
 /**
  * This function takes the information given and creates a new issue
  * using the passed information. The issue is then added to the
- * database. For example, createIssue(IssueInformation("hi", "a", "1", "1.2", 2)) will
+ * database. For example, saveIssue(IssueInformation("hi", "a", "1", "1.2", 2)) will
  * create an issue with the description "hi" belonging to product "a"
  * with an affectedRelease of "1" and a priority of 2 in the database.
  */
