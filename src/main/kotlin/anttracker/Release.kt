@@ -1,4 +1,5 @@
-/* Revision History:
+/* Release.kt
+Revision History:
 Rev. 1 - 2024/07/01 Original by T. Tracey
 ----------------------------------------------------------
 The Release module encapsulates the group of functions related to release creation,
@@ -7,6 +8,10 @@ The module hides validation of release attributes, the interactive menu prompts 
     the release creation process, as well as interfacing with the database.
 ----------------------------------------------------------
 */
+
+package anttracker.release
+
+import anttracker.product.Product
 
 @JvmInline
 value class ReleaseId(
@@ -20,8 +25,8 @@ value class ReleaseId(
 }
 
 class Release(
-    val releaseName: String,
-    val product: String,
+    val releaseName: ReleaseId,
+    val product: Product,
     var releaseDate: String,
 )
 

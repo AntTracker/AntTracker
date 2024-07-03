@@ -7,7 +7,7 @@ The Product module contains all exported classes and functions pertaining to
 -------------------------------------------------------------------------------
 */
 
-// package anttracker.product
+package anttracker.product
 
 // ----------------------------------------------------------------------------
 // Class for storing the attributes of a given product.
