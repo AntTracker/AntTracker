@@ -6,11 +6,11 @@ Rev 1 - 2024/07/01 Original by Micah
 ----------------
  */
 
-// import issue.menu as issueMenu
-// import contact.menu as contactMenu
-// import menu as requestMenu
-// import product.menu as productMenu
-// import release.menu as releaseMenu
+import anttracker.contact.menu as contactMenu
+import anttracker.issue.menu as issueMenu
+import anttracker.product.menu as productMenu
+import anttracker.release.menu as releaseMenu
+import anttracker.request.menu as requestMenu
 
 fun main() {
     while (true) {

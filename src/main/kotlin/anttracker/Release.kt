@@ -35,7 +35,7 @@ class Release(
 // Use by including in main-menu loop; should be triggered upon user selecting
 // New Release from the main menu. Thus, upon function return, system returns to main menu.
 // ---
-fun releaseMenu() {
+fun menu() {
     TODO()
 }
 

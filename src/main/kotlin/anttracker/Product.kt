@@ -41,7 +41,7 @@ fun displayProducts(): String {
 //     necessary, ensuring no duplicates in the database.
 // Returns when the user wishes to return to the main menu.
 // ---
-fun productMenu() {
+fun menu() {
     TODO()
 }
 

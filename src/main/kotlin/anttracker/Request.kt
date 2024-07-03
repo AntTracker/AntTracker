@@ -5,6 +5,11 @@ The Request module contains all exported classes and functions pertaining to
     the creation or selection of request entities.
 -------------------------------------------------------------------------------
 */
+package anttracker.request
+
+import anttracker.contact.Name
+import anttracker.issue.Issue
+import anttracker.release.ReleaseId
 
 // ----------------------------------------------------------------------------
 // Data class for storing the attributes of a given request.
@@ -13,7 +18,7 @@ data class Request(
     val affectedRelease: ReleaseId,
     val issue: Issue,
     val anticipatedRelease: ReleaseId,
-    val contact: Contact,
+    val contact: Name,
 )
 
 // ----------------------------------------------------------------------------
@@ -54,6 +59,6 @@ fun getRequestInfo(
 //     input when necessary, re-prompting where necessary.
 // Returns when the user wishes to return to the main menu.
 // ---
-fun requestMenu() {
+fun menu() {
     TODO()
 }

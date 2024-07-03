@@ -84,7 +84,7 @@ fun displayContacts(): String {
 // Returns all information about the contact identified by a given name.
 // ---
 fun getContactInfo(
-    name: String, // in
+    name: Name, // in
 ): Contact {
     TODO()
 }
@@ -96,6 +96,6 @@ fun getContactInfo(
 //     input when necessary, re-prompting where necessary.
 // Returns when the user wishes to return to the main menu.
 // ---
-fun contactMenu() {
+fun menu() {
     TODO()
 }

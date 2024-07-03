@@ -14,6 +14,11 @@ and searching for issues are also present in this file.
  */
 
 // ------
+package anttracker.issue
+
+import anttracker.product.Product
+import anttracker.release.ReleaseId
+import anttracker.request.Request
 import kotlin.time.TimeSource
 
 // ------
@@ -119,14 +124,14 @@ sealed class IssueFilter {
 }
 
 data class PageOf<T>(
-    val page: List<T>,
+    val page: T,
     val offset: Int,
     val limit: Int,
 )
 
 data class IssuePage(
     val filter: IssueFilter,
-    val pageInfo: PageOf<Issue>,
+    val pageInfo: Issue,
 )
 
 data class RequestPage(
@@ -195,7 +200,7 @@ fun nextPage(
 This function prints out a message asking the user how they would like
 to search for an issue.
 ----- */
-fun issueMenu() {
+fun menu() {
     TODO()
 }
 
