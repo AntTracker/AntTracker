@@ -195,7 +195,7 @@ fun nextPage(
 This function prints out a message asking the user how they would like
 to search for an issue.
 ----- */
-fun issuesMenu() {
+fun issueMenu() {
     TODO()
 }
 
