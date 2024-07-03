@@ -9,6 +9,8 @@ the creation or selection of product entities.
 
 package anttracker.product
 
+import anttracker.contact.Name
+
 // ----------------------------------------------------------------------------
 // Class for storing the attributes of a given product.
 // ---
@@ -45,4 +47,15 @@ fun menu() {
     TODO()
 }
 
-fun validateProductName(name: String): Boolean = true
+/** --------------
+ * This function takes the name of a potential user and checks if it is within 1 and
+ * 30 characters and is not in the database. If both of these conditions are met,
+ * the function returns true. Returns false otherwise.
+ * An example use case would be if 'John' and '123456789123456789123456789123456789'
+ * were passed to the function if the database had no previous users. For input 'John',
+ * the function would return true. For the second input, the function would return false
+ * since the name is longer than 30 characters
+----------------- */
+fun validateProductName(
+    name: Name, // in
+): Boolean = true
