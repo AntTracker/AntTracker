@@ -1,8 +1,7 @@
 /* Main.kt
 Revision History:
 Rev 1 - 2024/07/01 Original by Micah
-----------------
- * Purpose: entry-point and main-menu of AntTracker.
+      - entry-point and main-menu of AntTracker.
 ----------------
  */
 
