@@ -50,12 +50,24 @@ value class PhoneNumber(
     }
 }
 
+@JvmInline
+value class Department(
+    val name: String,
+) {
+    init {
+        require(name.length in 1..12) {
+            "The name of the department does not have 1-12 characters"
+        }
+    }
+}
+
 // Data class for storing the attributes of a given contact.
 // ---
 data class Contact(
     val name: Name,
     val email: Email,
     val phoneNumber: PhoneNumber,
+    val department: Department,
 )
 
 // ----------------------------------------------------------------------------
