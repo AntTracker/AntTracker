@@ -1,6 +1,4 @@
-/*
-Issues.kt
------------------
+/* Issues.kt
 Revision History
 Rev 1 - 6/30/2024 Original by Eitan
 -------------------------------------------
@@ -11,7 +9,6 @@ and searching for issues are also present in this file.
 ---------------------------------
  */
 
-// ------
 package anttracker.issue
 
 import anttracker.product.Product
