@@ -126,7 +126,7 @@ data class PageOf<T>(
 
 data class IssuePage(
     val filter: IssueFilter,
-    val pageInfo: Issue,
+    val pageInfo: PageOf<Issue>,
 )
 
 data class RequestPage(
@@ -154,6 +154,20 @@ fun searchIssues(
     filter: IssueFilter, // in
     issuesPerPage: Int, // in
 ): IssuePage {
+    TODO()
+}
+
+/** -------
+ * This function takes a predicate to apply on an issue, the number of issues to show per
+ * page N, and shows the issues from the database which satisfy the predicate in pages of
+ * size N.
+ * For example, calling displayIssues(hasLowPriority, 3) will show all the issues
+ * with a low priority in pages containing only three issues
+------- */
+fun displayIssues(
+    filter: IssueFilter, // in
+    issuesPerPage: Int, // in
+): String {
     TODO()
 }
 
