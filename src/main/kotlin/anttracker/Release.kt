@@ -12,6 +12,7 @@ The module hides validation of release attributes, the interactive menu prompts 
 package anttracker.release
 
 import anttracker.product.Product
+import java.time.LocalDate
 
 @JvmInline
 value class ReleaseId(
@@ -27,7 +28,7 @@ value class ReleaseId(
 class Release(
     val releaseName: ReleaseId,
     val product: Product,
-    var releaseDate: String,
+    var releaseDate: LocalDate,
 )
 
 // -------------------------------------------------------------------------------

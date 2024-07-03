@@ -1,12 +1,8 @@
-// ProductTest.kt
-
-/**
- *
+/*
+ProductTest.kt
 -----------------
 Revision History
-Rev 1 - 7/1/2024 Modified by Eitan
-- Added tests for validateProductName
-
+Rev 1 - 7/1/2024 Original by Eitan
 -------------------------------------------
 This file contains the tests for the function
 validateProductName.
