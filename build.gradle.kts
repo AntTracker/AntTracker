@@ -11,9 +11,9 @@ repositories {
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
-    implementation("com.varabyte.kotter:kotter-jvm:1.1.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
+    testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
+    testImplementation("io.kotest:kotest-assertions-core:5.9.1")
+    testImplementation("io.kotest:kotest-property:5.9.1")
 }
 
 tasks.test {
