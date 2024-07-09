@@ -8,7 +8,7 @@ The Request module contains all exported classes and functions pertaining to
 package anttracker.request
 
 import anttracker.contact.Name
-import anttracker.issue.Issue
+import anttracker.issues.Issue
 import anttracker.release.ReleaseId
 
 // ----------------------------------------------------------------------------
