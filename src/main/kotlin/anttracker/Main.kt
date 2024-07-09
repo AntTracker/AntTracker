@@ -18,7 +18,7 @@ class Terminal {
         message: String,
         choices: List<String>,
     ): String {
-        println("$message: ${choices.joinToString(", ")} ")
+        printLine(message)
         val choice = readln()
         if (choices.contains(choice)) {
             return choice

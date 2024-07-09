@@ -18,6 +18,7 @@ open class ScreenWithMenu : Screen {
     private var menuTitle: String = ""
     private var options: Map<String, ScreenHandler> = mutableMapOf()
     private var displayContent: DisplayFn = { }
+    private var promptMessage: String = ""
 
     fun title(theTitle: String) {
         this.menuTitle = theTitle
@@ -28,6 +29,10 @@ open class ScreenWithMenu : Screen {
         handler: () -> Screen,
     ) {
         this.options += description to handler
+    }
+
+    fun promptMessage(message: String) {
+        this.promptMessage = message
     }
 
     override fun run(t: Terminal): Screen? {
@@ -41,7 +46,7 @@ open class ScreenWithMenu : Screen {
         // Using `0` or `*` is reserved to exit and go to the main menu
         val choices = (1..byIndex.size).map(Integer::toString) + "0" + "*"
         // The user needs to choose from the choices that are 0, *, 1, 2, 3, 4...
-        val response = t.prompt("Please choose an option", choices = choices)
+        val response = t.prompt(promptMessage, choices = choices)
         t.printLine("You chose: $response")
 
         if (response == "*") {

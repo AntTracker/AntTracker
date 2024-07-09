@@ -8,11 +8,17 @@ val mainMenu =
         option("Products") { productsMenu }
         option("Contacts") { contactsMenu }
         content { t -> t.printLine("This is the main menu") }
+        promptMessage("Please select a command. ` to exit program:")
     }
 
 private val requestsMenu =
     screenWithMenu {
         content { t -> t.printLine("We are in the requests menu") }
+        promptMessage(
+            "<Enter> to display (20) more.\n" +
+                "\n" +
+                "Please select affected product. ` to abort:\n",
+        )
     }
 private val productsMenu =
     screenWithMenu {
