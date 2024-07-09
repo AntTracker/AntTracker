@@ -60,6 +60,7 @@ open class ScreenWithMenu : Screen {
     private fun displayMenu(t: Terminal): Array<Map.Entry<String, ScreenHandler>> {
         val byIndex = options.entries.toTypedArray()
 
+        t.printLine("== $menuTitle ==")
         byIndex.forEachIndexed { index, entry ->
             val nbr = "${index + 1}".padStart(2, ' ')
             t.print(nbr)
