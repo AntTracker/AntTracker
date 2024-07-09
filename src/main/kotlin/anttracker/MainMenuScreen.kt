@@ -3,10 +3,10 @@ package anttracker
 val mainMenu =
     screenWithMenu {
         title("Main menu")
-        option("Issues") { issuesMenu }
-        option("Requests") { requestsMenu }
-        option("Products") { productsMenu }
-        option("Contacts") { contactsMenu }
+        option("View/Edit Issues") { issuesMenu }
+        option("New Request") { requestsMenu }
+        option("New Contact") { contactsMenu }
+        option("New Product") { productsMenu }
         content { t -> t.printLine("This is the main menu") }
         promptMessage("Please select a command. ` to exit program:")
     }
@@ -22,6 +22,7 @@ private val requestsMenu =
     }
 private val productsMenu =
     screenWithMenu {
+        promptMessage("Please enter product name (1-30 characters). ` to exit: ")
         content { t -> t.printLine("We are in the products menu") }
     }
 private val contactsMenu =

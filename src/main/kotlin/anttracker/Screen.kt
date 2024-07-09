@@ -47,7 +47,6 @@ open class ScreenWithMenu : Screen {
         val choices = (1..byIndex.size).map(Integer::toString) + "`"
         // The user needs to choose from the choices that are 0, *, 1, 2, 3, 4...
         val response = t.prompt(promptMessage, choices = choices)
-        t.printLine("You chose: $response")
 
         if (response == "`") {
             return null
