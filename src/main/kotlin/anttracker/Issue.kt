@@ -205,14 +205,6 @@ fun nextPage(
     TODO()
 }
 
-/** ------
-This function prints out a message asking the user how they would like
-to search for an issue.
------ */
-fun menu() {
-    TODO()
-}
-
 /** ---
  * This function collects from the user all the information needed to create an issue
 by prompting them for the description, product, affectedRelease, and priority.
