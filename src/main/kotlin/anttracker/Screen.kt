@@ -44,20 +44,16 @@ open class ScreenWithMenu : Screen {
 
         // Ask the user to enter which menu wants to select
         // Using `0` or `*` is reserved to exit and go to the main menu
-        val choices = (1..byIndex.size).map(Integer::toString) + "0" + "*"
+        val choices = (1..byIndex.size).map(Integer::toString) + "`"
         // The user needs to choose from the choices that are 0, *, 1, 2, 3, 4...
         val response = t.prompt(promptMessage, choices = choices)
         t.printLine("You chose: $response")
 
-        if (response == "*") {
-            return mainMenu
+        if (response == "`") {
+            return null
         }
 
         val index = Integer.parseInt(response)
-
-        if (index == 0) {
-            return null
-        }
 
         return byIndex[index - 1].value()
     }

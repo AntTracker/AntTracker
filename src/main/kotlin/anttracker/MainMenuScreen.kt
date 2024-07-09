@@ -13,11 +13,11 @@ val mainMenu =
 
 private val requestsMenu =
     screenWithMenu {
-        content { t -> t.printLine("We are in the requests menu") }
+        title("NEW REQUEST")
         promptMessage(
             "<Enter> to display (20) more.\n" +
                 "\n" +
-                "Please select affected product. ` to abort:\n",
+                "Please select affected product. ` to abort:",
         )
     }
 private val productsMenu =

@@ -6,9 +6,52 @@ to search for an issue.
 ----- */
 fun mkIssuesMenu(): Screen =
     screenWithMenu {
-        title("Issues")
+        title("VIEW/EDIT ISSUE")
+        option("Description") { screenWithMenu { content { t -> t.printLine("There are no issues at the moment") } } }
         option("Search by Product") { screenWithMenu { content { t -> t.printLine("There are no products at the moment") } } }
-        content { t -> (1..10).forEach { t.printLine("This is issue number $it") } }
+        option("Affected release") {
+            screenWithMenu {
+                content { t ->
+                    t.printLine("There are no releases at the moment for any product")
+                }
+            }
+        }
+        option("Anticipated release") {
+            screenWithMenu {
+                content { t ->
+                    t.printLine("There are no releases at the moment for any product")
+                }
+            }
+        }
+        option("ID") {
+            screenWithMenu {
+                content { t ->
+                    t.printLine("There are no issues at the moment for any product")
+                }
+            }
+        }
+
+        option("Status") {
+            screenWithMenu {
+                content { t ->
+                    t.printLine("There are no issues at the moment for any product")
+                }
+            }
+        }
+        option("Priority") {
+            screenWithMenu {
+                content { t ->
+                    t.printLine("There are no issues at the moment for any product")
+                }
+            }
+        }
+        option("All Issues") {
+            screenWithMenu {
+                content { t ->
+                    t.printLine("There are no issues at the moment for any product")
+                }
+            }
+        }
         promptMessage("Please select search category. ` to abort:")
     }
 
