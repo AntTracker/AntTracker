@@ -1,24 +1,18 @@
 package anttracker
 
-val mainMenu =
-    screenWithMenu {
-        title("Main menu")
-        option("Issues") { issuesMenu }
-        option("Requests") { requestsMenu }
-        option("Products") { productsMenu }
-        option("Contacts") { contactsMenu }
-        content { t -> t.printLine("This is the main menu") }
+val requestsMenu =
+    object : Screen {
+        override fun run(): Screen? {
+            TODO("Not yet implemented")
+        }
     }
 
-private val requestsMenu =
-    screenWithMenu {
-        content { t -> t.printLine("We are in the requests menu") }
-    }
-private val productsMenu =
-    screenWithMenu {
-        content { t -> t.printLine("We are in the products menu") }
-    }
-private val contactsMenu =
-    screenWithMenu {
-        content { t -> t.printLine("We are in the contacts menu") }
+val mainMenu =
+    object : Screen {
+        val options: Map<String, Screen> = mapOf("Issue" to issuesMenu, "Requests" to requestsMenu)
+
+        override fun run(): Screen? {
+            val displayOptions = displayMenu(options, "Main Menu")
+            return menuUserInput(displayOptions)
+        }
     }

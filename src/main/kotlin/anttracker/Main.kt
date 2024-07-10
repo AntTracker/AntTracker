@@ -7,37 +7,13 @@ entry-point and main-menu of AntTracker.
 
 package anttracker
 
-class Terminal {
-    fun printLine() = println()
-
-    fun printLine(text: String) {
-        println(text)
-    }
-
-    fun prompt(
-        message: String,
-        choices: List<String>,
-    ): String {
-        println("$message: ${choices.joinToString(", ")} ")
-        val choice = readln()
-        if (choices.contains(choice)) {
-            return choice
-        }
-        return prompt(message, choices)
-    }
-
-    fun print(message: String) = kotlin.io.print(message)
-}
-
 fun main(args: Array<String>) {
-    val t = Terminal()
     var currentScreen: Screen? = mainMenu
 
     while (currentScreen != null) {
-        t.printLine("Press 0 to exit or * for the main menu")
-        t.printLine()
-
-        currentScreen = currentScreen.run(t)
+        println("Press 0 to exit or * for the main menu")
+        println()
+        currentScreen = currentScreen.run()
     }
 }
 

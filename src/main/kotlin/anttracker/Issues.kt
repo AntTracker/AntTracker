@@ -4,11 +4,24 @@ package anttracker
 This function prints out a message asking the user how they would like
 to search for an issue.
 ----- */
-fun mkIssuesMenu(): Screen =
-    screenWithMenu {
-        title("Issues")
-        option("Search by Product") { screenWithMenu { content { t -> t.printLine("There are no products at the moment") } } }
-        content { t -> (1..10).forEach { t.printLine("This is issue number $it") } }
+
+val searchByDescription =
+    object : Screen {
+        override fun run() = issuesMenu
     }
 
-val issuesMenu = mkIssuesMenu()
+val searchByPriority =
+    object : Screen {
+        override fun run() = issuesMenu
+    }
+
+val issuesMenu: Screen =
+    object : Screen {
+        val options: Map<String, Screen> =
+            mapOf("Search by description" to searchByDescription, "Search by priority" to searchByPriority)
+
+        override fun run(): Screen? {
+            val displayOptions = displayMenu(options, "Issues Menu")
+            return menuUserInput(displayOptions)
+        }
+    }
