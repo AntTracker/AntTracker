@@ -9,6 +9,8 @@ the creation or selection of product entities.
 
 package anttracker.product
 
+import anttracker.contact.Name
+
 // ----------------------------------------------------------------------------
 // Class for storing the attributes of a given product.
 // ---
@@ -55,5 +57,5 @@ fun menu() {
  * since the name is longer than 30 characters
 ----------------- */
 fun validateProductName(
-    name: String, // in
+    name: Name, // in
 ): Boolean = true
