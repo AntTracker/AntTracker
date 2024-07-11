@@ -5,6 +5,8 @@ Rev 1 - 2024/07/01 Original by Micah
 entry-point and main-menu of AntTracker.
  */
 
+package anttracker
+
 import anttracker.contact.menu as contactMenu
 import anttracker.issue.menu as issueMenu
 import anttracker.product.menu as productMenu

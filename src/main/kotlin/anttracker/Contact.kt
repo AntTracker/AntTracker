@@ -13,7 +13,7 @@ package anttracker.contact
 
 @JvmInline
 value class Name(
-    val name: String,
+    private val name: String,
 ) {
     init {
         require(name.length in 1..30) {
@@ -24,7 +24,7 @@ value class Name(
 
 @JvmInline
 value class Email(
-    val email: String,
+    private val email: String,
 ) {
     init {
         require(email.contains("@") && email.length in 5..24) {
@@ -35,7 +35,7 @@ value class Email(
 
 @JvmInline
 value class PhoneNumber(
-    val number: String,
+    private val number: String,
 ) {
     init {
         require(
@@ -52,7 +52,7 @@ value class PhoneNumber(
 
 @JvmInline
 value class Department(
-    val name: String,
+    private val name: String,
 ) {
     init {
         require(name.length in 1..12) {
@@ -67,7 +67,7 @@ data class Contact(
     val name: Name,
     val email: Email,
     val phoneNumber: PhoneNumber,
-    val department: Department,
+    val department: Department
 )
 
 // ----------------------------------------------------------------------------
@@ -76,19 +76,18 @@ data class Contact(
 // Prompts the user for the various fields for the contact, and validates
 //     input when necessary, re-prompting where necessary.
 // Returns the created contact.
+// Returns null if the user (somehow) indicates to leave: optional
 // ---
-fun enterContactInformation(): Contact {
+fun enterContactInformation(): Contact? {
     TODO()
 }
 
 // ----------------------------------------------------------------------------
-// Displays a sub-menu for selecting an existing contact.
-// Implements pagination when necessary.
-// Returns a string indicating the user input that terminated the selection:
-//   "`": exit the interface
-//   "1"...: selected row
+// Displays a sub-menu for selecting an existing contact, or create a contact.
+// If creating a contact, should call enterContactInformation.
+// Returns the selected/created contact, or null if user chooses to leave the menu.
 // ---
-fun displayContacts(): String {
+fun selectContact(): Contact? {
     TODO()
 }
 
@@ -109,5 +108,7 @@ fun getContactInfo(
 // Returns when the user wishes to return to the main menu.
 // ---
 fun menu() {
+    // print a listing of existing contacts
+    // call enterContactInformation?
     TODO()
 }
