@@ -43,7 +43,6 @@ value class Priority(
 data class IssueInformation(
     val description: Description,
     val productName: Product,
-    val affectedRelease: ReleaseId,
     val anticipatedRelease: ReleaseId? = null,
     val priority: Priority,
 )
