@@ -5,42 +5,60 @@ Rev 1 - 2024/07/01 Original by Micah
 entry-point and main-menu of AntTracker.
  */
 
-import anttracker.issues.setupSchema
-import org.jetbrains.exposed.sql.Database
-import anttracker.contact.menu as contactMenu
-import anttracker.issues.mainIssuesMenu as issuesMenu
-import anttracker.product.menu as productMenu
-import anttracker.release.menu as releaseMenu
-import anttracker.request.menu as requestMenu
+package anttracker.issues
 
-fun main() {
-    Database.connect("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
-    setupSchema()
-    while (true) {
-        val mainMenuText =
-            """
-            == MAIN MENU ==
-            1   View/Edit Issue
-            2   New request
-            3   New release
-            4   New contact
-            5   New product
-            
-            Please select a command. ` to exit program: 
-            """.trimIndent()
-        print(mainMenuText)
+class Terminal {
+    fun printLine() = println()
 
-        when (val selection = readln()) {
-            "`" -> break
-            "1" -> issuesMenu()
-            "2" -> requestMenu()
-            "3" -> releaseMenu()
-            "4" -> contactMenu()
-            "5" -> productMenu()
-            else -> {
-                println("Bad input: $selection.")
+    fun printLine(text: String) {
+        println(text)
+    }
+
+    fun prompt(
+        message: String,
+        choices: List<String>,
+    ): String {
+        println(message)
+        val choice = readln()
+        if (choices.contains(choice)) {
+            return choice
+        }
+        return prompt(message, choices)
+    }
+
+    fun print(message: String) = kotlin.io.print(message)
+
+    private val formatter = DateTimeFormatter.ofPattern("yyyy/mm/dd")
+
+    fun displayTable(
+        columns: List<Pair<String, Int>>,
+        rows: List<List<Any>>,
+    ) {
+        columns
+            .joinToString(separator = " |", postfix = "|", prefix = "|") { (columnName, length) ->
+                columnName.padEnd(length)
+            }.let {
+                print("# ")
+                printLine(it)
             }
+
+        rows.forEachIndexed { index, row ->
+            val stringRow =
+                row
+                    .mapIndexed { colIndex, col ->
+                        val length = columns[colIndex].second
+                        when {
+                            (col is Number) -> col.toString().padEnd(length)
+                            (col is LocalDateTime) -> col.format(formatter).padEnd(length)
+                            (col is LocalDate) -> col.format(formatter).padEnd(length)
+                            else -> col.toString().padEnd(length)
+                        }
+                    }.joinToString(separator = " |", postfix = "|", prefix = "|")
+            printLine("${(index + 1).toString().padEnd(2)}$stringRow")
         }
     }
 }

@@ -9,12 +9,11 @@ and searching for issues are also present in this file.
 ---------------------------------
  */
 
-package anttracker.issue
+package anttracker.issues
 
 import anttracker.product.Product
 import anttracker.release.ReleaseId
 import anttracker.request.Request
-import java.time.LocalDate
 
 // ------
 
@@ -25,17 +24,6 @@ value class Description(
     init {
         require(description.length in 1..30) {
             "Description length must be between 1 and 30 characters"
-        }
-    }
-}
-
-@JvmInline
-value class Priority(
-    private val priority: Int,
-) {
-    init {
-        require(priority in 1..5) {
-            "Priority of an issue must be between 1 and 5"
         }
     }
 }
@@ -58,12 +46,6 @@ value class IssueId(
         }
     }
 }
-
-data class Issue(
-    val id: IssueId,
-    val information: IssueInformation,
-    val createdAt: LocalDate,
-)
 
 @JvmInline
 value class Days(
@@ -119,7 +101,7 @@ sealed class IssueFilter {
 }
 
 data class PageOf<T>(
-    val page: T,
+    val page: List<T>,
     val offset: Int,
     val limit: Int,
 )
