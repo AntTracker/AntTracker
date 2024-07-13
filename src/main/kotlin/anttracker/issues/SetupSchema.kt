@@ -90,15 +90,6 @@ class Issue(
     var priority by Issues.priority
 }
 
-data class Issue1(
-    val id: Long,
-    val description: String,
-    val priority: Priority,
-    val fixBy: ReleaseId?,
-) {
-    val status: IssueStatus = IssueStatus.Triage
-}
-
 sealed class Priority {
     data object High : Priority()
 
