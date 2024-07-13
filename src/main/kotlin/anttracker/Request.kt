@@ -18,13 +18,13 @@ import anttracker.contact.getContactInfo
 import anttracker.contact.selectContact
 
 // issue imports
-import anttracker.issue.Days
-import anttracker.issue.Issue
-import anttracker.issue.IssueId
-import anttracker.issue.IssueFilter
-import anttracker.issue.enterIssueInformation
-import anttracker.issue.saveIssue
-import anttracker.issue.selectIssue
+import anttracker.issues.Days
+import anttracker.issues.Issue
+import anttracker.issues.IssueId
+import anttracker.issues.IssueFilter
+import anttracker.issues.enterIssueInformation
+import anttracker.issues.saveIssue
+import anttracker.issues.selectIssue
 
 // product imports
 import anttracker.product.selectProduct
