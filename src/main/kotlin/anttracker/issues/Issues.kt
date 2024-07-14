@@ -3,6 +3,7 @@ package anttracker.issues
 import anttracker.Issue
 import org.jetbrains.exposed.dao.with
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.format.DateTimeFormatter
 
 private val noIssuesMatching =
     screenWithMenu {
@@ -11,17 +12,21 @@ private val noIssuesMatching =
         }
     }
 
+private val formatter = DateTimeFormatter.ofPattern("yyyy/mm/dd")
+
 private fun viewIssueMenu(issue: Issue): Screen =
     screenWithMenu {
         title("Issue #${issue.id}")
-        transaction {
-            option("Description: ${issue.description}") { noIssuesMatching }
-            option("Priority: ${issue.priority}") { noIssuesMatching }
-            option("Status: ${issue.status}") { noIssuesMatching }
-            option("AntRel: ${issue.anticipatedRelease}") { noIssuesMatching }
-            option("Print") { noIssuesMatching }
-            option("Back to issues") { noIssuesMatching }
+        content { t ->
+            transaction {
+                t.printLine("Priority: ${issue.priority}")
+                t.printLine("Status: ${issue.status}")
+                t.printLine("AntRel: ${issue.anticipatedRelease.releaseId}")
+                t.printLine("Created: ${issue.creationDate.format(formatter)}")
+            }
         }
+        option("Print") { noIssuesMatching }
+        option("Edit") { noIssuesMatching }
     }
 
 typealias RowToIssuePage = Map<Int, Issue>
