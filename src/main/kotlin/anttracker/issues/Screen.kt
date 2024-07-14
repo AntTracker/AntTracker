@@ -36,17 +36,17 @@ open class ScreenWithMenu : Screen {
     }
 
     override fun run(t: Terminal): Screen? {
-        val byIndex = displayMenu(t)
-
-        t.printLine()
+        menuTitle?.run { t.printLine("== $menuTitle ==") }
         displayContent(t)
         t.printLine()
+        val byIndex = displayMenu(t)
 
         // Ask the user to enter which menu wants to select
         val mainMenuChoice = "`"
-        val backToMainMenuMessage = " `(backtick) to abort:"
+        val backToMainMenuMessage = " Or press ` (backtick) to go back to the main menu:"
         val choices = (1..byIndex.size).map(Integer::toString) + mainMenuChoice
         // The user needs to choose from the choices that are `, 1, 2, 3, 4...
+        t.printLine()
         val response = t.prompt(promptMessage + backToMainMenuMessage, choices = choices)
 
         return when (response) {
@@ -61,7 +61,6 @@ open class ScreenWithMenu : Screen {
     private fun displayMenu(t: Terminal): Array<Map.Entry<String, ScreenHandler>> {
         val byIndex = options.entries.toTypedArray()
 
-        menuTitle?.run { t.printLine("== $menuTitle ==") }
         byIndex.forEachIndexed { index, entry ->
             val nbr = "${index + 1}".padStart(2, ' ')
             t.print(nbr)

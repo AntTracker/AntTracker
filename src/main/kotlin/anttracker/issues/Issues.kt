@@ -10,13 +10,36 @@ private val noIssuesMatching =
         }
     }
 
+typealias RowToIssuePage = Map<Int, Issue>
+
+private fun viewIssueMenu(rows: RowToIssuePage) =
+    screenWithMenu {
+        title("View issue")
+        content { t ->
+            t.prompt(
+                "Enter the row number of the issue you want to view",
+                rows.keys.map { it.toString() },
+            )
+        }
+    }
+
 fun displayAllIssuesMenu(page: PageWithFilter): Screen =
     screenWithMenu {
         title("Search Results")
         option("Select filter") { mkIssuesMenu(page) }
         option("Print") { screenWithMenu { content { t -> t.printLine("Not currently implemented. In next version") } } }
         option("Next page") { displayAllIssuesMenu(page.next()) }
-
+        option("View issue") {
+            transaction {
+                Issue
+                    .all()
+                    .limit(page.pageInfo.limit, page.pageInfo.offset)
+                    .zip(1..20) { issue, index -> index to issue }
+                    .toMap()
+            }.let {
+                viewIssueMenu(it)
+            }
+        }
         val columns =
             listOf("ID" to 2, "Description" to 30, "Priority" to 9, "Status" to 14, "AntRel" to 8, "Created" to 10)
         content { t ->
