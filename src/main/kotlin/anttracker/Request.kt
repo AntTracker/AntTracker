@@ -19,7 +19,6 @@ import anttracker.contact.selectContact
 
 // issue imports
 import anttracker.issues.Days
-import anttracker.issues.Issue
 import anttracker.issues.IssueId
 import anttracker.issues.IssueFilter
 import anttracker.issues.enterIssueInformation
@@ -30,6 +29,7 @@ import anttracker.issues.selectIssue
 import anttracker.product.selectProduct
 
 // release imports
+import anttracker.Issue
 import anttracker.release.ReleaseId
 import anttracker.release.selectRelease
 
@@ -40,7 +40,7 @@ data class Request(
     val affectedRelease: ReleaseId,
     val issue: Issue,
     val contact: Name,
-    val requestDate: LocalDate
+    val requestDate: LocalDate,
 )
 
 // any attribute in this may be null - signifying a not being used filtering mechanism
@@ -49,7 +49,7 @@ data class RequestFilter(
     val name: Name?, // by contact name
     val days: Days?, // since n days
     val release: ReleaseId?, // by release
-    val issue: IssueId? // by issue
+    val issue: IssueId?, // by issue
 )
 
 // -----------------
@@ -58,7 +58,7 @@ data class RequestFilter(
 
 // saves a given request object into the database
 fun saveRequest(
-    request: Request // in
+    request: Request, // in
 ) {
     TODO()
 }
@@ -66,7 +66,11 @@ fun saveRequest(
 // gets the next $limit requests from the DB after the $offset according to the $filter
 // returns an empty list if there are no more requests to display
 // if $filter is null, then retrieve all requests, ordered by the primary key
-fun getRequestsInDB(offset: Int, limit: Int, filter: RequestFilter?): List<Request> {
+fun getRequestsInDB(
+    offset: Int,
+    limit: Int,
+    filter: RequestFilter?,
+): List<Request> {
     TODO()
 }
 
@@ -113,12 +117,13 @@ fun enterRequestInformation(): Request? {
     }
 
     // construct request object
-    val request = Request(
-        release.id,
-        issue,
-        contact.name,
-        LocalDate.now()
-    )
+    val request =
+        Request(
+            release.id,
+            issue,
+            contact.name,
+            LocalDate.now(),
+        )
 
     // save the request object into the DB
     saveRequest(request)
@@ -130,7 +135,7 @@ fun enterRequestInformation(): Request? {
 // Implements pagination when necessary.
 // Returns the selected request, or null if user chooses to leave the menu.
 fun selectRequest(
-    filter: RequestFilter? // in
+    filter: RequestFilter?, // in
 ): Request? {
     var offset = 0 // TODO: make this a global constant, for use by multiple modules
     val limit = 20
@@ -170,10 +175,10 @@ fun selectRequest(
             // print a line for this request
             println(
                 "${request.affectedRelease}\t" +
-                "${request.requestDate}\t" +
-                "${request.contact}\t" +
-                "${contact.email}\t" +
-                "${contact.department}\t"
+                    "${request.requestDate}\t" +
+                    "${request.contact}\t" +
+                    "${contact.email}\t" +
+                    "${contact.department}\t",
             )
         }
 

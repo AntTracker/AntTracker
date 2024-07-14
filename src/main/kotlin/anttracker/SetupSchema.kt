@@ -1,4 +1,4 @@
-package anttracker.issues
+package anttracker
 
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
@@ -14,7 +14,7 @@ fun setupSchema() {
     transaction {
         SchemaUtils.createMissingTablesAndColumns(Products, Issues, Releases)
 
-        (0..10).forEach { id ->
+        (0..40).forEach { id ->
             val productId = Products.insert { it[name] = "Product $id" } get Products.id
             val relId =
                 Releases.insert {

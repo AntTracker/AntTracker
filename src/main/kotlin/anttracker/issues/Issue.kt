@@ -11,6 +11,8 @@ and searching for issues are also present in this file.
 
 package anttracker.issues
 
+import anttracker.Issue
+import anttracker.Priority
 import anttracker.product.Product
 import anttracker.release.ReleaseId
 import anttracker.request.Request
@@ -94,21 +96,25 @@ sealed class IssueFilter {
         val product: Product,
     ) : IssueFilter()
 
+    data object NoFilter : IssueFilter()
+
     data class Composite(
         val filter: List<IssueFilter>,
     ) : IssueFilter()
 }
 
 data class PageOf<T>(
-    val page: List<T>,
-    val offset: Int,
-    val limit: Int,
+    val page: List<T> = emptyList(),
+    val offset: Long = 0,
+    val limit: Int = 20,
 )
 
-data class IssuePage(
-    val filter: IssueFilter,
-    val pageInfo: PageOf<Issue>,
+data class PageWithFilter(
+    val filter: IssueFilter = IssueFilter.NoFilter,
+    val pageInfo: PageOf<Issue> = PageOf(),
 )
+
+fun PageWithFilter.next(): PageWithFilter = this.copy(pageInfo = pageInfo.copy(offset = pageInfo.offset + 20))
 
 data class RequestPage(
     val pageInfo: PageOf<Request>,
@@ -129,8 +135,8 @@ fun saveIssue(issueInformation: IssueInformation): Issue? {
  * This function returns the next page of issues to display based on the current page
  */
 fun nextPage(
-    oldPage: IssuePage, // in
-): IssuePage {
+    oldPage: PageWithFilter, // in
+): PageWithFilter {
     TODO()
 }
 
@@ -143,7 +149,7 @@ which was created yesterday
 fun searchIssues(
     filter: IssueFilter, // in
     issuesPerPage: Int, // in
-): IssuePage {
+): PageWithFilter {
     TODO()
 }
 
