@@ -10,16 +10,32 @@ private val noIssuesMatching =
         }
     }
 
+private fun viewIssueMenu(issue: Issue): Screen {
+}
+
 typealias RowToIssuePage = Map<Int, Issue>
 
-private fun viewIssueMenu(rows: RowToIssuePage) =
-    screenWithMenu {
-        title("View issue")
-        content { t ->
-            t.prompt(
-                "Enter the row number of the issue you want to view",
-                rows.keys.map { it.toString() },
-            )
+private fun selectIssueToViewMenu(rows: RowToIssuePage) =
+    object : Screen {
+        override fun run(t: Terminal): Screen? {
+            t.printLine("== View issue ==")
+            val mainMenuChoice = "`"
+            val backToMainMenuMessage = " Or press ` (backtick) to go back to the main menu:"
+            val response =
+                t.prompt(
+                    "Enter the row number of the issue you want to view.$backToMainMenuMessage",
+                    rows.keys.map { it.toString() } + mainMenuChoice,
+                )
+            t.printLine()
+
+            return when (response) {
+                mainMenuChoice -> null
+                else -> {
+                    val index = Integer.parseInt(response)
+                    return rows[index]?.let(::viewIssueMenu)
+                }
+            }
+            // The user needs to choose from the choices that are `, 1, 2, 3, 4...
         }
     }
 
@@ -37,7 +53,7 @@ fun displayAllIssuesMenu(page: PageWithFilter): Screen =
                     .zip(1..20) { issue, index -> index to issue }
                     .toMap()
             }.let {
-                viewIssueMenu(it)
+                selectIssueToViewMenu(it)
             }
         }
         val columns =
