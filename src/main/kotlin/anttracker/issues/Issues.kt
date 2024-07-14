@@ -1,6 +1,7 @@
 package anttracker.issues
 
 import anttracker.Issue
+import org.jetbrains.exposed.dao.with
 import org.jetbrains.exposed.sql.transactions.transaction
 
 private val noIssuesMatching =
@@ -10,34 +11,46 @@ private val noIssuesMatching =
         }
     }
 
-private fun viewIssueMenu(issue: Issue): Screen {
-}
+private fun viewIssueMenu(issue: Issue): Screen =
+    screenWithMenu {
+        title("Issue #${issue.id}")
+        transaction {
+            option("Description: ${issue.description}") { noIssuesMatching }
+            option("Priority: ${issue.priority}") { noIssuesMatching }
+            option("Status: ${issue.status}") { noIssuesMatching }
+            option("AntRel: ${issue.anticipatedRelease}") { noIssuesMatching }
+            option("Print") { noIssuesMatching }
+            option("Back to issues") { noIssuesMatching }
+        }
+    }
 
 typealias RowToIssuePage = Map<Int, Issue>
 
-private fun selectIssueToViewMenu(rows: RowToIssuePage) =
-    object : Screen {
-        override fun run(t: Terminal): Screen? {
-            t.printLine("== View issue ==")
-            val mainMenuChoice = "`"
-            val backToMainMenuMessage = " Or press ` (backtick) to go back to the main menu:"
-            val response =
-                t.prompt(
-                    "Enter the row number of the issue you want to view.$backToMainMenuMessage",
-                    rows.keys.map { it.toString() } + mainMenuChoice,
-                )
-            t.printLine()
+private fun selectIssueToViewMenu(
+    rows: RowToIssuePage,
+    page: PageWithFilter,
+) = object : Screen {
+    override fun run(t: Terminal): Screen? {
+        t.printLine("== View issue ==")
+        val mainMenuChoice = "I"
+        val backToMainMenuMessage = " Or press I to go back to the issues menu:"
+        val response =
+            t.prompt(
+                "Enter the row number of the issue you want to view.$backToMainMenuMessage",
+                rows.keys.map { it.toString() } + mainMenuChoice,
+            )
+        t.printLine()
 
-            return when (response) {
-                mainMenuChoice -> null
-                else -> {
-                    val index = Integer.parseInt(response)
-                    return rows[index]?.let(::viewIssueMenu)
-                }
+        return when (response) {
+            mainMenuChoice -> displayAllIssuesMenu(page)
+            else -> {
+                val index = Integer.parseInt(response)
+                return rows[index]?.let(::viewIssueMenu)
             }
-            // The user needs to choose from the choices that are `, 1, 2, 3, 4...
         }
+        // The user needs to choose from the choices that are `, 1, 2, 3, 4...
     }
+}
 
 fun displayAllIssuesMenu(page: PageWithFilter): Screen =
     screenWithMenu {
@@ -49,11 +62,12 @@ fun displayAllIssuesMenu(page: PageWithFilter): Screen =
             transaction {
                 Issue
                     .all()
+                    .with(Issue::anticipatedRelease)
                     .limit(page.pageInfo.limit, page.pageInfo.offset)
                     .zip(1..20) { issue, index -> index to issue }
                     .toMap()
             }.let {
-                selectIssueToViewMenu(it)
+                selectIssueToViewMenu(it, page)
             }
         }
         val columns =
