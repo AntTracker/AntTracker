@@ -1,22 +1,24 @@
 package anttracker
-import anttracker.release.Release
-import anttracker.release.ReleaseTable
-import org.jetbrains.exposed.sql.Query
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import anttracker.issues.Products
+import anttracker.issues.Release
+import anttracker.issues.Releases
+import org.jetbrains.exposed.sql.SizedIterable
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.math.ceil
 
 // A PageOf objects contains a max-20 element list of T.
 // Provides top-level functionality for:
 //  - loading DB records into memory (one page at a time)
-//  - displaying page contents
+//  - accessing records
+//  - displaying records as a page
 //  - going to the next page and loading its records
-abstract class PageOf<T> {
-    protected var contents: MutableList<T> = mutableListOf() // Container for object instances
+abstract class PageOf<IntEntity> {
+    protected var contents: MutableList<IntEntity> = mutableListOf() // Container for object instances
     protected var pagenum: Int = 0 // NOTE: Page numbers are 0-indexed
-    protected var lastPageNum: Int = 0
-    protected val OFFSET: Int = 0 // For page calculation in DB query
-    protected val LIMIT: Int = 20 // Number of records per page.
+    private var lastPageNum: Int = 0
+    protected val qOffset: Int = 0 // For page calculation in DB query
+    protected val qLimit: Int = 20 // Number of records per page.
 
     // -------------------------------------------------------------------------------
     // Automatically called upon object creation (i.e. a ctor)
@@ -38,10 +40,25 @@ abstract class PageOf<T> {
     fun loadContents() {
         contents.clear()
         val queryOutput = queryToDB()
-        queryOutput.forEach {
-            contents.add(it[ReleaseTable])
+        if (queryOutput != null) {
+            queryOutput.forEach { record ->
+                contents.add(record)
+            }
+            // contents = queryOutput.toMutableList()
+        } else {
+            throw Exception("PageOf: Attempted to load from null query output.")
         }
     }
+
+    // -------------------------------------------------------------------------------
+    // Returns the size/length of the contents MutableList.
+    // ---
+    fun contentsSize(): Int = contents.size
+
+    // -------------------------------------------------------------------------------
+    // Getter for contents MutableList.
+    // ---
+    fun getContentAt(index: Int): IntEntity = contents[index]
 
     // -------------------------------------------------------------------------------
     // Increments page number and loads associated DB records into MutableList contents datamember
@@ -61,13 +78,18 @@ abstract class PageOf<T> {
     fun lastPage(): Boolean = pagenum >= lastPageNum
 
     // -------------------------------------------------------------------------------
+    // Returns the number of yet-to-be-displayed records after the current page.
+    // ---
+    fun countRemainingRecords(): Int = getQueryRowCount() - (qLimit * pagenum)
+
+    // -------------------------------------------------------------------------------
     // Used in init/ctor block to calculate the last page number.
     // As we are 0-indexing the page numbers, we subtract 1 at the end.
     // ---
-    fun initLastPageNum() {
+    private fun initLastPageNum() {
         lastPageNum =
             ceil(
-                (getQueryRowCount().toDouble() / LIMIT.toDouble()),
+                (getQueryRowCount().toDouble() / qLimit.toDouble()),
             ).toInt() - 1
     }
 
@@ -82,7 +104,7 @@ abstract class PageOf<T> {
     // Defines the DAO query to DB used to pull records into memory.
     // Abstract/Virtual as query needs to be defined per PageOf Type
     // ---
-    protected abstract fun queryToDB(): Query
+    protected abstract fun queryToDB(): SizedIterable<IntEntity>?
 }
 
 // -------------------------------------------------------------------------------
@@ -94,30 +116,31 @@ abstract class PageOf<T> {
 // ---
 class PageOfReleases(
     private val productName: String,
-) : PageOf<ReleaseTable>() {
+) : PageOf<Release>() {
     override fun display() {
         for (releaseRecord in contents) {
-            println(releaseRecord.releaseID)
+            println(releaseRecord.releaseId)
+        }
+        if (!lastPage()) {
+            println("<Enter> for ${countRemainingRecords()} more.")
         }
     }
 
     override fun getQueryRowCount(): Int {
         var numRecords = 0
         transaction {
-            numRecords = ReleaseTable.count()
+            numRecords = Releases.selectAll().count().toInt()
         }
         return numRecords
     }
 
-    override fun queryToDB() {
-        var output: Query
+    override fun queryToDB(): SizedIterable<Release>? {
+        var output: SizedIterable<Release>? = null
         transaction {
             output =
                 Release
-                    .find {
-                        ReleaseTable.product eq productName
-                    }.limit(LIMIT)
-                    .offset(pagenum * LIMIT + OFFSET)
+                    .find { Products.name eq productName }
+                    .limit(n = qLimit, offset = (pagenum * qLimit + qOffset).toLong())
         }
         return output
     }

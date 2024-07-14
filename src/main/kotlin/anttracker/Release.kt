@@ -10,31 +10,12 @@ The module hides validation of release attributes, the interactive menu prompts 
 */
 
 package anttracker.release
-import anttracker.product.Product
-import anttracker.product.displayProducts
-import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.selectAll
+import anttracker.PageOfReleases
+import anttracker.issues.Product
+import anttracker.issues.Products
+import anttracker.issues.Release
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.time.LocalDate
-
-
-object ProductTable : Table("product") {
-    val productName = varchar("productName", 10)
-    override val primaryKey = PrimaryKey(productName)
-}
-
-object ReleaseTable : Table("release") {
-    val releaseID = varchar("releaseID", 8)
-    val product =
-        varchar("product", 10).references(
-            ProductTable.productName,
-            onDelete = ReferenceOption.CASCADE,
-            onUpdate = ReferenceOption.CASCADE,
-        )
-    val releaseDate = varchar("releaseDate", 10)
-    override val primaryKey = PrimaryKey(arrayOf(releaseID, product))
-}
+import java.time.LocalDateTime
 
 @JvmInline
 value class ReleaseId(
@@ -49,24 +30,6 @@ value class ReleaseId(
     override fun toString(): String = id
 }
 
-fun testProducts() {
-    var linenum = 1
-    transaction {
-        val output = ProductTable.selectAll()
-        println("Product List")
-        output.forEach {
-            println("$linenum   ${it[ProductTable.productName]}")
-            linenum++
-        }
-    }
-}
-
-class Release(
-    val releaseName: ReleaseId,
-    val product: Product,
-    var releaseDate: LocalDate,
-)
-
 val promptEnterRel = "\nPlease enter new release name. ` to abort:"
 
 val promptSelectRel = "\nPlease select release. ` to abort:"
@@ -80,12 +43,11 @@ val promptSelectAffRel = "\nPlease select affected release. ` to abort:"
 // ---
 fun menu() {
     println("== NEW RELEASE ==")
-    println("should be some product list below:")
-    testProducts()
-    println("\nPlease select a product (1). ` to abort:")
+    // val selectedProduct = selectProduct()    <- TODO: uncomment and replace when implemented in product module
+    val selectedProduct = "Product 1"
     when (val selection = readln()) {
         "`" -> return
-        "1" -> createRelease()
+        "1" -> createRelease(selectedProduct)
         else -> {
             println("Bad input: $selection.")
             return
@@ -94,68 +56,61 @@ fun menu() {
 }
 
 // -------------------------------------------------------------------------------
-// Prints to console a paginated list of releases for a product
-// Returns a string indicating user input:
-//  "`": user exit
-//  an int (e.g. "4"): a line number selecting a particular release to query on
-// Call as part of any relevant sub-menu
-//  e.g. During request creation, call this to find and select the affected release
+// A read-only display of releases for a product. Returns control upon reaching
+//  the final page, or if user aborts with backtick.
 // ---
-fun displayReleases(
-    product: String, // in
-): String {
-    println("$product releases:")
-    transaction {
-        val output = ReleaseTable.selectAll().where { ReleaseTable.product eq product }
+fun displayReleases(productName: String) {
+    val relPage = PageOfReleases(productName)
+    relPage.loadContents()
+    relPage.display()
+
+    while (!relPage.lastPage()) {
+        val userInput = readln()
+        when (userInput) {
+            "`" -> return
+            "" -> {
+                relPage.loadNextPage()
+                relPage.display()
+            }
+        }
     }
-    return product
+    return
 }
 
-fun selectRelease(productName: String? = null): Release? {
-    var product = productName
-    if (product == null) {
-        product = selectProduct()
-    }
-
-    while (!userinput) {
-        displayReleases(product)
-    }
-
-    transaction {
-//            release = ReleaseTable.selectAll().where {
-//                ReleaseTable.product eq productName and
-//                ReleaseTable.releaseID eq releaseID
-//            }
-    }
-    return release
-}
-
-fun createRelease() {
-    displayReleases("GreenTiger")
+fun selectRelease(productName: String): Release? {
+    val relPage = PageOfReleases(productName)
+    relPage.loadContents()
+    relPage.display()
 
     var linenum: Int? = null
     while (linenum == null) {
-        println(promptSelectRel)
-        val selection = readln()
-        if (selection == "`") {
-            return
-        }
-        try {
-            val userEntry = selection.toInt()
-            when (userEntry) {
-                in 0..20 -> linenum = userEntry
-                else -> {
-                    println("Error: please enter a valid line number.")
+        println(promptSelectRel) // "Please select release. ` to abort: "
+        val userInput = readln()
+        when (userInput) {
+            "`" -> return null
+            "" -> {
+                if (!relPage.lastPage()) {
+                    relPage.loadNextPage()
+                    relPage.display()
                 }
             }
-        } catch (e: java.lang.NumberFormatException) {
-            println("Error: please enter a number.")
+            else -> {
+                try {
+                    val userInputInt = userInput.toInt()
+                    if (userInputInt in (1..20) && userInputInt < relPage.contentsSize()) {
+                        linenum = userInput.toInt()
+                    }
+                } catch (e: java.lang.NumberFormatException) {
+                    println(e.message)
+                }
+            }
         }
     }
+    return relPage.getContentAt(linenum)
+}
 
-    // val selectedProduct: String = linenum.toString()
-    val selectedProduct: String = displayProducts(selectedProduct)
-    displayReleases(selectedProduct)
+fun createRelease(productName: String) {
+    displayReleases(productName)
 
     var releaseEntry: String? = null
     while (releaseEntry == null) {
@@ -169,80 +124,17 @@ fun createRelease() {
             println(e.message)
         }
     }
-    // if saveToDb()
-    println("$selectedProduct $releaseEntry created.\n")
-}
 
-/*
-NOTE: 95% complete pseudocode
-
-SQL for getting a page of release records from full query output:
-select * from Release where
-    product = $product
-    LIMIT 20 OFFSET (pagenum*limit + offset)
-
---PageOf<T>--
-contents:       MutableList<T>
-pagenum:        Int = 0 // decide on 0 or 1 indexed?
-lastPageNum:    Int = 0 // initialized on construct/init
-offset:         Int = 0
-limit:          Int = 20
-
---PageOf<Release>--
-// added data:
-product: String
-
-// Prints page contents to terminal
-display() {
-    for releaseRecord in contents
-        println(releaseRecord.releaseID)  // add some nice formatting
-}
-
-// Stores page with its associated records in DB
-
-
-loadNextPage() {
-    if (lastPage()) {
-        throw exception
-    }
-    pagenum++;
-    loadContents()
-}
-
-//EXAMPLE:
-//    Total query returns 30 rows = 2 pages (20 + 10)
-//    pagelimit is 20, 30/20 = 1.5
-//    ceil(1.5) = 2
-//    therefore, maxPages = ceil(count(Qtotal)/limit)
-initLastPageNum() {
-
-}
-
-// Displays pages of releases to console, prompts user to select one with linenumber.
-// Returns user-selected release record from page.
-selectRelease(product: String)
-    relPage: PageOf<Release>(product)
-    relPage.loadContents()
-    relPage.display()
-
-    linenum: LineNum? = null
-    while(!linenum) {
-        println(promptRelSelect) //"Please select release. ` to abort: "
-        userInput = readln()
-        when (userInput) {
-            "`" -> return
-            <Enter> -> {
-                if (!lastPage()) {
-                    loadNextPage()
-                }
-            }
-            else {
-                if userInput is valid linenumber (1..20 AND < contents.size())
-                    linenum = userInput
-                else
-                    println(errMsgInvalidLineNum) // While loop continues; user can try again
-            }
+    transaction {
+        val product =
+            Product.find { Products.name eq productName }.firstOrNull()
+                ?: throw IllegalArgumentException("Error: Product not found")
+        Release.new {
+            releaseId = releaseEntry
+            this.product = product
+            releaseDate = LocalDateTime.now()
         }
     }
-    return releasePage.contents.get(linenum)
-*/
+
+    println("$productName $releaseEntry created.\n")
+}
