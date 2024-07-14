@@ -5,7 +5,7 @@ Rev 1 - 2024/07/01 Original by Micah
 entry-point and main-menu of AntTracker.
  */
 
-import anttracker.setupSchema
+import anttracker.db.setupSchema
 import org.jetbrains.exposed.sql.Database
 import anttracker.contact.menu as contactMenu
 import anttracker.issues.mainIssuesMenu as issuesMenu

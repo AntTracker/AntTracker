@@ -8,7 +8,8 @@ the creation or selection of product entities.
 */
 
 package anttracker.product
-import anttracker.Product
+
+import anttracker.db.Product
 
 // ----------------------------------------------------------------------------
 // Class for storing the attributes of a given product.

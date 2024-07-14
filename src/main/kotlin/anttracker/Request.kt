@@ -8,30 +8,23 @@ The Request module contains all exported classes and functions pertaining to
 */
 package anttracker.request
 
-// contact imports
-import anttracker.contact.Name
 import anttracker.contact.enterContactInformation
 import anttracker.contact.getContactInfo
+import anttracker.contact.Name
 import anttracker.contact.selectContact
-
-// issue imports
+import anttracker.db.Issue
 import anttracker.issues.Days
-import anttracker.issues.IssueId
 import anttracker.issues.IssueFilter
+import anttracker.issues.IssueId
 import anttracker.issues.enterIssueInformation
 import anttracker.issues.saveIssue
 import anttracker.issues.selectIssue
-
-// product imports
 import anttracker.product.selectProduct
 import anttracker.product.ProductName
 
 // release imports
-import anttracker.Issue
 import anttracker.release.ReleaseId
 import anttracker.release.selectRelease
-
-// java imports
 import java.time.LocalDate
 
 // ----------------------------------------------------------------------------

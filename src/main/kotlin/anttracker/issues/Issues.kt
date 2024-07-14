@@ -1,6 +1,9 @@
 package anttracker.issues
 
-import anttracker.Issue
+import anttracker.db.Issue
+import anttracker.db.Release
+import anttracker.db.Releases
+import anttracker.release.next
 import org.jetbrains.exposed.dao.with
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.format.DateTimeFormatter
@@ -12,17 +15,93 @@ private val noIssuesMatching =
         }
     }
 
-private val formatter = DateTimeFormatter.ofPattern("yyyy/mm/dd")
+private fun editDescription(issue: Issue): Screen =
+    screenWithMenu {
+        var newDescription = ""
+        content { t ->
+            newDescription = t.prompt("Please enter description")
+            printIssueSummary(t, issue)
+            t.title("Update: Description")
+            t.printLine("OLD: ${issue.description}")
+            t.printLine("NEW: $newDescription")
+        }
+        option("Save") {
+            val updatedIssue =
+                transaction {
+                    Issue.findByIdAndUpdate(issue.id.value) {
+                        it.description = newDescription
+                    }
+                }
+            require(updatedIssue != null)
+            viewIssueMenu(updatedIssue)
+        }
+        option("Back") { viewIssueMenu(issue) }
+    }
+
+private fun printIssueSummary(
+    t: Terminal,
+    issue: Issue,
+) {
+    transaction {
+        t.title("Summary")
+        t.printLine("Description: ${issue.description}")
+        t.printLine("Priority: ${issue.priority}")
+        t.printLine("Status: ${issue.status}")
+        t.printLine("AntRel: ${issue.anticipatedRelease.releaseId}")
+        t.printLine("Created: ${issue.creationDate.format(formatter)}")
+        t.printLine()
+    }
+}
+
+private fun confirmNewRelease(
+    newRelease: Release,
+    issue: Issue,
+): Screen =
+    screenWithMenu {
+        content { t ->
+            transaction {
+                printIssueSummary(t, issue)
+                t.title("Update: Release")
+                t.printLine("OLD: ${issue.anticipatedRelease.releaseId}")
+                t.printLine("NEW: ${newRelease.releaseId}")
+            }
+        }
+        option("Save") {
+            val updatedIssue =
+                transaction {
+                    Issue.findByIdAndUpdate(issue.id.value) {
+                        it.anticipatedRelease = newRelease
+                    }
+                }
+            require(updatedIssue != null)
+            viewIssueMenu(updatedIssue)
+        }
+        option("Back") { editAnticipatedRelease(issue) }
+    }
+
+private fun editAnticipatedRelease(issue: Issue): Screen =
+    screenWithMenu {
+        transaction {
+            Release
+                .find { Releases.product eq issue.product.id }
+                .forEach { option(it.releaseId) { confirmNewRelease(it, issue) } }
+        }
+        promptMessage("Select the line corresponding to the new release id you want.")
+    }
+
+private val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
 
 private fun viewIssueMenu(issue: Issue): Screen =
     screenWithMenu {
         title("Issue #${issue.id}")
         transaction {
+            option("Description: ${issue.description}") { editDescription(issue) }
             option("Priority: ${issue.priority}") { noIssuesMatching }
             option("Status: ${issue.status}") { noIssuesMatching }
-            option("AntRel: ${issue.anticipatedRelease.releaseId}") { noIssuesMatching }
+            option("AntRel: ${issue.anticipatedRelease.releaseId}") { editAnticipatedRelease(issue) }
             option("Created: ${issue.creationDate.format(formatter)} (not editable)") { viewIssueMenu(issue) }
             option("Print") { noIssuesMatching }
+            option("Back to issues") { noIssuesMatching }
         }
         promptMessage("Enter 1, 2, or 3 to edit the respective fields.")
     }
@@ -50,6 +129,17 @@ private fun selectIssueToViewMenu(rows: RowToIssuePage) =
                 }
             }
             // The user needs to choose from the choices that are `, 1, 2, 3, 4...
+        }
+    }
+
+private fun viewIssueMenu(rows: RowToIssuePage) =
+    screenWithMenu {
+        title("View issue")
+        content { t ->
+            t.prompt(
+                "Enter the row number of the issue you want to view",
+                rows.keys.map { it.toString() },
+            )
         }
     }
 

@@ -11,10 +11,10 @@ The module hides validation of release attributes, the interactive menu prompts 
 
 package anttracker.release
 import anttracker.PageOf
-import anttracker.Product
-import anttracker.Products
-import anttracker.Release
-import anttracker.Releases
+import anttracker.db.Product
+import anttracker.db.Products
+import anttracker.db.Release
+import anttracker.db.Releases
 import anttracker.product.selectProduct
 import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SortOrder
@@ -149,7 +149,10 @@ value class ReleaseId(
     }
 
     override fun toString(): String = id
-}
+
+data class ReleasePage(
+    val pageInfo: PageOf<Release> = PageOf(),
+)
 
 // -------------------------------------------------------------------------------
 // Implementation of a PageOf Class as PageOfReleases

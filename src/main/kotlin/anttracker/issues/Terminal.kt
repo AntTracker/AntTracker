@@ -18,6 +18,11 @@ class Terminal {
         println(text)
     }
 
+    fun prompt(message: String): String {
+        println(message)
+        return readln()
+    }
+
     fun prompt(
         message: String,
         choices: List<String>,
@@ -60,6 +65,10 @@ class Terminal {
                     }.joinToString(separator = " | ", postfix = " |", prefix = " | ")
             printLine("${(index + 1).toString().padStart(2)}$stringRow")
         }
+    }
+
+    fun title(s: String) {
+        printLine("== $s ==")
     }
 }
 
