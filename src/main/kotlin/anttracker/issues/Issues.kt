@@ -17,16 +17,14 @@ private val formatter = DateTimeFormatter.ofPattern("yyyy/mm/dd")
 private fun viewIssueMenu(issue: Issue): Screen =
     screenWithMenu {
         title("Issue #${issue.id}")
-        content { t ->
-            transaction {
-                t.printLine("Priority: ${issue.priority}")
-                t.printLine("Status: ${issue.status}")
-                t.printLine("AntRel: ${issue.anticipatedRelease.releaseId}")
-                t.printLine("Created: ${issue.creationDate.format(formatter)}")
-            }
+        transaction {
+            option("Priority: ${issue.priority}") { noIssuesMatching }
+            option("Status: ${issue.status}") { noIssuesMatching }
+            option("AntRel: ${issue.anticipatedRelease.releaseId}") { noIssuesMatching }
+            option("Created: ${issue.creationDate.format(formatter)} (not editable)") { viewIssueMenu(issue) }
+            option("Print") { noIssuesMatching }
         }
-        option("Print") { noIssuesMatching }
-        option("Edit") { noIssuesMatching }
+        promptMessage("Enter 1, 2, or 3 to edit the respective fields.")
     }
 
 typealias RowToIssuePage = Map<Int, Issue>
