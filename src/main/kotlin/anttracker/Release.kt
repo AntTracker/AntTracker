@@ -80,14 +80,14 @@ fun selectRelease(
         println(promptSelectRel) // "Please select release. ` to abort: "
         val userInput = readln()
         when (userInput) {
-            "`" -> return null
-            "" -> {
+            "`" -> return null // User wants to abort
+            "" -> { // User wants to see next page of product releases
                 if (!relPage.lastPage()) {
                     relPage.loadNextPage()
                     relPage.display()
                 }
             }
-            else -> {
+            else -> { // User has attempted to enter a line number
                 try {
                     val userInputInt = userInput.toInt()
                     if (userInputInt in (1..20) && userInputInt < relPage.recordsSize()) {
