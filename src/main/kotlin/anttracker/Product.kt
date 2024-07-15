@@ -14,7 +14,7 @@ import anttracker.issues.Product
 // Class for storing the attributes of a given product.
 // ---
 @JvmInline
-value class Product(
+value class ProductName(
     private val name: String, // name of the product (primary key)
 ) {
     init {

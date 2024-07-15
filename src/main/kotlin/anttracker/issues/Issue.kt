@@ -10,8 +10,7 @@ and searching for issues are also present in this file.
  */
 
 package anttracker.issues
-
-import anttracker.product.Product
+import anttracker.product.ProductName
 import anttracker.release.ReleaseId
 import anttracker.request.Request
 
@@ -30,7 +29,7 @@ value class Description(
 
 data class IssueInformation(
     val description: Description,
-    val productName: Product,
+    val productName: ProductName,
     val affectedRelease: ReleaseId,
     val anticipatedRelease: ReleaseId? = null,
     val priority: Priority,
@@ -92,7 +91,7 @@ sealed class IssueFilter {
     ) : IssueFilter()
 
     data class ByProduct(
-        val product: Product,
+        val product: ProductName,
     ) : IssueFilter()
 
     data class Composite(
