@@ -31,7 +31,6 @@ value class Description(
 data class IssueInformation(
     val description: Description,
     val productName: Product,
-    val affectedRelease: ReleaseId,
     val anticipatedRelease: ReleaseId? = null,
     val priority: Priority,
 )
@@ -118,6 +117,15 @@ data class RequestPage(
 // -----------------
 
 /**
+ * This function takes in issue information and saves it into the database
+ * Returns an Issue object containing the id and createdAt fields populated,
+ * according to what was returned by the database
+ */
+fun saveIssue(issueInformation: IssueInformation): Issue? {
+    TODO()
+}
+
+/**
  * This function returns the next page of issues to display based on the current page
  */
 fun nextPage(
@@ -146,10 +154,10 @@ fun searchIssues(
  * For example, calling displayIssues(hasLowPriority, 3) will show all the issues
  * with a low priority in pages containing only three issues
 ------- */
-fun displayIssues(
+fun selectIssue(
     filter: IssueFilter, // in
     issuesPerPage: Int, // in
-): String {
+): Issue? {
     TODO()
 }
 
@@ -198,7 +206,8 @@ fun menu() {
 /** ---
  * This function collects from the user all the information needed to create an issue
 by prompting them for the description, product, affectedRelease, and priority.
+ * Returns null if the user (somehow) indicates to leave: optional
 ---- */
-fun enterIssueInformation(): IssueInformation {
+fun enterIssueInformation(): IssueInformation? {
     TODO()
 }

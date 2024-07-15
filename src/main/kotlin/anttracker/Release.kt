@@ -26,7 +26,7 @@ value class ReleaseId(
 }
 
 class Release(
-    val releaseName: ReleaseId,
+    val id: ReleaseId,
     val product: Product,
     var releaseDate: LocalDate,
 )
@@ -42,14 +42,12 @@ fun menu() {
 
 // -------------------------------------------------------------------------------
 // Prints to console a paginated list of releases for a product
-// Returns a string indicating user input:
-//  "`": user exit
-//  an int (e.g. "4"): a line number selecting a particular release to query on
+// Returns the release selected by the user, or null if the user changed their mind.
 // Call as part of any relevant sub-menu
 //  e.g. During request creation, call this to find and select the affected release
 // ---
-fun displayReleases(
-    product: String, // in
-): String {
+fun selectRelease(
+    product: Product, // in
+): Release? {
     TODO()
 }
