@@ -147,7 +147,6 @@ value class ReleaseId(
             "Release id length must be between 1 and 8 characters"
         }
     }
-
     override fun toString(): String = id
 }
 
@@ -213,7 +212,6 @@ class PageOfReleases(
         }
         return output
     }
-}
 
 val promptEnterRel = "\nPlease enter new release name. ` to abort:"
 

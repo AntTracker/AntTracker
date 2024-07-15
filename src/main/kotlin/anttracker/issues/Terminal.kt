@@ -39,10 +39,10 @@ class Terminal {
         rows: List<List<Any>>,
     ) {
         columns
-            .joinToString(separator = " |", postfix = "|", prefix = "|") { (columnName, length) ->
+            .joinToString(separator = " | ", postfix = " |", prefix = " | ") { (columnName, length) ->
                 columnName.padEnd(length)
             }.let {
-                print("# ")
+                print("##")
                 printLine(it)
             }
 
@@ -52,13 +52,13 @@ class Terminal {
                     .mapIndexed { colIndex, col ->
                         val length = columns[colIndex].second
                         when {
-                            (col is Number) -> col.toString().padEnd(length)
+                            (col is Number) -> col.toString().padStart(length)
                             (col is LocalDateTime) -> col.format(formatter).padEnd(length)
-                            (col is LocalDate) -> col.format(formatter).padEnd(length)
+                            (col is LocalDate) -> col.format(formatter).padStart(length)
                             else -> col.toString().padEnd(length)
                         }
-                    }.joinToString(separator = " |", postfix = "|", prefix = "|")
-            printLine("${(index + 1).toString().padEnd(2)}$stringRow")
+                    }.joinToString(separator = " | ", postfix = " |", prefix = " | ")
+            printLine("${(index + 1).toString().padStart(2)}$stringRow")
         }
     }
 }

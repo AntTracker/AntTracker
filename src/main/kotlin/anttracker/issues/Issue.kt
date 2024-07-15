@@ -11,6 +11,8 @@ and searching for issues are also present in this file.
 
 package anttracker.issues
 
+import anttracker.Issue
+import anttracker.Priority
 import anttracker.product.Product
 import anttracker.release.ReleaseId
 import anttracker.request.Request
@@ -31,7 +33,6 @@ value class Description(
 data class IssueInformation(
     val description: Description,
     val productName: Product,
-    val affectedRelease: ReleaseId,
     val anticipatedRelease: ReleaseId? = null,
     val priority: Priority,
 )
@@ -95,21 +96,25 @@ sealed class IssueFilter {
         val product: Product,
     ) : IssueFilter()
 
+    data object NoFilter : IssueFilter()
+
     data class Composite(
         val filter: List<IssueFilter>,
     ) : IssueFilter()
 }
 
 data class PageOf<T>(
-    val page: List<T>,
-    val offset: Int,
-    val limit: Int,
+    val page: List<T> = emptyList(),
+    val offset: Long = 0,
+    val limit: Int = 20,
 )
 
-data class IssuePage(
-    val filter: IssueFilter,
-    val pageInfo: PageOf<Issue>,
+data class PageWithFilter(
+    val filter: IssueFilter = IssueFilter.NoFilter,
+    val pageInfo: PageOf<Issue> = PageOf(),
 )
+
+fun PageWithFilter.next(): PageWithFilter = this.copy(pageInfo = pageInfo.copy(offset = pageInfo.offset + 20))
 
 data class RequestPage(
     val pageInfo: PageOf<Request>,
@@ -118,11 +123,20 @@ data class RequestPage(
 // -----------------
 
 /**
+ * This function takes in issue information and saves it into the database
+ * Returns an Issue object containing the id and createdAt fields populated,
+ * according to what was returned by the database
+ */
+fun saveIssue(issueInformation: IssueInformation): Issue? {
+    TODO()
+}
+
+/**
  * This function returns the next page of issues to display based on the current page
  */
 fun nextPage(
-    oldPage: IssuePage, // in
-): IssuePage {
+    oldPage: PageWithFilter, // in
+): PageWithFilter {
     TODO()
 }
 
@@ -135,7 +149,7 @@ which was created yesterday
 fun searchIssues(
     filter: IssueFilter, // in
     issuesPerPage: Int, // in
-): IssuePage {
+): PageWithFilter {
     TODO()
 }
 
@@ -146,10 +160,10 @@ fun searchIssues(
  * For example, calling displayIssues(hasLowPriority, 3) will show all the issues
  * with a low priority in pages containing only three issues
 ------- */
-fun displayIssues(
+fun selectIssue(
     filter: IssueFilter, // in
     issuesPerPage: Int, // in
-): String {
+): Issue? {
     TODO()
 }
 
@@ -198,7 +212,8 @@ fun menu() {
 /** ---
  * This function collects from the user all the information needed to create an issue
 by prompting them for the description, product, affectedRelease, and priority.
+ * Returns null if the user (somehow) indicates to leave: optional
 ---- */
-fun enterIssueInformation(): IssueInformation {
+fun enterIssueInformation(): IssueInformation? {
     TODO()
 }
