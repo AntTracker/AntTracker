@@ -10,31 +10,17 @@ The module hides validation of release attributes, the interactive menu prompts 
 */
 
 package anttracker.release
-import anttracker.PageOfReleases
+import anttracker.PageOf
 import anttracker.issues.Product
 import anttracker.issues.Products
 import anttracker.issues.Release
+import anttracker.issues.Releases
+import anttracker.product.selectProduct
+import org.jetbrains.exposed.sql.SizedIterable
+import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
-
-@JvmInline
-value class ReleaseId(
-    private val id: String,
-) {
-    init {
-        require(id.length in 1..8) {
-            "Release id length must be between 1 and 8 characters"
-        }
-    }
-
-    override fun toString(): String = id
-}
-
-val promptEnterRel = "\nPlease enter new release name. ` to abort:"
-
-val promptSelectRel = "\nPlease select release. ` to abort:"
-
-val promptSelectAffRel = "\nPlease select affected release. ` to abort:"
+import java.time.format.DateTimeFormatter
 
 // -------------------------------------------------------------------------------
 // Prints a sub-menu of selecting a product to create a release for.
@@ -43,15 +29,11 @@ val promptSelectAffRel = "\nPlease select affected release. ` to abort:"
 // ---
 fun menu() {
     println("== NEW RELEASE ==")
-    // val selectedProduct = selectProduct()    <- TODO: uncomment and replace when implemented in product module
-    val selectedProduct = "Product 1"
-    when (val selection = readln()) {
-        "`" -> return
-        "1" -> createRelease(selectedProduct)
-        else -> {
-            println("Bad input: $selection.")
-            return
-        }
+    val selectedProduct = selectProduct()
+    if (selectedProduct == null) {
+        println("Error: NULL product. Aborting to main menu.")
+    } else {
+        createRelease(selectedProduct.name)
     }
 }
 
@@ -59,9 +41,12 @@ fun menu() {
 // A read-only display of releases for a product. Returns control upon reaching
 //  the final page, or if user aborts with backtick.
 // ---
-fun displayReleases(productName: String) {
+fun displayReleases(
+    productName: String, // in
+) {
     val relPage = PageOfReleases(productName)
     relPage.loadRecords()
+    println("$productName releases:")
     relPage.display()
 
     while (!relPage.lastPage()) {
@@ -77,7 +62,15 @@ fun displayReleases(productName: String) {
     return
 }
 
-fun selectRelease(productName: String): Release? {
+// -------------------------------------------------------------------------------
+// An interactive display of product releases, of which the user will select one by line number.
+// This will return a Release entity representing a single record pulled from the database.
+// Throws exception on transaction failure.
+// The function will return null if the transaction fails, or if user wants to abort the process.
+// ---
+fun selectRelease(
+    productName: String, // in
+): Release? {
     val relPage = PageOfReleases(productName)
     relPage.loadRecords()
     relPage.display()
@@ -109,9 +102,15 @@ fun selectRelease(productName: String): Release? {
     return relPage.getContentAt(linenum)
 }
 
-fun createRelease(productName: String) {
+// -------------------------------------------------------------------------------
+// Sub-menu for when user wants to create a release.
+// Inserts release name defined at runtime into Release relation in database.
+// Throws exception on transaction failure (e.g. product doesn't exist in database)
+// ---
+fun createRelease(
+    productName: String, // in
+) {
     displayReleases(productName)
-
     var releaseEntry: String? = null
     while (releaseEntry == null) {
         println(promptEnterRel)
@@ -138,3 +137,86 @@ fun createRelease(productName: String) {
 
     println("$productName $releaseEntry created.\n")
 }
+
+@JvmInline
+value class ReleaseId(
+    private val id: String,
+) {
+    init {
+        require(id.length in 1..8) {
+            "Release id length must be between 1 and 8 characters"
+        }
+    }
+
+    override fun toString(): String = id
+}
+
+// -------------------------------------------------------------------------------
+// Implementation of a PageOf Class as PageOfReleases
+// Each PageOf class needs to define:
+//      - init{} block, which MUST call initLastPageNum(). See below why this is necessary.
+//      - display(), to define how the page is displayed to console
+//      - queryToDB(), to define the DAO query to DB used to pull records into memory
+// ---
+class PageOfReleases(
+    private val productName: String,
+) : PageOf<Release>() {
+    // -------------------------------------------------------------------------------
+    // Automatically called upon object creation (i.e. a 2nd ctor)
+    // Not defined in PageOf superclass as that gets called BEFORE subclass properties
+    //      (such as productName) are defined. This can result in the calculation for
+    //      lastPageNum being undefined behaviour as the query isn't fully-formed.
+    //      To prevent this, the init block is (annoyingly) defined in the subclass
+    //      which ensures it is called AFTER the constructor in the class header.
+    // ---
+    init {
+        initLastPageNum()
+    }
+
+    // -------------------------------------------------------------------------------
+    // Prints a single product release record to console.
+    // Should look like:
+    // x.x.x.x.    YYYY/MM/DD
+    // ---
+    override fun printRecord(
+        record: Release, // in
+    ) {
+        val strRelId: String = record.releaseId
+        val strRelDate: String = record.releaseDate.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
+        println(strRelId.padEnd(12) + strRelDate)
+    }
+
+    // -------------------------------------------------------------------------------
+    // In SQL this would be:
+    //  SELECT * FROM release
+    //  WHERE product = productName
+    //  ORDER BY product, releaseDate DESC
+    //  LIMIT qLimit OFFSET pagenum * qLimit + qOffset
+    // ---
+    override fun queryToDB(): SizedIterable<Release>? {
+        var output: SizedIterable<Release>? = null
+        val test = productName
+        transaction {
+            val product =
+                Product.find { Products.name eq productName }.firstOrNull()
+                    ?: throw Exception("queryToDB(): Product not found.")
+
+            output =
+                Release
+                    .find {
+                        Releases.product eq product.id
+                    }.limit(n = queryLimit, offset = (pagenum * queryLimit + queryOffset).toLong())
+                    .orderBy(
+                        Releases.product to SortOrder.DESC,
+                        Releases.releaseDate to SortOrder.DESC,
+                    )
+        }
+        return output
+    }
+}
+
+val promptEnterRel = "\nPlease enter new release name. ` to abort:"
+
+val promptSelectRel = "\nPlease select release. ` to abort:"
+
+val promptSelectAffRel = "\nPlease select affected release. ` to abort:"

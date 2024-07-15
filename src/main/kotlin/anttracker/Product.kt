@@ -8,6 +8,7 @@ the creation or selection of product entities.
 */
 
 package anttracker.product
+import anttracker.issues.Product
 
 // ----------------------------------------------------------------------------
 // Class for storing the attributes of a given product.
@@ -31,6 +32,10 @@ value class Product(
 //   "1"...: selected row
 // ---
 fun displayProducts(): String {
+    TODO()
+}
+
+fun selectProduct(): Product? {
     TODO()
 }
 

@@ -1,9 +1,5 @@
 package anttracker
-import anttracker.issues.Products
-import anttracker.issues.Release
-import anttracker.issues.Releases
 import org.jetbrains.exposed.sql.SizedIterable
-import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.math.ceil
 
@@ -17,16 +13,8 @@ abstract class PageOf<IntEntity> {
     protected var records: MutableList<IntEntity> = mutableListOf() // Container for object instances
     protected var pagenum: Int = 0 // NOTE: Page numbers are 0-indexed
     private var lastPageNum: Int = 0
-    protected val qOffset: Int = 0 // For page calculation in DB query
-    protected val qLimit: Int = 20 // Number of records per page.
-
-    // -------------------------------------------------------------------------------
-    // Automatically called upon object creation (i.e. a ctor)
-    // Inherited in PageOf implementations.
-    // ---
-    init {
-        initLastPageNum()
-    }
+    protected val queryOffset: Int = 0 // For page calculation in DB query
+    protected val queryLimit: Int = 20 // Number of records per page.
 
     // -------------------------------------------------------------------------------
     // Prints to console a line-by-line display of objects contained in the PageOf instance.
@@ -47,13 +35,15 @@ abstract class PageOf<IntEntity> {
     // ---
     fun loadRecords() {
         records.clear()
-        val queryOutput = queryToDB()
-        if (queryOutput != null) {
-            queryOutput.forEach { record ->
-                records.add(record)
+        transaction {
+            val queryOutput = queryToDB()
+            if (queryOutput != null) {
+                queryOutput.forEach { record ->
+                    records.add(record)
+                }
+            } else {
+                throw Exception("PageOf: Attempted to load from null query output.")
             }
-        } else {
-            throw Exception("PageOf: Attempted to load from null query output.")
         }
     }
 
@@ -87,16 +77,16 @@ abstract class PageOf<IntEntity> {
     // -------------------------------------------------------------------------------
     // Returns the number of yet-to-be-displayed records after the current page.
     // ---
-    fun countRemainingRecords(): Int = getQueryRecordCount() - (qLimit * (pagenum + 1))
+    fun countRemainingRecords(): Int = getQueryRecordCount() - (queryLimit * (pagenum + 1))
 
     // -------------------------------------------------------------------------------
     // Used in init/ctor block to calculate the last page number.
     // As we are 0-indexing the page numbers, we subtract 1 at the end.
     // ---
-    private fun initLastPageNum() {
+    protected fun initLastPageNum() {
         lastPageNum =
             ceil(
-                (getQueryRecordCount().toDouble() / qLimit.toDouble()),
+                (getQueryRecordCount().toDouble() / queryLimit.toDouble()),
             ).toInt() - 1
     }
 
@@ -105,10 +95,14 @@ abstract class PageOf<IntEntity> {
     // Used for calculating the number of pages the query needs.
     // ---
     private fun getQueryRecordCount(): Int {
-        val numRecords: Int =
-            queryToDB()?.count()?.toInt()
-                ?: throw IllegalArgumentException("Error: Query returned null")
-        return numRecords
+        var count: Int = -1
+        transaction {
+            val queryOutput: SizedIterable<IntEntity>? = queryToDB()
+            if (queryOutput != null) {
+                count = queryOutput.count().toInt()
+            }
+        }
+        return count
     }
 
     // -------------------------------------------------------------------------------
@@ -122,45 +116,4 @@ abstract class PageOf<IntEntity> {
     // Abstracted as this changes based on record type (Issue, Contact, Release, etc.)
     // ---
     protected abstract fun printRecord(record: IntEntity)
-}
-
-// -------------------------------------------------------------------------------
-// Implementation of a PageOf Class as PageOfReleases
-// Each PageOf class needs to define:
-//      - display(), to define how the page is displayed to console
-//      - queryToDB(), to define the DAO query to DB used to pull records into memory
-// ---
-class PageOfReleases(
-    private val productName: String,
-) : PageOf<Release>() {
-    // -------------------------------------------------------------------------------
-    // Prints a single product release record to console.
-    // Should look like:
-    // x.x.x.x.    YYYY/MM/DD
-    // ---
-    override fun printRecord(record: Release) {
-        println(record.releaseId.padStart(12) + record.releaseDate)
-    }
-
-    // -------------------------------------------------------------------------------
-    // In SQL this would be:
-    //  SELECT * FROM release
-    //  WHERE product = productName
-    //  ORDER BY product, releaseDate DESC
-    //  LIMIT qLimit OFFSET pagenum * qLimit + qOffset
-    // ---
-    override fun queryToDB(): SizedIterable<Release>? {
-        var output: SizedIterable<Release>? = null
-        transaction {
-            output =
-                Release
-                    .find { Products.name eq productName }
-                    .limit(n = qLimit, offset = (pagenum * qLimit + qOffset).toLong())
-                    .orderBy(
-                        Releases.product to SortOrder.DESC,
-                        Releases.releaseDate to SortOrder.DESC,
-                    )
-        }
-        return output
-    }
 }
