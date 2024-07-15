@@ -8,9 +8,6 @@ The Request module contains all exported classes and functions pertaining to
 */
 package anttracker.request
 
-// java imports
-import java.time.LocalDate
-
 // contact imports
 import anttracker.contact.Name
 import anttracker.contact.enterContactInformation
@@ -32,6 +29,9 @@ import anttracker.product.selectProduct
 import anttracker.Issue
 import anttracker.release.ReleaseId
 import anttracker.release.selectRelease
+
+// java imports
+import java.time.LocalDate
 
 // ----------------------------------------------------------------------------
 // Data class for storing the attributes of a given request.

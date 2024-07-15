@@ -1,12 +1,55 @@
 package anttracker.issues
 
 import anttracker.Issue
+import org.jetbrains.exposed.dao.with
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.format.DateTimeFormatter
 
 private val noIssuesMatching =
     screenWithMenu {
         content { t ->
             t.printLine("There are no issues matching the criteria")
+        }
+    }
+
+private val formatter = DateTimeFormatter.ofPattern("yyyy/mm/dd")
+
+private fun viewIssueMenu(issue: Issue): Screen =
+    screenWithMenu {
+        title("Issue #${issue.id}")
+        transaction {
+            option("Priority: ${issue.priority}") { noIssuesMatching }
+            option("Status: ${issue.status}") { noIssuesMatching }
+            option("AntRel: ${issue.anticipatedRelease.releaseId}") { noIssuesMatching }
+            option("Created: ${issue.creationDate.format(formatter)} (not editable)") { viewIssueMenu(issue) }
+            option("Print") { noIssuesMatching }
+        }
+        promptMessage("Enter 1, 2, or 3 to edit the respective fields.")
+    }
+
+typealias RowToIssuePage = Map<Int, Issue>
+
+private fun selectIssueToViewMenu(rows: RowToIssuePage) =
+    object : Screen {
+        override fun run(t: Terminal): Screen? {
+            t.printLine("== View issue ==")
+            val mainMenuChoice = "`"
+            val backToMainMenuMessage = " Or press ` (backtick) to go back to the main menu:"
+            val response =
+                t.prompt(
+                    "Enter the row number of the issue you want to view.$backToMainMenuMessage",
+                    rows.keys.map { it.toString() } + mainMenuChoice,
+                )
+            t.printLine()
+
+            return when (response) {
+                mainMenuChoice -> null
+                else -> {
+                    val index = Integer.parseInt(response)
+                    return rows[index]?.let(::viewIssueMenu)
+                }
+            }
+            // The user needs to choose from the choices that are `, 1, 2, 3, 4...
         }
     }
 
@@ -16,7 +59,18 @@ fun displayAllIssuesMenu(page: PageWithFilter): Screen =
         option("Select filter") { mkIssuesMenu(page) }
         option("Print") { screenWithMenu { content { t -> t.printLine("Not currently implemented. In next version") } } }
         option("Next page") { displayAllIssuesMenu(page.next()) }
-
+        option("View issue") {
+            transaction {
+                Issue
+                    .all()
+                    .with(Issue::anticipatedRelease)
+                    .limit(page.pageInfo.limit, page.pageInfo.offset)
+                    .zip(1..20) { issue, index -> index to issue }
+                    .toMap()
+            }.let {
+                selectIssueToViewMenu(it)
+            }
+        }
         val columns =
             listOf("ID" to 2, "Description" to 30, "Priority" to 9, "Status" to 14, "AntRel" to 8, "Created" to 10)
         content { t ->
