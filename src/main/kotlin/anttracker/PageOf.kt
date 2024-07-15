@@ -43,7 +43,7 @@ abstract class PageOf<IntEntity> {
     }
 
     // -------------------------------------------------------------------------------
-    // Queries to DB and pulls a page of records (max 20) into the contents MutableList.
+    // Queries to DB and pulls a page of records (max 20) into the records MutableList.
     // ---
     fun loadRecords() {
         records.clear()
@@ -60,15 +60,15 @@ abstract class PageOf<IntEntity> {
     // -------------------------------------------------------------------------------
     // Returns the size/length of the records MutableList.
     // ---
-    fun contentsSize(): Int = records.size
+    fun recordsSize(): Int = records.size
 
     // -------------------------------------------------------------------------------
-    // Getter for elements in the contents MutableList.
+    // Getter for elements in the records MutableList.
     // ---
     fun getContentAt(index: Int): IntEntity = records[index]
 
     // -------------------------------------------------------------------------------
-    // Increments page number and loads associated DB records into MutableList contents datamember
+    // Increments page number and loads associated DB records into records MutableList
     // Throws an error if attempting to load beyond the last page.
     // ---
     fun loadNextPage() {

@@ -61,7 +61,7 @@ fun menu() {
 // ---
 fun displayReleases(productName: String) {
     val relPage = PageOfReleases(productName)
-    relPage.loadContents()
+    relPage.loadRecords()
     relPage.display()
 
     while (!relPage.lastPage()) {
@@ -79,7 +79,7 @@ fun displayReleases(productName: String) {
 
 fun selectRelease(productName: String): Release? {
     val relPage = PageOfReleases(productName)
-    relPage.loadContents()
+    relPage.loadRecords()
     relPage.display()
 
     var linenum: Int? = null
@@ -97,7 +97,7 @@ fun selectRelease(productName: String): Release? {
             else -> {
                 try {
                     val userInputInt = userInput.toInt()
-                    if (userInputInt in (1..20) && userInputInt < relPage.contentsSize()) {
+                    if (userInputInt in (1..20) && userInputInt < relPage.recordsSize()) {
                         linenum = userInput.toInt()
                     }
                 } catch (e: java.lang.NumberFormatException) {
