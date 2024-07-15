@@ -1,9 +1,7 @@
 package anttracker
 import anttracker.issues.Products
 import anttracker.issues.Release
-import anttracker.issues.Releases
 import org.jetbrains.exposed.sql.SizedIterable
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.math.ceil
 
@@ -35,7 +33,7 @@ abstract class PageOf<IntEntity> {
     abstract fun display()
 
     // -------------------------------------------------------------------------------
-    // Queries to DB and pulls a maximum 20 records at a time into the MutableList contents datamember.
+    // Queries to DB and pulls a page of records (max 20) into the contents MutableList.
     // ---
     fun loadContents() {
         contents.clear()
@@ -44,7 +42,6 @@ abstract class PageOf<IntEntity> {
             queryOutput.forEach { record ->
                 contents.add(record)
             }
-            // contents = queryOutput.toMutableList()
         } else {
             throw Exception("PageOf: Attempted to load from null query output.")
         }
@@ -56,7 +53,7 @@ abstract class PageOf<IntEntity> {
     fun contentsSize(): Int = contents.size
 
     // -------------------------------------------------------------------------------
-    // Getter for contents MutableList.
+    // Getter for elements in the contents MutableList.
     // ---
     fun getContentAt(index: Int): IntEntity = contents[index]
 
@@ -80,7 +77,7 @@ abstract class PageOf<IntEntity> {
     // -------------------------------------------------------------------------------
     // Returns the number of yet-to-be-displayed records after the current page.
     // ---
-    fun countRemainingRecords(): Int = getQueryRowCount() - (qLimit * pagenum)
+    fun countRemainingRecords(): Int = getQueryRecordCount() - (qLimit * (pagenum + 1))
 
     // -------------------------------------------------------------------------------
     // Used in init/ctor block to calculate the last page number.
@@ -89,16 +86,20 @@ abstract class PageOf<IntEntity> {
     private fun initLastPageNum() {
         lastPageNum =
             ceil(
-                (getQueryRowCount().toDouble() / qLimit.toDouble()),
+                (getQueryRecordCount().toDouble() / qLimit.toDouble()),
             ).toInt() - 1
     }
 
     // -------------------------------------------------------------------------------
-    // Returns the total number of rows/records of the query being paginated.
+    // Returns the total number of records/rows of the query being paginated.
     // Used for calculating the number of pages the query needs.
-    // Abstract/Virtual as query needs to be defined per PageOf Type
     // ---
-    protected abstract fun getQueryRowCount(): Int
+    private fun getQueryRecordCount(): Int {
+        val numRecords: Int =
+            queryToDB()?.count()?.toInt()
+                ?: throw IllegalArgumentException("Error: Query returned null")
+        return numRecords
+    }
 
     // -------------------------------------------------------------------------------
     // Defines the DAO query to DB used to pull records into memory.
@@ -111,7 +112,6 @@ abstract class PageOf<IntEntity> {
 // Implementation of a PageOf Class as PageOfReleases
 // Each PageOf class needs to define:
 //      - display(), to define how the page is displayed to console
-//      - getQueryRowCount(), to calculate the last page number
 //      - queryToDB(), to define the DAO query to DB used to pull records into memory
 // ---
 class PageOfReleases(
@@ -124,14 +124,6 @@ class PageOfReleases(
         if (!lastPage()) {
             println("<Enter> for ${countRemainingRecords()} more.")
         }
-    }
-
-    override fun getQueryRowCount(): Int {
-        var numRecords = 0
-        transaction {
-            numRecords = Releases.selectAll().count().toInt()
-        }
-        return numRecords
     }
 
     override fun queryToDB(): SizedIterable<Release>? {
