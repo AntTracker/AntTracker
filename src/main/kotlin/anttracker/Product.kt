@@ -27,11 +27,9 @@ value class ProductName(
 // ----------------------------------------------------------------------------
 // Displays a sub-menu for selecting an existing contact.
 // Implements pagination when necessary.
-// Returns a string indicating the user input that terminated the selection:
-//   "`": exit the interface
-//   "1"...: selected row
+// Returns the product selected by the user, or null if the user changed their mind.
 // ---
-fun displayProducts(): String {
+fun selectProduct(): Product? {
     TODO()
 }
 
