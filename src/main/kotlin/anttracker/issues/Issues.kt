@@ -1,5 +1,6 @@
 package anttracker.issues
 
+import anttracker.Issue
 import org.jetbrains.exposed.sql.transactions.transaction
 
 private val noIssuesMatching =
@@ -9,23 +10,27 @@ private val noIssuesMatching =
         }
     }
 
-val displayAllIssuesMenu =
+fun displayAllIssuesMenu(page: PageWithFilter): Screen =
     screenWithMenu {
         title("Search Results")
-        promptMessage(
-            "<Enter> to display 20 more. \n\n" +
-                "Please select an issue. F to filter. P to print.",
-        )
+        option("Select filter") { mkIssuesMenu(page) }
+        option("Print") { screenWithMenu { content { t -> t.printLine("Not currently implemented. In next version") } } }
+        option("Next page") { displayAllIssuesMenu(page.next()) }
+
         val columns =
             listOf("ID" to 2, "Description" to 30, "Priority" to 9, "Status" to 14, "AntRel" to 8, "Created" to 10)
         content { t ->
             transaction {
                 Issue
                     .all()
-                    .limit(20)
+                    .limit(page.pageInfo.limit, page.pageInfo.offset)
                     .map(::toRow)
                     .let {
-                        t.displayTable(columns, it)
+                        if (it.isEmpty()) {
+                            t.printLine("No more issues")
+                        } else {
+                            t.displayTable(columns, it)
+                        }
                     }
             }
         }
@@ -47,7 +52,7 @@ private fun toRow(anIssue: Issue): List<Any> {
 This function prints out a message asking the user how they would like
 to search for an issue.
 ----- */
-fun mkIssuesMenu(): Screen =
+fun mkIssuesMenu(page: PageWithFilter): Screen =
     screenWithMenu {
         title("VIEW/EDIT ISSUE")
         promptMessage("Please select search category.")
@@ -57,11 +62,11 @@ fun mkIssuesMenu(): Screen =
         option("Search by Anticipated release") { noIssuesMatching }
         option("Search by status") { noIssuesMatching }
         option("Search by priority") { noIssuesMatching }
-        option("Display all issues") { displayAllIssuesMenu }
-        option("Display all issues satisfying filter") { noIssuesMatching }
+        option("Display all issues") { displayAllIssuesMenu(page) }
+        option("Clear filters") { mkIssuesMenu(page.copy(filter = IssueFilter.NoFilter)) }
     }
 
-internal val issuesMenu = mkIssuesMenu()
+internal val issuesMenu = mkIssuesMenu(PageWithFilter())
 
 fun mainIssuesMenu() {
     val t = Terminal()

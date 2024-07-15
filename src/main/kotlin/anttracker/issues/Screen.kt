@@ -15,7 +15,7 @@ typealias ScreenHandler = () -> Screen
 typealias DisplayFn = (t: Terminal) -> Any?
 
 open class ScreenWithMenu : Screen {
-    private var menuTitle: String = ""
+    private var menuTitle: String? = null
     private var options: Map<String, ScreenHandler> = mutableMapOf()
     private var displayContent: DisplayFn = { }
     private var promptMessage: String = ""
@@ -61,7 +61,7 @@ open class ScreenWithMenu : Screen {
     private fun displayMenu(t: Terminal): Array<Map.Entry<String, ScreenHandler>> {
         val byIndex = options.entries.toTypedArray()
 
-        t.printLine("== $menuTitle ==")
+        menuTitle?.run { t.printLine("== $menuTitle ==") }
         byIndex.forEachIndexed { index, entry ->
             val nbr = "${index + 1}".padStart(2, ' ')
             t.print(nbr)
