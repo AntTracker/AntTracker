@@ -1,7 +1,9 @@
 package anttracker
 import anttracker.issues.Products
 import anttracker.issues.Release
+import anttracker.issues.Releases
 import org.jetbrains.exposed.sql.SizedIterable
+import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.math.ceil
 
@@ -12,7 +14,7 @@ import kotlin.math.ceil
 //  - displaying records as a page
 //  - going to the next page and loading its records
 abstract class PageOf<IntEntity> {
-    protected var contents: MutableList<IntEntity> = mutableListOf() // Container for object instances
+    protected var records: MutableList<IntEntity> = mutableListOf() // Container for object instances
     protected var pagenum: Int = 0 // NOTE: Page numbers are 0-indexed
     private var lastPageNum: Int = 0
     protected val qOffset: Int = 0 // For page calculation in DB query
@@ -28,19 +30,27 @@ abstract class PageOf<IntEntity> {
 
     // -------------------------------------------------------------------------------
     // Prints to console a line-by-line display of objects contained in the PageOf instance.
-    // Abstract/Virtual as issues, releases, contacts will display different things.
+    // How an individual record is printed will be defined by subclass.
+    // If there are more pages to go, will indicate to user the no. of records to be seen.
     // ---
-    abstract fun display()
+    fun display() {
+        for (record in records) {
+            printRecord(record)
+        }
+        if (!lastPage()) {
+            println("<Enter> for ${countRemainingRecords()} more.")
+        }
+    }
 
     // -------------------------------------------------------------------------------
     // Queries to DB and pulls a page of records (max 20) into the contents MutableList.
     // ---
-    fun loadContents() {
-        contents.clear()
+    fun loadRecords() {
+        records.clear()
         val queryOutput = queryToDB()
         if (queryOutput != null) {
             queryOutput.forEach { record ->
-                contents.add(record)
+                records.add(record)
             }
         } else {
             throw Exception("PageOf: Attempted to load from null query output.")
@@ -48,14 +58,14 @@ abstract class PageOf<IntEntity> {
     }
 
     // -------------------------------------------------------------------------------
-    // Returns the size/length of the contents MutableList.
+    // Returns the size/length of the records MutableList.
     // ---
-    fun contentsSize(): Int = contents.size
+    fun contentsSize(): Int = records.size
 
     // -------------------------------------------------------------------------------
     // Getter for elements in the contents MutableList.
     // ---
-    fun getContentAt(index: Int): IntEntity = contents[index]
+    fun getContentAt(index: Int): IntEntity = records[index]
 
     // -------------------------------------------------------------------------------
     // Increments page number and loads associated DB records into MutableList contents datamember
@@ -66,7 +76,7 @@ abstract class PageOf<IntEntity> {
             throw Exception("PageOf: Already reached last page.")
         }
         pagenum++
-        loadContents()
+        loadRecords()
     }
 
     // -------------------------------------------------------------------------------
@@ -106,6 +116,12 @@ abstract class PageOf<IntEntity> {
     // Abstract/Virtual as query needs to be defined per PageOf Type
     // ---
     protected abstract fun queryToDB(): SizedIterable<IntEntity>?
+
+    // -------------------------------------------------------------------------------
+    // Defines how a single record is printed to console.
+    // Abstracted as this changes based on record type (Issue, Contact, Release, etc.)
+    // ---
+    protected abstract fun printRecord(record: IntEntity)
 }
 
 // -------------------------------------------------------------------------------
@@ -117,15 +133,22 @@ abstract class PageOf<IntEntity> {
 class PageOfReleases(
     private val productName: String,
 ) : PageOf<Release>() {
-    override fun display() {
-        for (releaseRecord in contents) {
-            println(releaseRecord.releaseId)
-        }
-        if (!lastPage()) {
-            println("<Enter> for ${countRemainingRecords()} more.")
-        }
+    // -------------------------------------------------------------------------------
+    // Prints a single product release record to console.
+    // Should look like:
+    // x.x.x.x.    YYYY/MM/DD
+    // ---
+    override fun printRecord(record: Release) {
+        println(record.releaseId.padStart(12) + record.releaseDate)
     }
 
+    // -------------------------------------------------------------------------------
+    // In SQL this would be:
+    //  SELECT * FROM release
+    //  WHERE product = productName
+    //  ORDER BY product, releaseDate DESC
+    //  LIMIT qLimit OFFSET pagenum * qLimit + qOffset
+    // ---
     override fun queryToDB(): SizedIterable<Release>? {
         var output: SizedIterable<Release>? = null
         transaction {
@@ -133,6 +156,10 @@ class PageOfReleases(
                 Release
                     .find { Products.name eq productName }
                     .limit(n = qLimit, offset = (pagenum * qLimit + qOffset).toLong())
+                    .orderBy(
+                        Releases.product to SortOrder.DESC,
+                        Releases.releaseDate to SortOrder.DESC,
+                    )
         }
         return output
     }
