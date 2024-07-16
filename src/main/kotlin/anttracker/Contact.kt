@@ -83,6 +83,7 @@ open class PageOf<T : IntEntity> {
     fun loadNextPage() {
         if (lastPage()) {
             throw Exception("Already at the last page")
+
         }
         pagenum++
         loadContents()
@@ -97,6 +98,7 @@ open class PageOf<T : IntEntity> {
     }
 }
 
+
 // PageOfContact
 class PageOfContact : PageOf<ContactEntity>() {
     fun display() {
@@ -104,6 +106,7 @@ class PageOfContact : PageOf<ContactEntity>() {
             println("${index + 1}. ${contactRecord.contactName}")
         }
     }
+
 
     override fun loadContents() {
         contents.clear()
@@ -143,10 +146,39 @@ fun selectContact(): ContactEntity? {
                     linenum = null
                 }
             }
+=======
+@JvmInline
+value class PhoneNumber(
+    private val number: String,
+) {
+    init {
+        require(
+            number.all { c -> c.isDigit() } &&
+                (
+                    (number.length == 11 && number.first() == '1') ||
+                        (number.length == 10)
+                ),
+        ) {
+            "The phone number is not callable within BC"
+        }
+    }
+}
+
+@JvmInline
+value class Department(
+    private val name: String,
+) {
+    init {
+        require(name.length in 1..12) {
+            "The name of the department does not have 1-12 characters"
+
         }
     }
     return contactPage.contents[linenum - 1]
 }
+
+
+
 
 // ----------------------------------------------------------------------------
 // Displays a sub-menu for creating a new contact and adding it to the
@@ -154,8 +186,10 @@ fun selectContact(): ContactEntity? {
 // Prompts the user for the various fields for the contact, and validates
 //     input when necessary, re-prompting where necessary.
 // Returns the created contact.
+// Returns null if the user (somehow) indicates to leave: optional
 // ---
 fun enterContactInformation(): Contact? {
+
     while (true) {
         println("Please enter contact name (1-50 characters). ` to abort:")
         val name = readLine()!!
@@ -221,4 +255,5 @@ fun getContactInfo(name: String): ContactEntity? {
         ContactEntity.find { Contacts.contactName eq name }.firstOrNull()
     }
 }
+
 

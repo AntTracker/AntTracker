@@ -9,12 +9,13 @@ and searching for issues are also present in this file.
 ---------------------------------
  */
 
-package anttracker.issue
+package anttracker.issues
 
-import anttracker.product.Product
+import anttracker.db.Issue
+import anttracker.db.Priority
+import anttracker.product.ProductName
 import anttracker.release.ReleaseId
 import anttracker.request.Request
-import java.time.LocalDate
 
 // ------
 
@@ -29,20 +30,9 @@ value class Description(
     }
 }
 
-@JvmInline
-value class Priority(
-    private val priority: Int,
-) {
-    init {
-        require(priority in 1..5) {
-            "Priority of an issue must be between 1 and 5"
-        }
-    }
-}
-
 data class IssueInformation(
     val description: Description,
-    val productName: Product,
+    val productName: ProductName,
     val affectedRelease: ReleaseId,
     val anticipatedRelease: ReleaseId? = null,
     val priority: Priority,
@@ -58,12 +48,6 @@ value class IssueId(
         }
     }
 }
-
-data class Issue(
-    val id: IssueId,
-    val information: IssueInformation,
-    val createdAt: LocalDate,
-)
 
 @JvmInline
 value class Days(
@@ -110,8 +94,10 @@ sealed class IssueFilter {
     ) : IssueFilter()
 
     data class ByProduct(
-        val product: Product,
+        val product: ProductName,
     ) : IssueFilter()
+
+    data object NoFilter : IssueFilter()
 
     data class Composite(
         val filter: List<IssueFilter>,
@@ -119,15 +105,17 @@ sealed class IssueFilter {
 }
 
 data class PageOf<T>(
-    val page: T,
-    val offset: Int,
-    val limit: Int,
+    val page: List<T> = emptyList(),
+    val offset: Long = 0,
+    val limit: Int = 20,
 )
 
-data class IssuePage(
-    val filter: IssueFilter,
-    val pageInfo: PageOf<Issue>,
+data class PageWithFilter(
+    val filter: IssueFilter = IssueFilter.NoFilter,
+    val pageInfo: PageOf<Issue> = PageOf(),
 )
+
+fun PageWithFilter.next(): PageWithFilter = this.copy(pageInfo = pageInfo.copy(offset = pageInfo.offset + 20))
 
 data class RequestPage(
     val pageInfo: PageOf<Request>,
@@ -136,11 +124,20 @@ data class RequestPage(
 // -----------------
 
 /**
+ * This function takes in issue information and saves it into the database
+ * Returns an Issue object containing the id and createdAt fields populated,
+ * according to what was returned by the database
+ */
+fun saveIssue(issueInformation: IssueInformation): Issue? {
+    TODO()
+}
+
+/**
  * This function returns the next page of issues to display based on the current page
  */
 fun nextPage(
-    oldPage: IssuePage, // in
-): IssuePage {
+    oldPage: PageWithFilter, // in
+): PageWithFilter {
     TODO()
 }
 
@@ -153,7 +150,7 @@ which was created yesterday
 fun searchIssues(
     filter: IssueFilter, // in
     issuesPerPage: Int, // in
-): IssuePage {
+): PageWithFilter {
     TODO()
 }
 
@@ -164,10 +161,10 @@ fun searchIssues(
  * For example, calling displayIssues(hasLowPriority, 3) will show all the issues
  * with a low priority in pages containing only three issues
 ------- */
-fun displayIssues(
+fun selectIssue(
     filter: IssueFilter, // in
     issuesPerPage: Int, // in
-): String {
+): Issue? {
     TODO()
 }
 
@@ -205,10 +202,19 @@ fun nextPage(
     TODO()
 }
 
+/** ------
+This function prints out a message asking the user how they would like
+to search for an issue.
+----- */
+fun menu() {
+    TODO()
+}
+
 /** ---
  * This function collects from the user all the information needed to create an issue
 by prompting them for the description, product, affectedRelease, and priority.
+ * Returns null if the user (somehow) indicates to leave: optional
 ---- */
-fun enterIssueInformation(): IssueInformation {
+fun enterIssueInformation(): IssueInformation? {
     TODO()
 }

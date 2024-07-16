@@ -1,4 +1,4 @@
-package anttracker
+package anttracker.issues
 
 interface Screen {
     fun run(t: Terminal): Screen?
@@ -15,9 +15,10 @@ typealias ScreenHandler = () -> Screen
 typealias DisplayFn = (t: Terminal) -> Any?
 
 open class ScreenWithMenu : Screen {
-    private var menuTitle: String = ""
+    private var menuTitle: String? = null
     private var options: Map<String, ScreenHandler> = mutableMapOf()
     private var displayContent: DisplayFn = { }
+    private var promptMessage: String = ""
 
     fun title(theTitle: String) {
         this.menuTitle = theTitle
@@ -30,37 +31,36 @@ open class ScreenWithMenu : Screen {
         this.options += description to handler
     }
 
-    override fun run(t: Terminal): Screen? {
-        val byIndex = displayMenu(t)
+    fun promptMessage(message: String) {
+        this.promptMessage = message
+    }
 
-        t.printLine()
+    override fun run(t: Terminal): Screen? {
+        menuTitle?.run { t.printLine("== $menuTitle ==") }
         displayContent(t)
         t.printLine()
+        val byIndex = displayMenu(t)
 
         // Ask the user to enter which menu wants to select
-        // Using `0` or `*` is reserved to exit and go to the main menu
-        val choices = (1..byIndex.size).map(Integer::toString) + "0" + "*"
-        // The user needs to choose from the choices that are 0, *, 1, 2, 3, 4...
-        val response = t.prompt("Please choose an option", choices = choices)
-        t.printLine("You chose: $response")
+        val mainMenuChoice = "`"
+        val backToMainMenuMessage = " Or press ` (backtick) to go back to the main menu:"
+        val choices = (1..byIndex.size).map(Integer::toString) + mainMenuChoice
+        // The user needs to choose from the choices that are `, 1, 2, 3, 4...
+        t.printLine()
+        val response = t.prompt(promptMessage + backToMainMenuMessage, choices = choices)
 
-        if (response == "*") {
-            return mainMenu
+        return when (response) {
+            mainMenuChoice -> null
+            else -> {
+                val index = Integer.parseInt(response)
+                byIndex[index - 1].value()
+            }
         }
-
-        val index = Integer.parseInt(response)
-
-        if (index == 0) {
-            return null
-        }
-
-        return byIndex[index - 1].value()
     }
 
     private fun displayMenu(t: Terminal): Array<Map.Entry<String, ScreenHandler>> {
         val byIndex = options.entries.toTypedArray()
 
-        t.printLine("== $menuTitle ==")
         byIndex.forEachIndexed { index, entry ->
             val nbr = "${index + 1}".padStart(2, ' ')
             t.print(nbr)

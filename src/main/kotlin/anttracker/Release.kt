@@ -11,8 +11,134 @@ The module hides validation of release attributes, the interactive menu prompts 
 
 package anttracker.release
 
-import anttracker.product.Product
-import java.time.LocalDate
+import anttracker.PageOf
+import anttracker.db.Product
+import anttracker.db.Products
+import anttracker.db.Release
+import anttracker.db.Releases
+import anttracker.product.selectProduct
+import org.jetbrains.exposed.sql.Query
+import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
+// -------------------------------------------------------------------------------
+// Prints a sub-menu of selecting a product to create a release for.
+// Use by including in main-menu loop; should be triggered upon user selecting
+// New Release from the main menu. Thus, upon function return, system returns to main menu.
+// ---
+fun menu() {
+    println("== NEW RELEASE ==")
+    val selectedProduct = selectProduct()
+    if (selectedProduct == null) {
+        println("Error: NULL product. Aborting to main menu.")
+    } else {
+        createRelease(selectedProduct.name)
+    }
+}
+
+// -------------------------------------------------------------------------------
+// A read-only display of releases for a product. Returns control upon reaching
+//  the final page, or if user aborts with backtick.
+// ---
+fun displayReleases(
+    productName: String, // in
+) {
+    val relPage = PageOfReleases(productName)
+    relPage.loadRecords()
+    println("$productName releases:")
+    relPage.display()
+
+    while (!relPage.lastPage()) {
+        val userInput = readln()
+        when (userInput) {
+            "`" -> return
+            "" -> {
+                relPage.loadNextPage()
+                relPage.display()
+            }
+        }
+    }
+    return
+}
+
+// -------------------------------------------------------------------------------
+// An interactive display of product releases, of which the user will select one by line number.
+// This will return a Release entity representing a single record pulled from the database.
+// Throws exception on transaction failure.
+// The function will return null if the transaction fails, or if user wants to abort the process.
+// ---
+fun selectRelease(
+    productName: String, // in
+): Release? {
+    val relPage = PageOfReleases(productName)
+    relPage.loadRecords()
+    relPage.display()
+
+    var linenum: Int? = null
+    while (linenum == null) {
+        println(promptSelectRel) // "Please select release. ` to abort: "
+        val userInput = readln()
+        when (userInput) {
+            "`" -> return null // User wants to abort
+            "" -> { // User wants to see next page of product releases
+                if (!relPage.lastPage()) {
+                    relPage.loadNextPage()
+                    relPage.display()
+                }
+            }
+
+            else -> { // User has attempted to enter a line number
+                try {
+                    val userInputInt = userInput.toInt()
+                    if (userInputInt in (1..20) && userInputInt < relPage.recordsSize()) {
+                        linenum = userInput.toInt()
+                    }
+                } catch (e: java.lang.NumberFormatException) {
+                    println(e.message)
+                }
+            }
+        }
+    }
+    return relPage.getContentAt(linenum)
+}
+
+// -------------------------------------------------------------------------------
+// Sub-menu for when user wants to create a release.
+// Inserts release name defined at runtime into Release relation in database.
+// Throws exception on transaction failure (e.g. product doesn't exist in database)
+// ---
+fun createRelease(
+    productName: String, // in
+) {
+    displayReleases(productName)
+    var releaseEntry: String? = null
+    while (releaseEntry == null) {
+        println(promptEnterRel)
+        try {
+            releaseEntry = ReleaseId(readln()).toString()
+            if (releaseEntry == "`") {
+                return
+            }
+        } catch (e: java.lang.IllegalArgumentException) {
+            println(e.message)
+        }
+    }
+
+    transaction {
+        val product =
+            Product.find { Products.name eq productName }.firstOrNull()
+                ?: throw IllegalArgumentException("Error: Product not found")
+        Release.new {
+            releaseId = releaseEntry
+            this.product = product
+            releaseDate = LocalDateTime.now()
+        }
+    }
+
+    println("$productName $releaseEntry created.\n")
+}
 
 @JvmInline
 value class ReleaseId(
@@ -23,33 +149,63 @@ value class ReleaseId(
             "Release id length must be between 1 and 8 characters"
         }
     }
-}
 
-class Release(
-    val releaseName: ReleaseId,
-    val product: Product,
-    var releaseDate: LocalDate,
-)
-
-// -------------------------------------------------------------------------------
-// Prints a sub-menu of selecting a product to create a release for.
-// Use by including in main-menu loop; should be triggered upon user selecting
-// New Release from the main menu. Thus, upon function return, system returns to main menu.
-// ---
-fun menu() {
-    TODO()
+    override fun toString(): String = id
 }
 
 // -------------------------------------------------------------------------------
-// Prints to console a paginated list of releases for a product
-// Returns a string indicating user input:
-//  "`": user exit
-//  an int (e.g. "4"): a line number selecting a particular release to query on
-// Call as part of any relevant sub-menu
-//  e.g. During request creation, call this to find and select the affected release
+// Implementation of a PageOf Class as PageOfReleases
+// Each PageOf class needs to define:
+//      - init{} block, which MUST call initLastPageNum(). See below why this is necessary.
+//      - display(), to define how the page is displayed to console
+//      - getQuery(), to define the DAO query to DB used to pull records into memory
 // ---
-fun displayReleases(
-    product: String, // in
-): String {
-    TODO()
+class PageOfReleases(
+    private val productName: String,
+) : PageOf<Release>(Release) {
+    // -------------------------------------------------------------------------------
+    // Automatically called upon object creation (i.e. a 2nd ctor)
+    // Not defined in PageOf superclass as that gets called BEFORE subclass properties
+    //      (such as productName) are defined. This can result in the calculation for
+    //      lastPageNum being undefined behaviour as the query isn't fully-formed.
+    //      To prevent this, the init block is (annoyingly) defined in the subclass
+    //      which ensures it is called AFTER the constructor in the class header.
+    // ---
+    init {
+        initLastPageNum()
+    }
+
+    // -------------------------------------------------------------------------------
+    // Prints a single product release record to console.
+    // Should look like:
+    // x.x.x.x.    YYYY/MM/DD
+    // ---
+    override fun printRecord(
+        record: Release, // in
+    ) {
+        val strRelId: String = record.releaseId
+        val strRelDate: String = record.releaseDate.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
+        println(strRelId.padEnd(12) + strRelDate)
+    }
+
+    // -------------------------------------------------------------------------------
+    // In SQL this would be:
+    //  SELECT * FROM release
+    //  WHERE product = productName
+    //  ORDER BY product, releaseDate DESC
+    // ---
+    override fun getQuery(): Query =
+        (Releases innerJoin Products)
+            .select(Releases.columns)
+            .where { Products.name eq productName }
+            .orderBy(
+                Releases.product to SortOrder.DESC,
+                Releases.releaseDate to SortOrder.DESC,
+            )
 }
+
+val promptEnterRel = "\nPlease enter new release name. ` to abort:"
+
+val promptSelectRel = "\nPlease select release. ` to abort:"
+
+val promptSelectAffRel = "\nPlease select affected release. ` to abort:"

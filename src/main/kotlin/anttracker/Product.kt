@@ -10,6 +10,7 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 // ----------------------------------------------------------------------------
 // Data class for storing the attributes of a given product.
 // ---
+
 data class Product(
     val productName: String // name of the product (primary key)
 )
@@ -56,6 +57,7 @@ abstract class PageOf<T : IntEntity>(private val limit: Int = 10, private val of
         loadContents()
     }
 }
+
 
 // Pagination class for Product
 class PageOfProduct : PageOf<ProductEntity>() {

@@ -5,39 +5,43 @@ Rev 1 - 2024/07/01 Original by Micah
 entry-point and main-menu of AntTracker.
  */
 
-package anttracker
+import anttracker.db.setupSchema
+import org.jetbrains.exposed.sql.Database
+import anttracker.contact.menu as contactMenu
+import anttracker.issues.mainIssuesMenu as issuesMenu
+import anttracker.product.menu as productMenu
+import anttracker.release.menu as releaseMenu
+import anttracker.request.menu as requestMenu
 
-class Terminal {
-    fun printLine() = println()
+fun main() {
+    Database.connect("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
 
-    fun printLine(text: String) {
-        println(text)
-    }
+    setupSchema()
+    while (true) {
+        val mainMenuText =
+            """
+            == MAIN MENU ==
+            1   View/Edit Issue
+            2   New request
+            3   New release
+            4   New contact
+            5   New product
+            
+            Please select a command. ` to exit program: 
+            """.trimIndent()
+        print(mainMenuText)
 
-    fun prompt(
-        message: String,
-        choices: List<String>,
-    ): String {
-        println("$message: ${choices.joinToString(", ")} ")
-        val choice = readln()
-        if (choices.contains(choice)) {
-            return choice
+        when (val selection = readln()) {
+            "`" -> break
+            "1" -> issuesMenu()
+            "2" -> requestMenu()
+            "3" -> releaseMenu()
+            "4" -> contactMenu()
+            "5" -> productMenu()
+            else -> {
+                println("Bad input: $selection.")
+            }
         }
-        return prompt(message, choices)
-    }
-
-    fun print(message: String) = kotlin.io.print(message)
-}
-
-fun main(args: Array<String>) {
-    val t = Terminal()
-    var currentScreen: Screen? = mainMenu
-
-    while (currentScreen != null) {
-        t.printLine("Press 0 to exit or * for the main menu")
-        t.printLine()
-
-        currentScreen = currentScreen.run(t)
     }
 }
 
