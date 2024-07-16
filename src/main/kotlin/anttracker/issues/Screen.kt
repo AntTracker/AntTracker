@@ -1,10 +1,36 @@
+/* Screen.kt
+Revision History
+Rev 1 - 7/15/2024 Original by Eitan
+-------------------------------------------
+This file contains the abstraction of a screen
+and a screen with a menu. Helper methods for
+prompting the user, validating their input,
+displaying the options for them to pick, and
+transitioning to the next screen are also present.
+---------------------------------
+ */
+
 package anttracker.issues
 
+// ------
+
 interface Screen {
-    fun run(t: Terminal): Screen?
+    /** ----
+     * This function runs the current screen and transitions to the new screen indicated by the
+     * user's choice.
+     ---- */
+    fun run(
+        t: Terminal, // in
+    ): Screen?
 }
 
-fun screenWithMenu(config: ScreenWithMenu.() -> Unit): Screen {
+/** ----
+ * This function creates a configured ScreenWithMenu using the
+ * configuration passed.
+------ */
+fun screenWithMenu(
+    config: ScreenWithMenu.() -> Unit, // in
+): Screen {
     val menu = ScreenWithMenu()
     config(menu)
     return menu
@@ -20,18 +46,35 @@ open class ScreenWithMenu : Screen {
     private var displayContent: DisplayFn = { }
     private var promptMessage: String = ""
 
-    fun title(theTitle: String) {
+    /** ----
+     * This function sets the title of the menu to the passed
+     * title.
+     ---- */
+    fun title(
+        theTitle: String, // in
+    ) {
         this.menuTitle = theTitle
     }
 
+    /** ----
+     * This function adds a new option to the list
+     * of options a user can pick for this menu
+     ---- */
     fun option(
-        description: String,
-        handler: () -> Screen,
+        description: String, // in
+        handler: () -> Screen, // in
     ) {
         this.options += description to handler
     }
 
-    fun promptMessage(message: String) {
+    /** -----
+     * This function sets the message to be shown
+     * when prompting the user to the given
+     * message.
+     ------ */
+    fun promptMessage(
+        message: String, // in
+    ) {
         this.promptMessage = message
     }
 
@@ -58,7 +101,12 @@ open class ScreenWithMenu : Screen {
         }
     }
 
-    private fun displayMenu(t: Terminal): Array<Map.Entry<String, ScreenHandler>> {
+    /** -----
+     * This function displays all the options the user can pick in the given menu.
+     ----- */
+    private fun displayMenu(
+        t: Terminal, // in
+    ): Array<Map.Entry<String, ScreenHandler>> {
         val byIndex = options.entries.toTypedArray()
 
         byIndex.forEachIndexed { index, entry ->
