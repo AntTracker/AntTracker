@@ -1,38 +1,31 @@
-/* Product.kt
-Revision History:
+/* Revision History:
 Rev. 1 - 2024/07/01 Original by M. Baker
+Rev. 2 - 2024/07/08 Updated by A. Kim
 -------------------------------------------------------------------------------
 The Product module contains all exported classes and functions pertaining to
-the creation or selection of product entities.
+    the creation or selection of product entities.
 -------------------------------------------------------------------------------
 */
 
+
+/*
+Product.kt
+Product				; type or class or struct
+menu()					; interactive display
+enterProductInformation() -> Product	; interactive display
+displayProducts() -> String		; interactive display
+saveToDB(Product)			; helper function
+*/
 package anttracker.product
 
-// ----------------------------------------------------------------------------
-// Class for storing the attributes of a given product.
-// ---
-@JvmInline
-value class Product(
-    private val name: String, // name of the product (primary key)
-) {
-    init {
-        require(name.length in 1..30) {
-            "Name length must be between 1 and 30 characters"
-        }
-    }
-}
 
 // ----------------------------------------------------------------------------
-// Displays a sub-menu for selecting an existing contact.
-// Implements pagination when necessary.
-// Returns a string indicating the user input that terminated the selection:
-//   "`": exit the interface
-//   "1"...: selected row
+// Data class for storing the attributes of a given product.
 // ---
-fun displayProducts(): String {
-    TODO()
-}
+data class Product(
+    val productName: String // name of the product (primary key)
+)
+
 
 // ----------------------------------------------------------------------------
 // Displays a sub-menu for creating a new product and adding it to the
@@ -42,18 +35,108 @@ fun displayProducts(): String {
 // Returns when the user wishes to return to the main menu.
 // ---
 fun menu() {
-    TODO()
+    println("== NEW PRODUCT==")
+    enterProductInformation()
+     
 }
 
-/** --------------
- * This function takes the name of a potential user and checks if it is within 1 and
- * 30 characters and is not in the database. If both of these conditions are met,
- * the function returns true. Returns false otherwise.
- * An example use case would be if 'John' and '123456789123456789123456789123456789'
- * were passed to the function if the database had no previous users. For input 'John',
- * the function would return true. For the second input, the function would return false
- * since the name is longer than 30 characters
------------------ */
-fun validateProductName(
-    name: String, // in
-): Boolean = true
+
+
+//pagination
+
+// PageOf<Product>
+class PageOfProduct : PageOf<Product>() {
+    fun display() {
+        for ((index, productRecord) in contents.withIndex()) {
+            println("${index + 1}. ${productRecord.productID}")  // add some nice formatting
+        }
+    }
+
+    override fun loadContents() {
+        contents.clear()
+        transaction {
+            val output = Product
+                .find { Product.someCriteria eq someValue }
+                .limit(limit)
+                .offset(pagenum * limit + offset)
+            output.forEach {
+                contents.add(it)
+            }
+        }
+    }
+}
+
+// Display pages of products to console and select one
+fun selectProduct(): Product? {
+    val productPage = PageOfProduct()
+    productPage.loadContents()
+    productPage.display()
+
+    var linenum: Int? = null
+    while (linenum == null) {
+        println("Please select product. ` to abort: ")
+        val userInput = readln()
+        when (userInput) {
+            "`" -> return null
+            "" -> {
+                if (!productPage.lastPage()) {
+                    productPage.loadNextPage()
+                    productPage.display()
+                }
+            }
+            else -> {
+                linenum = userInput.toIntOrNull()
+                if (linenum == null || linenum !in 1..productPage.contents.size) {
+                    println("Invalid line number")
+                    linenum = null
+                }
+            }
+        }
+    }
+    return productPage.contents[linenum - 1]
+}
+
+
+// ----------------------------------------------------------------------------
+// Displays a sub-menu for selecting an existing contact.
+// Implements pagination when necessary.
+// Returns a string indicating the user input that terminated the selection:
+//   "`": exit the interface
+//   "1"...: selected row
+// ---
+
+fun enterProductInformation(): Product? {
+    while (true) {
+        println("Please enter product name (1-30 characters). ` to exit:")
+        val name = readLine()!!
+        if (name == "`") return null
+        if (name.length !in 1..30) {
+            println("ERROR: Invalid product name length.")
+            continue
+        }
+        return Product(name)
+    }
+}
+
+fun displayProducts(): String {
+    return if (products.isEmpty()) {
+        "No products available."
+    } else {
+        products.joinToString(separator = "\n") { it.toString() }
+    }
+}
+
+private fun saveProduct(product: Product) {
+    if (products.any { it.name.equals(product.name, ignoreCase = true) }) {
+        println("ERROR: Product already exists.")
+    } else {
+        products.add(product)
+        println("${product.name} has been created.")
+    }
+    menu()
+}
+
+
+
+
+
