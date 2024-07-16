@@ -3,7 +3,6 @@ package anttracker.issues
 import anttracker.db.Issue
 import anttracker.db.Release
 import anttracker.db.Releases
-import anttracker.release.next
 import org.jetbrains.exposed.dao.with
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.format.DateTimeFormatter

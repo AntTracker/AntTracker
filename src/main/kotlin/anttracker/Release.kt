@@ -10,6 +10,7 @@ The module hides validation of release attributes, the interactive menu prompts 
 */
 
 package anttracker.release
+
 import anttracker.PageOf
 import anttracker.db.Product
 import anttracker.db.Products
@@ -87,6 +88,7 @@ fun selectRelease(
                     relPage.display()
                 }
             }
+
             else -> { // User has attempted to enter a line number
                 try {
                     val userInputInt = userInput.toInt()
@@ -149,10 +151,7 @@ value class ReleaseId(
     }
 
     override fun toString(): String = id
-
-data class ReleasePage(
-    val pageInfo: PageOf<Release> = PageOf(),
-)
+}
 
 // -------------------------------------------------------------------------------
 // Implementation of a PageOf Class as PageOfReleases
