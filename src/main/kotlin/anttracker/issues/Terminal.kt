@@ -20,18 +20,26 @@ import java.time.format.DateTimeFormatter
 class Terminal {
     fun printLine() = println()
 
-    fun printLine(text: String) {
+    fun printLine(
+        text: String, // in
+    ) {
         println(text)
     }
 
-    fun prompt(message: String): String {
+    fun prompt(
+        message: String, // in
+    ): String {
         println(message)
         return readln()
     }
 
+    /** ----
+     * This function prompts the user for input and only returns their
+     * input if it is valid. Otherwise, it prompts the user again.
+     ----- */
     fun prompt(
-        message: String,
-        choices: List<String>,
+        message: String, // in
+        choices: List<String>, // in
     ): String {
         println(message)
         val choice = readln()
@@ -41,14 +49,20 @@ class Terminal {
         return prompt(message, choices)
     }
 
-    fun print(message: String) = kotlin.io.print(message)
+    fun print(
+        message: String, // in
+    ) = kotlin.io.print(message)
 
     private val formatter = DateTimeFormatter.ofPattern("yyyy/mm/dd")
 
+    /** -----
+     * This function displays a table to the screen using the passed columns and rows.
+     ----- */
     fun displayTable(
-        columns: List<Pair<String, Int>>,
-        rows: List<List<Any>>,
+        columns: List<Pair<String, Int>>, // in
+        rows: List<List<Any>>, // in
     ) {
+        // This aligns the columns according to their format and then prints them out.
         columns
             .joinToString(separator = " | ", postfix = " |", prefix = " | ") { (columnName, length) ->
                 columnName.padEnd(length)
@@ -57,6 +71,7 @@ class Terminal {
                 printLine(it)
             }
 
+        // This generates all the rows for the table and prints them out.
         rows.forEachIndexed { index, row ->
             val stringRow =
                 row
@@ -73,7 +88,9 @@ class Terminal {
         }
     }
 
-    fun title(s: String) {
+    fun title(
+        s: String, // in
+    ) {
         printLine("== $s ==")
     }
 }
