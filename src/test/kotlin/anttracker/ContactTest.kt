@@ -27,8 +27,7 @@ class ContactTest :
             describe("when a contact is created") {
                 it("should be findable in the database") {
                     // prompts user input to create a contact
-                    val contactCreated = enterContactInformation()
-                    contactCreated shouldNotBe null
+                    val contactCreated = enterContactInformation() ?: throw Exception()
 
                     // find the contact stored in the database identified by the created contact
                     val contactFound = transaction {
