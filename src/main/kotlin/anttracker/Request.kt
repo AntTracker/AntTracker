@@ -25,7 +25,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 
 // display a given request to the screen
-fun displayRequest(request: Request?) {
+fun displayRequester(request: Request?) {
     if (request == null) {
         println("Error: Bad request")
         return // bad request
@@ -92,7 +92,7 @@ fun enterRequestInformation(): Request? {
 
     println("Created request:")
     println("AffRel\tRequested\tName\tEmail\tDepartment")
-    displayRequest(request)
+    displayRequester(request)
 
     return request
 }
