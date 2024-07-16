@@ -24,6 +24,7 @@ import anttracker.issues.selectIssue
 
 // product imports
 import anttracker.product.selectProduct
+import anttracker.product.ProductName
 
 // release imports
 import anttracker.Issue
@@ -91,9 +92,10 @@ fun getRequestInfo(
 //     input when necessary, re-prompting where necessary.
 // Returns the created request.
 fun enterRequestInformation(): Request? {
+    TODO("Convert to DAO operations. Should remove the data class for Request. -Tyrus ")
     // "?:" is a check if selectProduct returns null
     val product = selectProduct() ?: return null
-    val release = selectRelease(product) ?: return null
+    val release = selectRelease(product.name) ?: return null
 
     var contact = selectContact()
 
@@ -103,7 +105,7 @@ fun enterRequestInformation(): Request? {
     }
 
     // filter available issues with product
-    val issueFilter = IssueFilter.ByProduct(product = product)
+    val issueFilter = IssueFilter.ByProduct(ProductName(product.name))
 
     // NOTE: implement constant somewhere for "issuesPerPage"
     var issue = selectIssue(issueFilter, 20)
@@ -117,18 +119,21 @@ fun enterRequestInformation(): Request? {
     }
 
     // construct request object
-    val request =
-        Request(
-            release.id,
-            issue,
-            contact.name,
-            LocalDate.now(),
-        )
+    // TODO: replace with DAO insert operation Request.new { ... } -Tyrus
+//    val request =
+//        Request(
+//            release.id,
+//            issue,
+//            contact.name,
+//            LocalDate.now(),
+//        )
 
     // save the request object into the DB
-    saveRequest(request)
+    // saveRequest(request)
 
-    return request
+    // return request
+    // TODO: replaced with return null until insert operation is updated. -Tyrus
+    return null
 }
 
 // Displays a sub-menu for selecting an existing request.

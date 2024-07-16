@@ -11,10 +11,10 @@ The module hides validation of release attributes, the interactive menu prompts 
 
 package anttracker.release
 import anttracker.PageOf
-import anttracker.issues.Product
-import anttracker.issues.Products
-import anttracker.issues.Release
-import anttracker.issues.Releases
+import anttracker.Product
+import anttracker.Products
+import anttracker.Release
+import anttracker.Releases
 import anttracker.product.selectProduct
 import org.jetbrains.exposed.sql.SizedIterable
 import org.jetbrains.exposed.sql.SortOrder
@@ -147,6 +147,7 @@ value class ReleaseId(
             "Release id length must be between 1 and 8 characters"
         }
     }
+
     override fun toString(): String = id
 }
 
@@ -212,6 +213,7 @@ class PageOfReleases(
         }
         return output
     }
+}
 
 val promptEnterRel = "\nPlease enter new release name. ` to abort:"
 

@@ -8,7 +8,7 @@ the creation or selection of product entities.
 */
 
 package anttracker.product
-import anttracker.issues.Product
+import anttracker.Product
 
 // ----------------------------------------------------------------------------
 // Class for storing the attributes of a given product.
@@ -29,10 +29,6 @@ value class ProductName(
 // Implements pagination when necessary.
 // Returns the product selected by the user, or null if the user changed their mind.
 // ---
-fun selectProduct(): Product? {
-    TODO()
-}
-
 fun selectProduct(): Product? {
     TODO()
 }
