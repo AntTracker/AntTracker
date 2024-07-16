@@ -1,6 +1,8 @@
 /* Issues.kt
 Revision History
 Rev 1 - 6/30/2024 Original by Eitan
+Rev 2 - 7/15/2024 by Eitan
+        - Added next extension function in order to update the offset of the PageWithFilter
 -------------------------------------------
 This file contains the abstraction of the information of an
 issue into a data type representing this information.
@@ -19,6 +21,10 @@ import anttracker.db.Request
 
 // ------
 
+/**
+ * This value class represents a valid description the user can have for an issue,
+ * being 1-30 characters long.
+ */
 @JvmInline
 value class Description(
     private val description: String,
@@ -38,6 +44,10 @@ data class IssueInformation(
     val priority: Priority,
 )
 
+/**
+ * This data class represents the valid values an issue id can take on,
+ * being between 1-99.
+ */
 @JvmInline
 value class IssueId(
     private val id: Int,
@@ -49,6 +59,11 @@ value class IssueId(
     }
 }
 
+/**
+ * This value class represents a valid number of days one can look back in order
+ * to find the newly created issues in this time period, being a non-negative
+ * number of days.
+ */
 @JvmInline
 value class Days(
     val numOfDays: Int,
@@ -60,6 +75,9 @@ value class Days(
     }
 }
 
+/**
+ * This class represents one of the possible status's an issue can take on.
+ */
 sealed class Status {
     data object Assessed : Status()
 
@@ -72,6 +90,9 @@ sealed class Status {
     data object InProgress : Status()
 }
 
+/**
+ * This
+ */
 sealed class IssueFilter {
     data class ByDescription(
         val description: Regex,
@@ -115,6 +136,9 @@ data class PageWithFilter(
     val pageInfo: PageOf<Issue> = PageOf(),
 )
 
+/**
+ * This function takes an old PageWith
+ */
 fun PageWithFilter.next(): PageWithFilter = this.copy(pageInfo = pageInfo.copy(offset = pageInfo.offset + 20))
 
 data class RequestPage(
