@@ -89,12 +89,13 @@ class Issue(
     var priority by Issues.priority
 }
 
-sealed class Priority {
-    data object High : Priority()
-
-    data object Low : Priority()
-
-    data object Medium : Priority()
+@JvmInline
+value class Priority(
+    val priority: Int,
+) {
+    init {
+        priority in (1..5)
+    }
 }
 
 sealed class IssueStatus {
