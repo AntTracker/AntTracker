@@ -9,6 +9,8 @@ The Contact module contains all exported classes and functions pertaining to
 
 package anttracker.contact
 
+import anttracker.db.Contact
+
 // ----------------------------------------------------------------------------
 
 @JvmInline
@@ -60,15 +62,6 @@ value class Department(
         }
     }
 }
-
-// Data class for storing the attributes of a given contact.
-// ---
-data class Contact(
-    val name: Name,
-    val email: Email,
-    val phoneNumber: PhoneNumber,
-    val department: Department
-)
 
 // ----------------------------------------------------------------------------
 // Displays a sub-menu for creating a new contact and adding it to the

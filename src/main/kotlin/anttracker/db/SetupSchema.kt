@@ -1,3 +1,10 @@
+/* Revision History:
+Rev. 1 - 2024/07/02 Original by E. Barylko
+Rev. 2 - 2024/07/09 by T. Tracey
+Rev. 3 - 2024/07/16 by M. Baker
+^^^ what are the correct dates???
+ */
+
 package anttracker.db
 
 import org.jetbrains.exposed.dao.IntEntity
@@ -12,7 +19,7 @@ import java.util.*
 
 fun setupSchema() {
     transaction {
-        SchemaUtils.createMissingTablesAndColumns(Products, Issues, Releases)
+        SchemaUtils.createMissingTablesAndColumns(Products, Issues, Releases, Requests, Contacts)
 
         (0..5).forEach { productId ->
             val prodId = Products.insert { it[name] = "Product $productId" } get Products.id
@@ -115,14 +122,38 @@ value class ReleaseId(
     val id: UUID,
 )
 
-data class Contact(
-    val id: UUID,
-    val name: String,
-)
+object Contacts : IntIdTable() {
+    val name = varchar("name", 30)
+    val email = varchar("email", 24)
+    val phoneNumber = varchar("phone_number", 11)
+    val department = varchar("department", 12)
+}
 
-data class Request(
-    val id: UUID,
-    val foundOn: ReleaseId,
-    val fixBy: ReleaseId?,
-    val contact: Contact,
-)
+class Contact(
+    id: EntityID<Int>,
+) : IntEntity(id) {
+    companion object : IntEntityClass<Contact>(Contacts)
+
+    var name by Contacts.name
+    var email by Contacts.email
+    var phoneNumber by Contacts.phoneNumber
+    var department by Contacts.department
+}
+
+object Requests : IntIdTable() {
+    val affectedRelease = reference("release_id", Releases)
+    val issue = reference("issue_id", Issues)
+    val contact = reference("contact_id", Contacts)
+    val requestDate = datetime("request_date")
+}
+
+class Request(
+    id: EntityID<Int>,
+) : IntEntity(id) {
+    companion object : IntEntityClass<Request>(Requests)
+
+    var affectedRelease by Requests.affectedRelease
+    var issue by Requests.issue
+    var contact by Requests.contact
+    var requestDate by Requests.requestDate
+}
