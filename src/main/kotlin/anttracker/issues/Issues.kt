@@ -100,7 +100,6 @@ private fun viewIssueMenu(issue: Issue): Screen =
             option("AntRel: ${issue.anticipatedRelease.releaseId}") { editAnticipatedRelease(issue) }
             option("Created: ${issue.creationDate.format(formatter)} (not editable)") { viewIssueMenu(issue) }
             option("Print") { noIssuesMatching }
-            option("Back to issues") { noIssuesMatching }
         }
         promptMessage("Enter 1, 2, or 3 to edit the respective fields.")
     }
