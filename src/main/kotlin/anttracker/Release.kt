@@ -158,7 +158,7 @@ value class ReleaseId(
 // Each PageOf class needs to define:
 //      - init{} block, which MUST call initLastPageNum(). See below why this is necessary.
 //      - display(), to define how the page is displayed to console
-//      - queryToDB(), to define the DAO query to DB used to pull records into memory
+//      - getQuery(), to define the DAO query to DB used to pull records into memory
 // ---
 class PageOfReleases(
     private val productName: String,
