@@ -1,3 +1,12 @@
+/* Issues.kt
+Revision History
+Rev 1 - 7/15/2024 Original by Eitan
+-------------------------------------------
+This file contains the issues menu and all the
+submenus contained within the user will interact with.
+---------------------------------
+ */
+
 package anttracker.issues
 
 import anttracker.db.Issue
@@ -7,6 +16,12 @@ import org.jetbrains.exposed.dao.with
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.format.DateTimeFormatter
 
+// -------
+
+/**
+ * This menu serves as a placeholder for other menus which have
+ * not been fully fleshed out.
+ */
 private val noIssuesMatching =
     screenWithMenu {
         content { t ->
@@ -14,11 +29,11 @@ private val noIssuesMatching =
         }
     }
 
-/**
+/** ----
  * This function displays a screen where the user is presented with the
  * option of saving their issue with an edited description or going back
  * to the previous menu.
- */
+----- */
 private fun editDescription(
     issue: Issue, // in
 ): Screen =
@@ -44,9 +59,9 @@ private fun editDescription(
         option("Back") { viewIssueMenu(issue) }
     }
 
-/**
+/** ----
  * This function prints out all the information contained within an issue.
- */
+----- */
 private fun printIssueSummary(
     t: Terminal, // in
     issue: Issue, // in
@@ -62,10 +77,10 @@ private fun printIssueSummary(
     }
 }
 
-/**
+/** ----
  * This function presents a screen where the user is given a choice of saving their
  * issue with an updated anticipated release or going back to the previous menu.
- */
+----- */
 private fun confirmNewRelease(
     newRelease: Release, // in
     issue: Issue, // in
@@ -92,10 +107,10 @@ private fun confirmNewRelease(
         option("Back") { editAnticipatedRelease(issue) }
     }
 
-/**
+/** ----
  * This function shows the release versions the user can pick from
  * for the updated value of the anticipated release.
- */
+----- */
 private fun editAnticipatedRelease(issue: Issue): Screen =
     screenWithMenu {
         transaction {
@@ -108,12 +123,14 @@ private fun editAnticipatedRelease(issue: Issue): Screen =
 
 private val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
 
-/**
+/** ----
  * This function shows all the information present within the passed issue
  * and prompts the user to edit either the description, priority, status,
  * or anticipated release
- */
-private fun viewIssueMenu(issue: Issue): Screen =
+----- */
+private fun viewIssueMenu(
+    issue: Issue, // in
+): Screen =
     screenWithMenu {
         title("Issue #${issue.id}")
         transaction {
@@ -127,9 +144,17 @@ private fun viewIssueMenu(issue: Issue): Screen =
         promptMessage("Enter 1, 2, or 3 to edit the respective fields.")
     }
 
+// This data type represents the mapping between a row
+// number and the issue corresponding to it
 typealias RowToIssuePage = Map<Int, Issue>
 
-private fun selectIssueToViewMenu(rows: RowToIssuePage) =
+/** ----
+ * This function presents the issues the user can select along with a choice
+ * to return to the main menu.
+---- */
+private fun selectIssueToViewMenu(
+    rows: RowToIssuePage, // in
+) =
     object : Screen {
         override fun run(t: Terminal): Screen? {
             t.printLine("== View issue ==")
@@ -153,18 +178,16 @@ private fun selectIssueToViewMenu(rows: RowToIssuePage) =
         }
     }
 
-private fun viewIssueMenu(rows: RowToIssuePage) =
-    screenWithMenu {
-        title("View issue")
-        content { t ->
-            t.prompt(
-                "Enter the row number of the issue you want to view",
-                rows.keys.map { it.toString() },
-            )
-        }
-    }
-
-fun displayAllIssuesMenu(page: PageWithFilter): Screen =
+/** -----
+ * This function displays at most 20 issues from the DB which
+ * passed the issue filter, giving the user four options: view the
+ * next page of issues which passed the filter; select a specific
+ * issue to view; return to the previous menu to change the filter;
+ * return to the main menu
+----- */
+fun displayAllIssuesMenu(
+    page: PageWithFilter, // in
+): Screen =
     screenWithMenu {
         title("Search Results")
         option("Select filter") { mkIssuesMenu(page) }
@@ -201,7 +224,13 @@ fun displayAllIssuesMenu(page: PageWithFilter): Screen =
         }
     }
 
-private fun toRow(anIssue: Issue): List<Any> {
+/** ------
+ * This function takes an issue and extracts out all the
+ * information contained within it.
+----- */
+private fun toRow(
+    anIssue: Issue, // in
+): List<Any> {
     val elements = anIssue.anticipatedRelease.releaseId
     return listOf(
         anIssue.id.value,
@@ -217,7 +246,9 @@ private fun toRow(anIssue: Issue): List<Any> {
 This function prints out a message asking the user how they would like
 to search for an issue.
 ----- */
-fun mkIssuesMenu(page: PageWithFilter): Screen =
+fun mkIssuesMenu(
+    page: PageWithFilter, // in
+): Screen =
     screenWithMenu {
         title("VIEW/EDIT ISSUE")
         promptMessage("Please select search category.")
@@ -231,8 +262,14 @@ fun mkIssuesMenu(page: PageWithFilter): Screen =
         option("Clear filters") { mkIssuesMenu(page.copy(filter = IssueFilter.NoFilter)) }
     }
 
+// This represents the default state of the issues menu with
+// no filter selected yet by the user
 internal val issuesMenu = mkIssuesMenu(PageWithFilter())
 
+/** ----
+ * This function displays the issues menu and transitions to the following menu the
+ * user selects.
+------ */
 fun mainIssuesMenu() {
     val t = Terminal()
     var currentScreen: Screen? = issuesMenu
