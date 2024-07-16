@@ -27,14 +27,18 @@ import java.time.LocalDateTime
 // display a given request to the screen
 fun displayRequest(request: Request?) {
     if (request == null) {
-        return
+        println("Error: Bad request")
+        return // bad request
     }
 
-    var contact: Contact? = null
-
     // get full information about this contact
-    transaction {
-        contact = Contact.find { Contacts.id eq request.contact }.firstOrNull()
+    val contact = transaction {
+        Contact.find { Contacts.id eq request.contact }.firstOrNull()
+    }
+
+    if (contact == null) {
+        println("Error: Bad contact for request")
+        return // bad contact
     }
 
     val affRel = request.affectedRelease
@@ -52,7 +56,6 @@ fun displayRequest(request: Request?) {
 //     input when necessary, re-prompting where necessary.
 // Returns the created request.
 fun enterRequestInformation(): Request? {
-    // "?:" is a check if selectProduct returns null
     val product = selectProduct() ?: return null
     val release = selectRelease(product.name) ?: return null
 
@@ -88,6 +91,7 @@ fun enterRequestInformation(): Request? {
     }
 
     println("Created request:")
+    println("AffRel\tRequested\tName\tEmail\tDepartment")
     displayRequest(request)
 
     return request

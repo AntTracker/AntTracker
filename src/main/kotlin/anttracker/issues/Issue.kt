@@ -15,7 +15,7 @@ import anttracker.db.Issue
 import anttracker.db.Priority
 import anttracker.product.ProductName
 import anttracker.release.ReleaseId
-import anttracker.request.Request
+import anttracker.db.Request
 
 // ------
 

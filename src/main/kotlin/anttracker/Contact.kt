@@ -9,6 +9,8 @@ The Contact module contains all exported classes and functions pertaining to
 
 package anttracker.contact
 
+import anttracker.db.Contact
+
 // ----------------------------------------------------------------------------
 
 @JvmInline
