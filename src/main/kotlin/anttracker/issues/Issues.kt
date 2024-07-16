@@ -14,7 +14,14 @@ private val noIssuesMatching =
         }
     }
 
-private fun editDescription(issue: Issue): Screen =
+/**
+ * This function displays a screen where the user is presented with the
+ * option of saving their issue with an edited description or going back
+ * to the previous menu.
+ */
+private fun editDescription(
+    issue: Issue, // in
+): Screen =
     screenWithMenu {
         var newDescription = ""
         content { t ->
@@ -37,9 +44,12 @@ private fun editDescription(issue: Issue): Screen =
         option("Back") { viewIssueMenu(issue) }
     }
 
+/**
+ * This function prints out all the information contained within an issue.
+ */
 private fun printIssueSummary(
-    t: Terminal,
-    issue: Issue,
+    t: Terminal, // in
+    issue: Issue, // in
 ) {
     transaction {
         t.title("Summary")
@@ -52,9 +62,13 @@ private fun printIssueSummary(
     }
 }
 
+/**
+ * This function presents a screen where the user is given a choice of saving their
+ * issue with an updated anticipated release or going back to the previous menu.
+ */
 private fun confirmNewRelease(
-    newRelease: Release,
-    issue: Issue,
+    newRelease: Release, // in
+    issue: Issue, // in
 ): Screen =
     screenWithMenu {
         content { t ->
@@ -78,6 +92,10 @@ private fun confirmNewRelease(
         option("Back") { editAnticipatedRelease(issue) }
     }
 
+/**
+ * This function shows the release versions the user can pick from
+ * for the updated value of the anticipated release.
+ */
 private fun editAnticipatedRelease(issue: Issue): Screen =
     screenWithMenu {
         transaction {
@@ -90,6 +108,11 @@ private fun editAnticipatedRelease(issue: Issue): Screen =
 
 private val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
 
+/**
+ * This function shows all the information present within the passed issue
+ * and prompts the user to edit either the description, priority, status,
+ * or anticipated release
+ */
 private fun viewIssueMenu(issue: Issue): Screen =
     screenWithMenu {
         title("Issue #${issue.id}")
