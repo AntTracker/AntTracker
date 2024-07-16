@@ -10,11 +10,12 @@ The module hides validation of release attributes, the interactive menu prompts 
 */
 
 package anttracker.release
+
 import anttracker.PageOf
-import anttracker.Product
-import anttracker.Products
-import anttracker.Release
-import anttracker.Releases
+import anttracker.db.Product
+import anttracker.db.Products
+import anttracker.db.Release
+import anttracker.db.Releases
 import anttracker.product.selectProduct
 import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SortOrder
@@ -87,6 +88,7 @@ fun selectRelease(
                     relPage.display()
                 }
             }
+
             else -> { // User has attempted to enter a line number
                 try {
                     val userInputInt = userInput.toInt()

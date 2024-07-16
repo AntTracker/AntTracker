@@ -1,4 +1,4 @@
-package anttracker
+package anttracker.db
 
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
@@ -14,27 +14,26 @@ fun setupSchema() {
     transaction {
         SchemaUtils.createMissingTablesAndColumns(Products, Issues, Releases)
 
-        (0..40).forEach { id ->
-            val productId = Products.insert { it[name] = "Product $id" } get Products.id
-            val relId =
-                Releases.insert {
-                    it[product] = productId
-                    it[releaseId] = "$id"
-                    it[releaseDate] = CurrentDateTime
-                } get Releases.id
+        (0..5).forEach { productId ->
+            val prodId = Products.insert { it[name] = "Product $productId" } get Products.id
+            (0..5).forEach { id ->
+                val relId =
+                    Releases.insert {
+                        it[product] = prodId
+                        it[releaseId] = "$id"
+                        it[releaseDate] = CurrentDateTime
+                    } get Releases.id
+                (0..20).forEach { issueId ->
 
-            val end =
-                when (id % 2) {
-                    0 -> "has"
-                    else -> "is"
+                    Issues.insert {
+                        it[description] = "Issue $issueId"
+                        it[product] = prodId
+                        it[status] = "done"
+                        it[priority] = 1
+                        it[creationDate] = CurrentDateTime
+                        it[anticipatedRelease] = relId
+                    }
                 }
-            Issues.insert {
-                it[description] = "Issue $id $end"
-                it[product] = productId
-                it[status] = "done"
-                it[priority] = 1
-                it[creationDate] = CurrentDateTime
-                it[anticipatedRelease] = relId
             }
         }
     }
@@ -90,12 +89,13 @@ class Issue(
     var priority by Issues.priority
 }
 
-sealed class Priority {
-    data object High : Priority()
-
-    data object Low : Priority()
-
-    data object Medium : Priority()
+@JvmInline
+value class Priority(
+    val priority: Int,
+) {
+    init {
+        priority in (1..5)
+    }
 }
 
 sealed class IssueStatus {

@@ -10,9 +10,10 @@ and searching for issues are also present in this file.
  */
 
 package anttracker.issues
+
+import anttracker.db.Issue
+import anttracker.db.Priority
 import anttracker.product.ProductName
-import anttracker.Issue
-import anttracker.Priority
 import anttracker.release.ReleaseId
 import anttracker.request.Request
 
