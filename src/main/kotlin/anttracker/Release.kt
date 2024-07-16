@@ -16,7 +16,7 @@ import anttracker.Products
 import anttracker.Release
 import anttracker.Releases
 import anttracker.product.selectProduct
-import org.jetbrains.exposed.sql.SizedIterable
+import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
@@ -160,7 +160,7 @@ value class ReleaseId(
 // ---
 class PageOfReleases(
     private val productName: String,
-) : PageOf<Release>() {
+) : PageOf<Release>(Release) {
     // -------------------------------------------------------------------------------
     // Automatically called upon object creation (i.e. a 2nd ctor)
     // Not defined in PageOf superclass as that gets called BEFORE subclass properties
@@ -191,28 +191,15 @@ class PageOfReleases(
     //  SELECT * FROM release
     //  WHERE product = productName
     //  ORDER BY product, releaseDate DESC
-    //  LIMIT qLimit OFFSET pagenum * qLimit + qOffset
     // ---
-    override fun queryToDB(): SizedIterable<Release>? {
-        var output: SizedIterable<Release>? = null
-        val test = productName
-        transaction {
-            val product =
-                Product.find { Products.name eq productName }.firstOrNull()
-                    ?: throw Exception("queryToDB(): Product not found.")
-
-            output =
-                Release
-                    .find {
-                        Releases.product eq product.id
-                    }.limit(n = queryLimit, offset = (pagenum * queryLimit + queryOffset).toLong())
-                    .orderBy(
-                        Releases.product to SortOrder.DESC,
-                        Releases.releaseDate to SortOrder.DESC,
-                    )
-        }
-        return output
-    }
+    override fun getQuery(): Query =
+        (Releases innerJoin Products)
+            .select(Releases.columns)
+            .where { Products.name eq productName }
+            .orderBy(
+                Releases.product to SortOrder.DESC,
+                Releases.releaseDate to SortOrder.DESC,
+            )
 }
 
 val promptEnterRel = "\nPlease enter new release name. ` to abort:"

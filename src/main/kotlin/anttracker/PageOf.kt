@@ -1,5 +1,7 @@
 package anttracker
-import org.jetbrains.exposed.sql.SizedIterable
+import org.jetbrains.exposed.dao.IntEntity
+import org.jetbrains.exposed.dao.IntEntityClass
+import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.math.ceil
 
@@ -9,8 +11,10 @@ import kotlin.math.ceil
 //  - accessing records
 //  - displaying records as a page
 //  - going to the next page and loading its records
-abstract class PageOf<IntEntity> {
-    protected var records: MutableList<IntEntity> = mutableListOf() // Container for object instances
+abstract class PageOf<T : IntEntity>(
+    private val entityClass: IntEntityClass<T>,
+) {
+    protected var records: List<T> = emptyList() // Container for object instances
     protected var pagenum: Int = 0 // NOTE: Page numbers are 0-indexed
     private var lastPageNum: Int = 0
     protected val queryOffset: Int = 0 // For page calculation in DB query
@@ -31,34 +35,27 @@ abstract class PageOf<IntEntity> {
     }
 
     // -------------------------------------------------------------------------------
-    // Queries to DB and pulls a page of records (max 20) into the records MutableList.
+    // Queries to DB and pulls a page of records (max 20) into the records List.
     // ---
     fun loadRecords() {
-        records.clear()
+        records = emptyList()
         transaction {
-            val queryOutput = queryToDB()
-            if (queryOutput != null) {
-                queryOutput.forEach { record ->
-                    records.add(record)
-                }
-            } else {
-                throw Exception("PageOf: Attempted to load from null query output.")
-            }
+            records = fetchPageOfRecords()
         }
     }
 
     // -------------------------------------------------------------------------------
-    // Returns the size/length of the records MutableList.
+    // Returns the size/length of the records.
     // ---
     fun recordsSize(): Int = records.size
 
     // -------------------------------------------------------------------------------
-    // Getter for elements in the records MutableList.
+    // Getter for elements in the records.
     // ---
-    fun getContentAt(index: Int): IntEntity = records[index]
+    fun getContentAt(index: Int): T = records[index]
 
     // -------------------------------------------------------------------------------
-    // Increments page number and loads associated DB records into records MutableList
+    // Increments page number and loads associated DB records into records.
     // Throws an error if attempting to load beyond the last page.
     // ---
     fun loadNextPage() {
@@ -94,26 +91,30 @@ abstract class PageOf<IntEntity> {
     // Returns the total number of records/rows of the query being paginated.
     // Used for calculating the number of pages the query needs.
     // ---
-    private fun getQueryRecordCount(): Int {
-        var count: Int = -1
+    private fun getQueryRecordCount(): Int =
         transaction {
-            val queryOutput: SizedIterable<IntEntity>? = queryToDB()
-            if (queryOutput != null) {
-                count = queryOutput.count().toInt()
-            }
+            getQuery().count().toInt()
         }
-        return count
-    }
 
     // -------------------------------------------------------------------------------
-    // Defines the DAO query to DB used to pull records into memory.
+    // Pulls a page of records (max 20) from DB to memory.
+    // ---
+    protected fun fetchPageOfRecords(): List<T> =
+        transaction {
+            getQuery()
+                .limit(n = queryLimit, offset = (pagenum * queryLimit + queryOffset).toLong())
+                .map { entityClass.wrapRow(it) }
+        }
+
+    // -------------------------------------------------------------------------------
+    // Defines the DAO query to DB used to pull records into memory and for page calculation.
     // Abstract/Virtual as query needs to be defined per PageOf Type
     // ---
-    protected abstract fun queryToDB(): SizedIterable<IntEntity>?
+    protected abstract fun getQuery(): Query
 
     // -------------------------------------------------------------------------------
     // Defines how a single record is printed to console.
     // Abstracted as this changes based on record type (Issue, Contact, Release, etc.)
     // ---
-    protected abstract fun printRecord(record: IntEntity)
+    protected abstract fun printRecord(record: T)
 }
