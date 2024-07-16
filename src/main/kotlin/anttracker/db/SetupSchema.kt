@@ -115,10 +115,23 @@ value class ReleaseId(
     val id: UUID,
 )
 
-data class Contact(
-    val id: UUID,
-    val name: String,
-)
+object Contacts : IntIdTable() {
+    val name = varchar("name", 30)
+    val email = varchar("email", 24)
+    val phoneNumber = varchar("phone_number", 11)
+    val department = varchar("department", 12)
+}
+
+class Contact(
+    id: EntityID<Int>,
+) : IntEntity(id) {
+    companion object : IntEntityClass<Contact>(Contacts)
+
+    var name by Contacts.name
+    var email by Contacts.email
+    var phoneNumber by Contacts.phoneNumber
+    var department by Contacts.department
+}
 
 data class Request(
     val id: UUID,
