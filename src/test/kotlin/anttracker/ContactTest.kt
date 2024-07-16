@@ -5,7 +5,7 @@ Revision History
 Rev. 1 - 2024/07/09 Original by M. Baker
 -------------------------------------------
 This file contains the tests for the function
-validateProductName.
+enterContactInformation from the Contact module.
 ---------------------------------
  */
 import anttracker.contact.enterContactInformation
