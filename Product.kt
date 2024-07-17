@@ -1,13 +1,37 @@
-package anttracker.product
+/* Revision History:
+Rev. 1 - 2024/07/01 Original by M. Baker
+Rev. 2 - 2024/07/08 Updated by A. Kim
+-------------------------------------------------------------------------------
+The Product module contains all exported classes and functions pertaining to
+    the creation or selection of product entities.
+-------------------------------------------------------------------------------
+*/
 
-import anttracker.db.*
+package anttracker.product
 
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.dao.IntEntity
+import org.jetbrains.exposed.dao.IntEntityClass
+import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.dao.id.IntIdTable
 
-fun validateProductName(name: String): Boolean {
-    return true // will be important later on
+// ----------------------------------------------------------------------------
+// Data class for storing the attributes of a given product.
+// ---
+data class Product(
+    val productName: String // name of the product (primary key)
+)
+
+// Assuming we have a Products table defined for Exposed ORM
+object Products : IntIdTable() {
+    val productName = varchar("product_name", 50)
+}
+
+// Product entity
+class ProductEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<ProductEntity>(Products)
+    var productName by Products.productName
 }
 
 // Base class for pagination
@@ -42,11 +66,10 @@ abstract class PageOf<T : IntEntity>(private val limit: Int = 10, private val of
     }
 }
 
-
 // Pagination class for Product
 class PageOfProduct : PageOf<ProductEntity>() {
     override fun getQuery(): Query {
-        return Products.selectAll().orderBy(Products.name to SortOrder.ASC)
+        return Products.selectAll().orderBy(Products.productName to SortOrder.ASC)
     }
 }
 
@@ -99,7 +122,7 @@ fun menu() {
 fun enterProductInformation(): ProductEntity? {
     while (true) {
         println("Please enter product name (1-30 characters). ` to exit:")
-        val name = readln()
+        val name = readLine()!!
         if (name == "`") return null
         if (name.length !in 1..30) {
             println("ERROR: Invalid product name length.")
@@ -107,7 +130,7 @@ fun enterProductInformation(): ProductEntity? {
         }
         return transaction {
             ProductEntity.new {
-                this.name = name
+                productName = name
             }
         }
     }
@@ -116,19 +139,23 @@ fun enterProductInformation(): ProductEntity? {
 // Displays all products as a string
 fun displayProducts(): String {
     return transaction {
-        ProductEntity.all().joinToString(separator = "\n") { it.name }
+        ProductEntity.all().joinToString(separator = "\n") { it.productName }
     }
 }
 
 // Save a product to the database
 private fun saveProduct(product: ProductEntity) {
     transaction {
-        if (ProductEntity.find { Products.name eq product.name }.empty()) {
+        if (ProductEntity.find { Products.productName eq product.productName }.empty()) {
             product.flush()
-            println("${product.name} has been created.")
+            println("${product.productName} has been created.")
         } else {
             println("ERROR: Product already exists.")
         }
     }
     menu()
 }
+
+
+
+

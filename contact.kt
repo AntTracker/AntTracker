@@ -7,12 +7,24 @@ The Contact module contains all exported classes and functions pertaining to
 -------------------------------------------------------------------------------
 */
 
+
+/*
+Contact.kt
+Contact				; type or class or struct
+menu()					; interactive display
+enterContactInformation() -> Contact	; interactive display
+displayContacts() -> String		; interactive display
+getContactInfo(name)	-> Contact	; helper function
+saveToDB(Contact)			; helper function
+*/
 package anttracker.contact
 
-import anttracker.db.*
-import org.jetbrains.exposed.dao.IntEntity
-
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.dao.IntEntity
+import org.jetbrains.exposed.dao.IntEntityClass
+import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.dao.id.IntIdTable
 
 // ----------------------------------------------------------------------------
 // Displays a sub-menu for creating a new contact and adding it to the
@@ -23,7 +35,37 @@ import org.jetbrains.exposed.sql.transactions.transaction
 // ---
 fun menu() {
     println("== NEW CONTACT ==")
-    enterContactInformation()
+    val newContact = enterContactInformation()
+    if (newContact != null) {
+        saveToDB(newContact)
+    }
+}
+
+// ----------------------------------------------------------------------------
+// Data class for storing the attributes of a given contact.
+// ---
+data class Contact(
+    val name: String,
+    val phone: String,
+    val email: String,
+    val department: String? = null // optional
+)
+
+// Assuming we have a Contacts table defined for Exposed ORM
+object Contacts : IntIdTable() {
+    val contactName = varchar("contact_name", 50)
+    val email = varchar("email", 50).uniqueIndex()
+    val phoneNumber = varchar("phone_number", 20)
+    val department = varchar("department", 50).nullable()
+}
+
+// Contact entity
+class ContactEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<ContactEntity>(Contacts)
+    var contactName by Contacts.contactName
+    var email by Contacts.email
+    var phoneNumber by Contacts.phoneNumber
+    var department by Contacts.department
 }
 
 // PageOf<T>
@@ -59,7 +101,7 @@ open class PageOf<T : IntEntity> {
 class PageOfContact : PageOf<ContactEntity>() {
     fun display() {
         for ((index, contactRecord) in contents.withIndex()) {
-            println("${index + 1}. ${contactRecord.name}")
+            println("${index + 1}. ${contactRecord.contactName}")
         }
     }
 
@@ -85,7 +127,8 @@ fun selectContact(): ContactEntity? {
     var linenum: Int? = null
     while (linenum == null) {
         println("Please select contact. ` to abort: ")
-        when (val userInput = readln()) {
+        val userInput = readln()
+        when (userInput) {
             "`" -> return null
             "" -> {
                 if (!contactPage.lastPage()) {
@@ -112,10 +155,10 @@ fun selectContact(): ContactEntity? {
 //     input when necessary, re-prompting where necessary.
 // Returns the created contact.
 // ---
-fun enterContactInformation(): ContactEntity? {
+fun enterContactInformation(): Contact? {
     while (true) {
         println("Please enter contact name (1-50 characters). ` to abort:")
-        val name = readln()
+        val name = readLine()!!
         if (name == "`") return null
         if (name.length !in 1..50) {
             println("ERROR: Invalid contact name length.")
@@ -123,7 +166,7 @@ fun enterContactInformation(): ContactEntity? {
         }
 
         println("Please enter contact phone number (10-20 characters). ` to abort:")
-        val phone = readln()
+        val phone = readLine()!!
         if (phone == "`") return null
         if (phone.length !in 10..20) {
             println("ERROR: Invalid phone number length.")
@@ -131,7 +174,7 @@ fun enterContactInformation(): ContactEntity? {
         }
 
         println("Please enter contact email address (1-50 characters). ` to abort:")
-        val email = readln()
+        val email = readLine()!!
         if (email == "`") return null
         val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$".toRegex()
         if (email.length !in 1..50 || !email.matches(emailRegex)) {
@@ -140,27 +183,33 @@ fun enterContactInformation(): ContactEntity? {
         }
 
         println("Please enter contact department (1-50 characters). <Enter> to leave blank. ` to abort:")
-        var department = readln()
+        val department = readLine()!!
         if (department == "`") return null
         if (department.isNotBlank() && department.length !in 1..50) {
             println("ERROR: Invalid department name.")
             continue
         }
-        if (department.isBlank()) {
-            department = ""
-        }
 
-        val contact = transaction {
+        val newContact = Contact(name, phone, email, if (department.isBlank()) null else department)
+        println("Contact ${newContact.name} has been created.")
+        return newContact
+    }
+}
+
+// Save a contact to the database
+private fun saveToDB(contact: Contact) {
+    transaction {
+        if (ContactEntity.find { Contacts.email eq contact.email }.empty()) {
             ContactEntity.new {
-                this.name = name
-                this.phoneNumber = phone
-                this.email = email
-                this.department = department
+                contactName = contact.name
+                email = contact.email
+                phoneNumber = contact.phone
+                department = contact.department
             }
+            println("${contact.name} has been created.")
+        } else {
+            println("ERROR: Contact with this email already exists.")
         }
-
-        println("Contact ${contact.name} has been created.")
-        return contact
     }
 }
 
@@ -169,6 +218,7 @@ fun enterContactInformation(): ContactEntity? {
 // ---
 fun getContactInfo(name: String): ContactEntity? {
     return transaction {
-        ContactEntity.find { Contacts.name eq name }.firstOrNull()
+        ContactEntity.find { Contacts.contactName eq name }.firstOrNull()
     }
 }
+

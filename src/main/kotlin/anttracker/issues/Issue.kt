@@ -16,7 +16,6 @@ package anttracker.issues
 import anttracker.db.Issue
 import anttracker.db.Priority
 import anttracker.db.Request
-import anttracker.product.ProductName
 import anttracker.release.ReleaseId
 
 // ------
@@ -42,7 +41,7 @@ value class Description(
 --- */
 data class IssueInformation(
     val description: Description,
-    val productName: ProductName,
+    val productName: String,
     val affectedRelease: ReleaseId,
     val anticipatedRelease: ReleaseId? = null,
     val priority: Priority,
@@ -95,7 +94,7 @@ sealed class IssueFilter {
      * Represents a filter that uses the product.
      --- */
     data class ByProduct(
-        val product: ProductName,
+        val product: String,
     ) : IssueFilter()
 
     /** ---

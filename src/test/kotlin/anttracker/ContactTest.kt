@@ -31,7 +31,7 @@ class ContactTest :
 
                     // find the contact stored in the database identified by the created contact
                     val contactFound = transaction {
-                        Contact.find {Contacts.id eq contactCreated.id}.firstOrNull()
+                        ContactEntity.find {Contacts.id eq contactCreated.id}.firstOrNull()
                     }
 
                     contactCreated shouldBe contactFound
@@ -41,7 +41,7 @@ class ContactTest :
                 it("should be findable in the database") {
                     // delete all contacts currently stored in the database
                     transaction {
-                        Contact.all().forEach { it.delete() }
+                        ContactEntity.all().forEach { it.delete() }
                     }
 
                     // prompts user input to create contacts
@@ -58,7 +58,7 @@ class ContactTest :
 
                     // find the contact stored in the database identified by the created contact
                     val contactsFound = transaction {
-                        Contact.all()
+                        ContactEntity.all()
                     }
 
                     contactsFound.shouldContainOnly(contactsCreated)
