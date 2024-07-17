@@ -37,32 +37,6 @@ fun menu() {
 }
 
 // -------------------------------------------------------------------------------
-// A read-only display of releases for a product. Returns control upon reaching
-//  the final page, or if user aborts with backtick.
-// ---
-fun displayReleases(
-    productName: String, // in
-) {
-    val relPage = PageOfReleases(productName)
-    relPage.loadRecords()
-    println("$productName releases:")
-    relPage.display()
-
-    // Loop through pages. Loop terminates at last page, or user abort.
-    while (!relPage.lastPage()) {
-        val userInput = readln()
-        when (userInput) {
-            "`" -> return
-            "" -> {
-                relPage.loadNextPage()
-                relPage.display()
-            }
-        }
-    }
-    return
-}
-
-// -------------------------------------------------------------------------------
 // An interactive display of product releases, of which the user will select one by line number.
 // This will return a Release entity representing a single record pulled from the database.
 // Throws exception on transaction failure.
@@ -145,6 +119,32 @@ fun createRelease(
     }
 
     println("$productName $releaseEntry created.\n")
+}
+
+// -------------------------------------------------------------------------------
+// A read-only display of releases for a product. Returns control upon reaching
+//  the final page, or if user aborts with backtick.
+// ---
+private fun displayReleases(
+    productName: String, // in
+) {
+    val relPage = PageOfReleases(productName)
+    relPage.loadRecords()
+    println("$productName releases:")
+    relPage.display()
+
+    // Loop through pages. Loop terminates at last page, or user abort.
+    while (!relPage.lastPage()) {
+        val userInput = readln()
+        when (userInput) {
+            "`" -> return
+            "" -> {
+                relPage.loadNextPage()
+                relPage.display()
+            }
+        }
+    }
+    return
 }
 
 // IVC for quick validation of releaseId. Can be used in a try/catch block.
