@@ -15,16 +15,16 @@ package anttracker.issues
 
 import anttracker.db.Issue
 import anttracker.db.Priority
+import anttracker.db.Request
 import anttracker.product.ProductName
 import anttracker.release.ReleaseId
-import anttracker.db.Request
 
 // ------
 
-/**
+/** ---
  * This value class represents a valid description the user can have for an issue,
  * being 1-30 characters long.
- */
+--- */
 @JvmInline
 value class Description(
     private val description: String,
@@ -36,10 +36,10 @@ value class Description(
     }
 }
 
-/**
+/** ---
  * This class represents the information of an issue before saving
  * it to the DB.
- */
+--- */
 data class IssueInformation(
     val description: Description,
     val productName: ProductName,
@@ -48,10 +48,10 @@ data class IssueInformation(
     val priority: Priority,
 )
 
-/**
+/** ---
  * This data class represents the valid values an issue id can take on,
  * being between 1-99.
- */
+--- */
 @JvmInline
 value class IssueId(
     private val id: Int,
@@ -63,11 +63,11 @@ value class IssueId(
     }
 }
 
-/**
+/** ---
  * This value class represents a valid number of days one can look back in order
  * to find the newly created issues in this time period, being a non-negative
  * number of days.
- */
+--- */
 @JvmInline
 value class Days(
     val numOfDays: Int,

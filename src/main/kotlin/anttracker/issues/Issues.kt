@@ -180,7 +180,6 @@ private fun selectIssueToViewMenu(
                     return rows[index]?.let(::viewIssueMenu)
                 }
             }
-            // The user needs to choose from the choices that are `, 1, 2, 3, 4...
         }
     }
 

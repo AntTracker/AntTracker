@@ -17,15 +17,27 @@ import java.time.format.DateTimeFormatter
 
 // ----
 
+/** ---
+ * Represents a terminal.
+--- */
 class Terminal {
+    /** ---
+     * Prints an empty line.
+     --- */
     fun printLine() = println()
 
+    /** ---
+     * Prints the given text.
+     --- */
     fun printLine(
         text: String, // in
     ) {
         println(text)
     }
 
+    /** ---
+     * prints the given message and returns what the user entered.
+     --- */
     fun prompt(
         message: String, // in
     ): String {
@@ -49,10 +61,16 @@ class Terminal {
         return prompt(message, choices)
     }
 
+    /** ---
+     * Prints the given message.
+     --- */
     fun print(
         message: String, // in
     ) = kotlin.io.print(message)
 
+    /**
+     * Represents the wanted format for the date.
+     */
     private val formatter = DateTimeFormatter.ofPattern("yyyy/mm/dd")
 
     /** -----
@@ -88,6 +106,9 @@ class Terminal {
         }
     }
 
+    /** ---
+     * Prints the given title.
+     --- */
     fun title(
         s: String, // in
     ) {

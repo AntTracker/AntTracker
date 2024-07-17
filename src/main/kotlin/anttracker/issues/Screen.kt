@@ -143,10 +143,12 @@ open class ScreenWithMenu : Screen {
         return byIndex
     }
 
-    /**
+    /** ---
      * This function sets the content.
-     */
-    fun content(fn: DisplayFn) {
+     --- */
+    fun content(
+        fn: DisplayFn, // in
+    ) {
         displayContent = fn
     }
 }
