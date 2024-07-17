@@ -1,9 +1,10 @@
 /* Release.kt
 Revision History:
+Rev. 2 - 2024/07/15 Full implementation by T. Tracey
 Rev. 1 - 2024/07/01 Original by T. Tracey
 ----------------------------------------------------------
 The Release module encapsulates the group of functions related to release creation,
-    and printing releases to console.
+    release selection, and printing releases to console.
 The module hides validation of release attributes, the interactive menu prompts during
     the release creation process, as well as interfacing with the database.
 ----------------------------------------------------------
@@ -36,31 +37,6 @@ fun menu() {
 }
 
 // -------------------------------------------------------------------------------
-// A read-only display of releases for a product. Returns control upon reaching
-//  the final page, or if user aborts with backtick.
-// ---
-fun displayReleases(
-    productName: String, // in
-) {
-    val relPage = PageOfReleases(productName)
-    relPage.loadRecords()
-    println("$productName releases:")
-    relPage.display()
-
-    while (!relPage.lastPage()) {
-        val userInput = readln()
-        when (userInput) {
-            "`" -> return
-            "" -> {
-                relPage.loadNextPage()
-                relPage.display()
-            }
-        }
-    }
-    return
-}
-
-// -------------------------------------------------------------------------------
 // An interactive display of product releases, of which the user will select one by line number.
 // This will return a Release entity representing a single record pulled from the database.
 // Throws exception on transaction failure.
@@ -74,8 +50,10 @@ fun selectRelease(
     relPage.display()
 
     var linenum: Int? = null
+
+    // Prompt user until system receives valid line number.
     while (linenum == null) {
-        println(promptSelectRel) // "Please select release. ` to abort: "
+        println(promptSelectRel) // i.e. "Please select release. ` to abort:"
         val userInput = readln()
         when (userInput) {
             "`" -> return null // User wants to abort
@@ -88,6 +66,8 @@ fun selectRelease(
 
             else -> { // User has attempted to enter a line number
                 try {
+                    // Check page contains the line number
+                    // If page doesn't, prompt again.
                     val userInputInt = userInput.toInt()
                     if (userInputInt in (1..20) && userInputInt < relPage.recordsSize()) {
                         linenum = userInput.toInt()
@@ -98,6 +78,7 @@ fun selectRelease(
             }
         }
     }
+    // Return selected release record
     return relPage.getContentAt(linenum)
 }
 
@@ -106,16 +87,18 @@ fun selectRelease(
 // Inserts release name defined at runtime into Release relation in database.
 // Throws exception on transaction failure (e.g. product doesn't exist in database)
 // ---
-fun createRelease(
+private fun createRelease(
     productName: String, // in
 ) {
     displayReleases(productName)
     var releaseEntry: String? = null
+
+    // Prompt user until valid releaseId is entered
     while (releaseEntry == null) {
         println(promptEnterRel)
         try {
             releaseEntry = ReleaseId(readln()).toString()
-            if (releaseEntry == "`") {
+            if (releaseEntry == "`") { // User wants to abort
                 return
             }
         } catch (e: java.lang.IllegalArgumentException) {
@@ -123,6 +106,7 @@ fun createRelease(
         }
     }
 
+    // Insert release into the database.
     transaction {
         val product =
             ProductEntity.find { Products.name eq productName }.firstOrNull()
@@ -137,6 +121,33 @@ fun createRelease(
     println("$productName $releaseEntry created.\n")
 }
 
+// -------------------------------------------------------------------------------
+// A read-only display of releases for a product. Returns control upon reaching
+//  the final page, or if user aborts with backtick.
+// ---
+private fun displayReleases(
+    productName: String, // in
+) {
+    val relPage = PageOfReleases(productName)
+    relPage.loadRecords()
+    println("$productName releases:")
+    relPage.display()
+
+    // Loop through pages. Loop terminates at last page, or user abort.
+    while (!relPage.lastPage()) {
+        val userInput = readln()
+        when (userInput) {
+            "`" -> return
+            "" -> {
+                relPage.loadNextPage()
+                relPage.display()
+            }
+        }
+    }
+    return
+}
+
+// IVC for quick validation of releaseId. Can be used in a try/catch block.
 @JvmInline
 value class ReleaseId(
     private val id: String,
@@ -155,9 +166,9 @@ value class ReleaseId(
 // Each PageOf class needs to define:
 //      - init{} block, which MUST call initLastPageNum(). See below why this is necessary.
 //      - display(), to define how the page is displayed to console
-//      - getQuery(), to define the DAO query to DB used to pull records into memory
+//      - getQuery(), to define the query to DB
 // ---
-class PageOfReleases(
+private class PageOfReleases(
     private val productName: String,
 ) : PageOf<Release>(Release) {
     // -------------------------------------------------------------------------------
@@ -201,8 +212,6 @@ class PageOfReleases(
             )
 }
 
-val promptEnterRel = "\nPlease enter new release name. ` to abort:"
+private val promptEnterRel = "\nPlease enter new release name. ` to abort:"
 
-val promptSelectRel = "\nPlease select release. ` to abort:"
-
-val promptSelectAffRel = "\nPlease select affected release. ` to abort:"
+private val promptSelectRel = "\nPlease select release. ` to abort:"
