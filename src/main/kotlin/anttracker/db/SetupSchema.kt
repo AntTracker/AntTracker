@@ -1,5 +1,5 @@
 /* Revision History:
-Rev. 1 - 2024/07/02 Original by E. Barylko
+Rev. 1 - 2024/07/02 Original by Eitan
 Rev. 2 - 2024/07/09 by T. Tracey
 Rev. 3 - 2024/07/16 by M. Baker
 -------------------------------------------
@@ -126,9 +126,9 @@ class Issue(
     var priority by Issues.priority
 }
 
-/**
+/** ---
  * Represents the priority an issue can have, being in [1, 5]
- */
+--- */
 @JvmInline
 value class Priority(
     val priority: Int,
@@ -138,11 +138,9 @@ value class Priority(
     }
 }
 
-@JvmInline
-value class ReleaseId(
-    val id: UUID,
-)
-
+/** ---
+ * Represents the contacts table.
+--- */
 object Contacts : IntIdTable() {
     val name = varchar("name", 30)
     val email = varchar("email", 24)
@@ -150,6 +148,9 @@ object Contacts : IntIdTable() {
     val department = varchar("department", 12)
 }
 
+/** ---
+ * Represents a single row in the contacts table.
+--- */
 class Contact(
     id: EntityID<Int>,
 ) : IntEntity(id) {
@@ -161,6 +162,9 @@ class Contact(
     var department by Contacts.department
 }
 
+/** ---
+ * Represents the requests table.
+--- */
 object Requests : IntIdTable() {
     val affectedRelease = reference("release_id", Releases)
     val issue = reference("issue_id", Issues)
@@ -168,6 +172,9 @@ object Requests : IntIdTable() {
     val requestDate = datetime("request_date")
 }
 
+/** ---
+ * Represents a single row in the requests table.
+--- */
 class Request(
     id: EntityID<Int>,
 ) : IntEntity(id) {
