@@ -168,7 +168,7 @@ value class ReleaseId(
 //      - display(), to define how the page is displayed to console
 //      - getQuery(), to define the query to DB
 // ---
-class PageOfReleases(
+private class PageOfReleases(
     private val productName: String,
 ) : PageOf<Release>(Release) {
     // -------------------------------------------------------------------------------
@@ -212,6 +212,6 @@ class PageOfReleases(
             )
 }
 
-val promptEnterRel = "\nPlease enter new release name. ` to abort:"
+private val promptEnterRel = "\nPlease enter new release name. ` to abort:"
 
-val promptSelectRel = "\nPlease select release. ` to abort:"
+private val promptSelectRel = "\nPlease select release. ` to abort:"
