@@ -6,6 +6,10 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.dao.IntEntity
 
+fun validateProductName(name: String): Boolean {
+    return true // will be important later on
+}
+
 // Base class for pagination
 abstract class PageOf<T : IntEntity>(private val limit: Int = 10, private val offset: Int = 0) {
     val contents: MutableList<T> = mutableListOf()
