@@ -1,3 +1,18 @@
+/* PageOf.kt
+Revision History:
+Rev. 1 - 2024/07/15 Original by T. Tracey
+----------------------------------------------------------
+The PageOf module provides an abstract base class to create paginated queries for records in the database.
+Subclasses must define 3 things:
+    1. init{} - MUST call initLastPageNum(). Would've been nice to put in the base class, but that would
+                 have it trigger BEFORE any subclass init/ctors. If the last page number calculation is
+                 dependent on any subclass properties, this would be undefined behaviour.
+    2. getQuery() - a DAO query representing the whole record set you want to pull. Other base class
+                        functions will handle paginating from this set.
+    3. printRecord() - how to print a single record to the console.
+----------------------------------------------------------
+*/
+
 package anttracker
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
@@ -114,6 +129,7 @@ abstract class PageOf<T : IntEntity>(
 
     // -------------------------------------------------------------------------------
     // Defines how a single record is printed to console.
+    // Will be called on each element of records List to print the whole page to console.
     // Abstracted as this changes based on record type (Issue, Contact, Release, etc.)
     // ---
     protected abstract fun printRecord(record: T)
