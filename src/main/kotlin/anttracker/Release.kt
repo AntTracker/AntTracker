@@ -12,10 +12,7 @@ The module hides validation of release attributes, the interactive menu prompts 
 package anttracker.release
 
 import anttracker.PageOf
-import anttracker.db.Product
-import anttracker.db.Products
-import anttracker.db.Release
-import anttracker.db.Releases
+import anttracker.db.*
 import anttracker.product.selectProduct
 import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SortOrder
@@ -128,7 +125,7 @@ fun createRelease(
 
     transaction {
         val product =
-            Product.find { Products.name eq productName }.firstOrNull()
+            ProductEntity.find { Products.name eq productName }.firstOrNull()
                 ?: throw IllegalArgumentException("Error: Product not found")
         Release.new {
             releaseId = releaseEntry

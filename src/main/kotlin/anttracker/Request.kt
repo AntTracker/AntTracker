@@ -17,7 +17,6 @@ import anttracker.issues.enterIssueInformation
 import anttracker.issues.saveIssue
 import anttracker.issues.selectIssue
 import anttracker.product.selectProduct
-import anttracker.product.ProductName
 
 // release imports
 import anttracker.release.selectRelease
@@ -67,7 +66,7 @@ fun enterRequestInformation(): Request? {
     }
 
     // filter available issues with product
-    val issueFilter = IssueFilter.ByProduct(ProductName(product.name))
+    val issueFilter = IssueFilter.ByProduct(product.name)
 
     // NOTE: implement constant somewhere for "issuesPerPage"
     var issue = selectIssue(issueFilter, 20)

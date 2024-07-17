@@ -1,27 +1,48 @@
 package anttracker.product
 
-import anttracker.PageOf
 import anttracker.db.*
 
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.dao.IntEntity
-import org.jetbrains.exposed.dao.IntEntityClass
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.IntIdTable
 
-// ----------------------------------------------------------------------------
-// Data class for storing the attributes of a given product.
-// ---
+// Base class for pagination
+abstract class PageOf<T : IntEntity>(private val limit: Int = 10, private val offset: Int = 0) {
+    val contents: MutableList<T> = mutableListOf()
+    protected abstract fun getQuery(): Query
 
-data class Product(
-    val productName: String // name of the product (primary key)
-)
+    fun loadContents() {
+        contents.clear()
+        transaction {
+            val query = getQuery().limit(limit, offset.toLong())
+            query.forEach {
+                contents.add(it as T)
+            }
+        }
+    }
+
+    fun display() {
+        for ((index, record) in contents.withIndex()) {
+            println("${index + 1}. ${record.id.value}")  // Customize as needed
+        }
+    }
+
+    fun lastPage(): Boolean {
+        // Implement logic to check if this is the last page
+        return false
+    }
+
+    fun loadNextPage() {
+        // Implement logic to load the next page
+        loadContents()
+    }
+}
+
 
 // Pagination class for Product
 class PageOfProduct : PageOf<ProductEntity>() {
     override fun getQuery(): Query {
-        return Products.selectAll().orderBy(Products.productName to SortOrder.ASC)
+        return Products.selectAll().orderBy(Products.name to SortOrder.ASC)
     }
 }
 
@@ -74,7 +95,7 @@ fun menu() {
 fun enterProductInformation(): ProductEntity? {
     while (true) {
         println("Please enter product name (1-30 characters). ` to exit:")
-        val name = readLine()!!
+        val name = readln()
         if (name == "`") return null
         if (name.length !in 1..30) {
             println("ERROR: Invalid product name length.")
@@ -82,7 +103,7 @@ fun enterProductInformation(): ProductEntity? {
         }
         return transaction {
             ProductEntity.new {
-                productName = name
+                this.name = name
             }
         }
     }
@@ -91,16 +112,16 @@ fun enterProductInformation(): ProductEntity? {
 // Displays all products as a string
 fun displayProducts(): String {
     return transaction {
-        ProductEntity.all().joinToString(separator = "\n") { it.productName }
+        ProductEntity.all().joinToString(separator = "\n") { it.name }
     }
 }
 
 // Save a product to the database
 private fun saveProduct(product: ProductEntity) {
     transaction {
-        if (ProductEntity.find { Products.productName eq product.productName }.empty()) {
+        if (ProductEntity.find { Products.name eq product.name }.empty()) {
             product.flush()
-            println("${product.productName} has been created.")
+            println("${product.name} has been created.")
         } else {
             println("ERROR: Product already exists.")
         }

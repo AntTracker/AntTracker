@@ -71,7 +71,7 @@ object Products : IntIdTable() {
 class ProductEntity(
     id: EntityID<Int>,
 ) : IntEntity(id) {
-    companion object : IntEntityClass<Product>(Products)
+    companion object : IntEntityClass<ProductEntity>(Products)
 
     var name by Products.name
 }
@@ -94,7 +94,7 @@ class Release(
     companion object : IntEntityClass<Release>(Releases)
 
     var releaseId by Releases.releaseId
-    var product by Product referencedOn Releases.product
+    var product by ProductEntity referencedOn Releases.product
     var releaseDate by Releases.releaseDate
 }
 
@@ -119,7 +119,7 @@ class Issue(
     companion object : IntEntityClass<Issue>(Issues)
 
     var description by Issues.description
-    var product by Product referencedOn Issues.product
+    var product by ProductEntity referencedOn Issues.product
     var anticipatedRelease by Release referencedOn Issues.anticipatedRelease
     var creationDate by Issues.creationDate
     var status by Issues.status
@@ -154,7 +154,7 @@ object Contacts : IntIdTable() {
 class ContactEntity(
     id: EntityID<Int>,
 ) : IntEntity(id) {
-    companion object : IntEntityClass<Contact>(Contacts)
+    companion object : IntEntityClass<ContactEntity>(Contacts)
 
     var name by Contacts.name
     var email by Contacts.email
