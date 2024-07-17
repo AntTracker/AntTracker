@@ -2,7 +2,13 @@
 Rev. 1 - 2024/07/02 Original by E. Barylko
 Rev. 2 - 2024/07/09 by T. Tracey
 Rev. 3 - 2024/07/16 by M. Baker
-^^^ what are the correct dates???
+-------------------------------------------
+This file contains the schema for the
+database, defining the tables for
+products, contacts, requests, issues,
+and releases. It also contains
+a function which sets up the database.
+---------------------------------
  */
 
 package anttracker.db
@@ -17,6 +23,12 @@ import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
+// -----
+
+/** ----
+ * This function creates the schema for the database and adds some sample
+ * products, releases, and issues.
+---- */
 fun setupSchema() {
     transaction {
         SchemaUtils.createMissingTablesAndColumns(Products, Issues, Releases, Requests, Contacts)

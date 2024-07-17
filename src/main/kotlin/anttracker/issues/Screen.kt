@@ -14,10 +14,13 @@ package anttracker.issues
 
 // ------
 
+/**
+ * Represents a screen which runs in the terminal
+ */
 interface Screen {
     /** ----
-     * This function runs the current screen and transitions to the new screen indicated by the
-     * user's choice.
+     * This function runs the logic of the screen on the terminal and optionally returns
+     * a new screen.
      ---- */
     fun run(
         t: Terminal, // in
@@ -36,10 +39,22 @@ fun screenWithMenu(
     return menu
 }
 
+/** ---
+ * This type represents a function which takes nothing and
+ * returns a screen
+--- */
 typealias ScreenHandler = () -> Screen
 
+/** ---
+ * This type represents a function which takes a
+ * terminal and returns an optional result.
+--- */
 typealias DisplayFn = (t: Terminal) -> Any?
 
+/** ---
+ * This class represents a screen that shows a menu, asks the user for input,
+ * and then transitions to another screen.
+--- */
 open class ScreenWithMenu : Screen {
     private var menuTitle: String? = null
     private var options: Map<String, ScreenHandler> = mutableMapOf()
@@ -78,18 +93,28 @@ open class ScreenWithMenu : Screen {
         this.promptMessage = message
     }
 
-    override fun run(t: Terminal): Screen? {
+    /** -----
+     * This function displays the options of the given menu
+     * to the user, prompts them for input, and then transitions
+     * to the next menu based on their input.
+     ----- */
+    override fun run(
+        t: Terminal, // in
+    ): Screen? {
         menuTitle?.run { t.printLine("== $menuTitle ==") }
         displayContent(t)
         t.printLine()
         val byIndex = displayMenu(t)
 
-        // Ask the user to enter which menu wants to select
+        // Prepare all the choices the user can select
         val mainMenuChoice = "`"
         val backToMainMenuMessage = " Or press ` (backtick) to go back to the main menu:"
         val choices = (1..byIndex.size).map(Integer::toString) + mainMenuChoice
-        // The user needs to choose from the choices that are `, 1, 2, 3, 4...
+
         t.printLine()
+
+        // Prompt the user for their response and then change to the screen corresponding
+        // to their response.
         val response = t.prompt(promptMessage + backToMainMenuMessage, choices = choices)
 
         return when (response) {
@@ -118,6 +143,9 @@ open class ScreenWithMenu : Screen {
         return byIndex
     }
 
+    /**
+     * This function sets the content.
+     */
     fun content(fn: DisplayFn) {
         displayContent = fn
     }

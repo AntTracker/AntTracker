@@ -18,10 +18,10 @@ import java.time.format.DateTimeFormatter
 
 // -------
 
-/**
+/** ---
  * This menu serves as a placeholder for other menus which have
  * not been fully fleshed out.
- */
+--- */
 private val noIssuesMatching =
     screenWithMenu {
         content { t ->
@@ -47,17 +47,25 @@ private fun editDescription(
             t.printLine("NEW: $newDescription")
         }
         option("Save") {
-            val updatedIssue =
-                transaction {
-                    Issue.findByIdAndUpdate(issue.id.value) {
-                        it.description = newDescription
-                    }
-                }
-            require(updatedIssue != null)
-            viewIssueMenu(updatedIssue)
+            updateIssueAndGoBackToMenu(issue) {
+                it.description = newDescription
+            }
         }
         option("Back") { viewIssueMenu(issue) }
     }
+
+/** ---
+ * Updates the issue with the new description and returns
+ * to the view issues menu.
+--- */
+private fun updateIssueAndGoBackToMenu(
+    issue: Issue, // in
+    updateFn: (it: Issue) -> Unit, // in
+): Screen {
+    val updatedIssue = transaction { Issue.findByIdAndUpdate(issue.id.value, updateFn) }
+    require(updatedIssue != null)
+    return viewIssueMenu(updatedIssue)
+}
 
 /** ----
  * This function prints out all the information contained within an issue.
@@ -95,14 +103,9 @@ private fun confirmNewRelease(
             }
         }
         option("Save") {
-            val updatedIssue =
-                transaction {
-                    Issue.findByIdAndUpdate(issue.id.value) {
-                        it.anticipatedRelease = newRelease
-                    }
-                }
-            require(updatedIssue != null)
-            viewIssueMenu(updatedIssue)
+            updateIssueAndGoBackToMenu(issue) {
+                it.anticipatedRelease = newRelease
+            }
         }
         option("Back") { editAnticipatedRelease(issue) }
     }
