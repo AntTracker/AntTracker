@@ -87,7 +87,7 @@ fun selectRelease(
 // Inserts release name defined at runtime into Release relation in database.
 // Throws exception on transaction failure (e.g. product doesn't exist in database)
 // ---
-fun createRelease(
+private fun createRelease(
     productName: String, // in
 ) {
     displayReleases(productName)
