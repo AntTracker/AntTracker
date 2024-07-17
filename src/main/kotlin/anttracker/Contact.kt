@@ -7,17 +7,10 @@ The Contact module contains all exported classes and functions pertaining to
 -------------------------------------------------------------------------------
 */
 
-
-/*
-Contact.kt
-Contact				; type or class or struct
-menu()					; interactive display
-enterContactInformation() -> Contact	; interactive display
-displayContacts() -> String		; interactive display
-getContactInfo(name)	-> Contact	; helper function
-saveToDB(Contact)			; helper function
-*/
 package anttracker.contact
+
+import anttracker.PageOf
+import anttracker.db.*
 
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.*
@@ -25,6 +18,16 @@ import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
+
+// ----------------------------------------------------------------------------
+// Data class for storing the attributes of a given contact.
+// ---
+data class Contact(
+    val name: String,
+    val phone: String,
+    val email: String,
+    val department: String? = null // optional
+)
 
 // ----------------------------------------------------------------------------
 // Displays a sub-menu for creating a new contact and adding it to the
@@ -38,62 +41,6 @@ fun menu() {
     val newContact = enterContactInformation()
     if (newContact != null) {
         saveToDB(newContact)
-    }
-}
-
-// ----------------------------------------------------------------------------
-// Data class for storing the attributes of a given contact.
-// ---
-data class Contact(
-    val name: String,
-    val phone: String,
-    val email: String,
-    val department: String? = null // optional
-)
-
-// Assuming we have a Contacts table defined for Exposed ORM
-object Contacts : IntIdTable() {
-    val contactName = varchar("contact_name", 50)
-    val email = varchar("email", 50).uniqueIndex()
-    val phoneNumber = varchar("phone_number", 20)
-    val department = varchar("department", 50).nullable()
-}
-
-// Contact entity
-class ContactEntity(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<ContactEntity>(Contacts)
-    var contactName by Contacts.contactName
-    var email by Contacts.email
-    var phoneNumber by Contacts.phoneNumber
-    var department by Contacts.department
-}
-
-// PageOf<T>
-open class PageOf<T : IntEntity> {
-    var contents: MutableList<T> = mutableListOf()
-    var pagenum: Int = 0 // decide on 0 or 1 indexed?
-    var lastPageNum: Int = 0 // initialized on construct/init
-    var offset: Int = 0
-    var limit: Int = 20
-
-    open fun loadContents() {
-        // To be overridden in subclasses
-    }
-
-    fun loadNextPage() {
-        if (lastPage()) {
-            throw Exception("Already at the last page")
-        }
-        pagenum++
-        loadContents()
-    }
-
-    fun lastPage(): Boolean {
-        return pagenum >= lastPageNum
-    }
-
-    fun initLastPageNum(totalRecords: Int) {
-        lastPageNum = Math.ceil(totalRecords.toDouble() / limit).toInt()
     }
 }
 

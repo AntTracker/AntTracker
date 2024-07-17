@@ -1,3 +1,17 @@
+/* SetupSchema.kt
+Revision History:
+Rev. 1 - 2024/07/02 Original by Eitan
+Rev. 2 - 2024/07/09 by T. Tracey
+Rev. 3 - 2024/07/16 by M. Baker
+-------------------------------------------
+This file contains the schema for the
+database, defining the tables for
+products, contacts, requests, issues,
+and releases. It also contains
+a function which sets up the database.
+---------------------------------
+ */
+
 package anttracker.db
 
 import org.jetbrains.exposed.dao.IntEntity
@@ -8,11 +22,16 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.CurrentDateTime
 import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.util.*
 
+// -----
+
+/** ----
+ * This function creates the schema for the database and adds some sample
+ * products, releases, and issues.
+---- */
 fun setupSchema() {
     transaction {
-        SchemaUtils.createMissingTablesAndColumns(Products, Issues, Releases)
+        SchemaUtils.createMissingTablesAndColumns(Products, Issues, Releases, Requests, Contacts)
 
         (0..5).forEach { productId ->
             val prodId = Products.insert { it[name] = "Product $productId" } get Products.id
@@ -39,11 +58,17 @@ fun setupSchema() {
     }
 }
 
+/** ---
+ * Represents the products table.
+--- */
 object Products : IntIdTable() {
     val name = varchar("name", 50)
 }
 
-class Product(
+/** ---
+ * Represents a single row in the products table.
+--- */
+class ProductEntity(
     id: EntityID<Int>,
 ) : IntEntity(id) {
     companion object : IntEntityClass<Product>(Products)
@@ -51,12 +76,18 @@ class Product(
     var name by Products.name
 }
 
+/** ---
+ * Represents the releases table.
+--- */
 object Releases : IntIdTable() {
     val releaseId = varchar("release_id", 8)
     val product = reference("product", Products)
     val releaseDate = datetime("release_date")
 }
 
+/** ---
+ * Represents a single row in the releases table.
+--- */
 class Release(
     id: EntityID<Int>,
 ) : IntEntity(id) {
@@ -67,6 +98,9 @@ class Release(
     var releaseDate by Releases.releaseDate
 }
 
+/** ---
+ * Represents the issues table.
+--- */
 object Issues : IntIdTable() {
     val description = varchar("description", 30)
     val product = reference("product", Products)
@@ -76,6 +110,9 @@ object Issues : IntIdTable() {
     val priority = short("priority")
 }
 
+/** ---
+ * Represents a single row in the issues table.
+--- */
 class Issue(
     id: EntityID<Int>,
 ) : IntEntity(id) {
@@ -89,6 +126,9 @@ class Issue(
     var priority by Issues.priority
 }
 
+/** ---
+ * Represents the priority an issue can have, being in [1, 5]
+--- */
 @JvmInline
 value class Priority(
     val priority: Int,
@@ -98,31 +138,50 @@ value class Priority(
     }
 }
 
-sealed class IssueStatus {
-    data object Triage : IssueStatus()
-
-    data object Open : IssueStatus()
-
-    data object Working : IssueStatus()
-
-    data object Review : IssueStatus()
-
-    data object Closed : IssueStatus()
+/** ---
+ * Represents the contacts table.
+--- */
+object Contacts : IntIdTable() {
+    val name = varchar("name", 30)
+    val email = varchar("email", 24)
+    val phoneNumber = varchar("phone_number", 11)
+    val department = varchar("department", 12)
 }
 
-@JvmInline
-value class ReleaseId(
-    val id: UUID,
-)
+/** ---
+ * Represents a single row in the contacts table.
+--- */
+class ContactEntity(
+    id: EntityID<Int>,
+) : IntEntity(id) {
+    companion object : IntEntityClass<Contact>(Contacts)
 
-data class Contact(
-    val id: UUID,
-    val name: String,
-)
+    var name by Contacts.name
+    var email by Contacts.email
+    var phoneNumber by Contacts.phoneNumber
+    var department by Contacts.department
+}
 
-data class Request(
-    val id: UUID,
-    val foundOn: ReleaseId,
-    val fixBy: ReleaseId?,
-    val contact: Contact,
-)
+/** ---
+ * Represents the requests table.
+--- */
+object Requests : IntIdTable() {
+    val affectedRelease = reference("release_id", Releases)
+    val issue = reference("issue_id", Issues)
+    val contact = reference("contact_id", Contacts)
+    val requestDate = datetime("request_date")
+}
+
+/** ---
+ * Represents a single row in the requests table.
+--- */
+class Request(
+    id: EntityID<Int>,
+) : IntEntity(id) {
+    companion object : IntEntityClass<Request>(Requests)
+
+    var affectedRelease by Requests.affectedRelease
+    var issue by Requests.issue
+    var contact by Requests.contact
+    var requestDate by Requests.requestDate
+}

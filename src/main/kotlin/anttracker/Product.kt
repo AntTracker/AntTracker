@@ -1,5 +1,8 @@
 package anttracker.product
 
+import anttracker.PageOf
+import anttracker.db.*
+
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.dao.IntEntity
@@ -14,50 +17,6 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 data class Product(
     val productName: String // name of the product (primary key)
 )
-
-// Assuming we have a Products table defined for Exposed ORM
-object Products : IntIdTable() {
-    val productName = varchar("product_name", 50)
-}
-
-// Product entity
-class ProductEntity(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<ProductEntity>(Products)
-    var productName by Products.productName
-}
-
-// Base class for pagination
-abstract class PageOf<T : IntEntity>(private val limit: Int = 10, private val offset: Int = 0) {
-    val contents: MutableList<T> = mutableListOf()
-    protected abstract fun getQuery(): Query
-
-    fun loadContents() {
-        contents.clear()
-        transaction {
-            val query = getQuery().limit(limit, offset.toLong())
-            query.forEach {
-                contents.add(it as T)
-            }
-        }
-    }
-
-    fun display() {
-        for ((index, record) in contents.withIndex()) {
-            println("${index + 1}. ${record.id.value}")  // Customize as needed
-        }
-    }
-
-    fun lastPage(): Boolean {
-        // Implement logic to check if this is the last page
-        return false
-    }
-
-    fun loadNextPage() {
-        // Implement logic to load the next page
-        loadContents()
-    }
-}
-
 
 // Pagination class for Product
 class PageOfProduct : PageOf<ProductEntity>() {
