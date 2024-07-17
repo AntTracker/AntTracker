@@ -124,6 +124,9 @@ private fun editAnticipatedRelease(issue: Issue): Screen =
         promptMessage("Select the line corresponding to the new release id you want.")
     }
 
+/**
+ * Represents how the date will be formatted.
+ */
 private val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
 
 /** ----
