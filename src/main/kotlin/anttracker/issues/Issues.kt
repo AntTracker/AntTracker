@@ -147,6 +147,44 @@ private fun editPriority(issue: Issue): Screen =
         option("Back") { viewIssueMenu(issue) }
     }
 
+val nextPossibleState: Map<Status, List<Status>> =
+    mapOf(
+        Status.Created to listOf(Status.Assessed),
+        Status.Assessed to listOf(Status.InProgress, Status.Done, Status.Cancelled),
+        Status.InProgress to listOf(Status.Done, Status.Cancelled),
+    )
+
+private val statusToString: Map<Status, String> =
+    mapOf(
+        Status.Created to "Created",
+        Status.Assessed to "Assessed",
+        Status.InProgress to "In Progress",
+        Status.Done to "Done",
+        Status.Cancelled to "Cancelled",
+    )
+
+private val toStatus: Map<String, Status> =
+    mapOf(
+        "CREATED" to Status.Created,
+        "ASSESSED" to Status.Assessed,
+        "IN_PROGRESS" to Status.InProgress,
+        "DONE" to Status.Done,
+        "CANCELLED" to Status.Cancelled,
+    )
+
+private fun confirmNewStatus(
+    newStatus: Status,
+    issue: Issue,
+): Screen = noIssuesMatching
+
+private fun editStatus(issue: Issue): Screen =
+    screenWithMenu {
+        nextPossibleState[toStatus[issue.status]]?.forEach { status ->
+            option(statusToString[status]!!) { confirmNewStatus(status, issue) }
+        }
+        option("Back") { viewIssueMenu(issue) }
+    }
+
 /** ----
  * This function shows all the information present within the passed issue
  * and prompts the user to edit either the description, priority, status,
@@ -160,7 +198,7 @@ private fun viewIssueMenu(
         transaction {
             option("Description: ${issue.description}") { editDescription(issue) }
             option("Priority: ${issue.priority}") { editPriority(issue) }
-            option("Status: ${issue.status}") { noIssuesMatching }
+            option("Status: ${issue.status}") { editStatus(issue) }
             option("AntRel: ${issue.anticipatedRelease.releaseId}") { editAnticipatedRelease(issue) }
             option("Created: ${issue.creationDate.format(formatter)} (not editable)") { viewIssueMenu(issue) }
             option("Print") { noIssuesMatching }

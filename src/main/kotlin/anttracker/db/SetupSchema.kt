@@ -112,7 +112,7 @@ object Issues : IntIdTable() {
     val product = reference("product", Products)
     val anticipatedRelease = reference("release", Releases)
     val creationDate = datetime("creation_date")
-    val status = varchar("status", 9)
+    val status = varchar("status", 11)
     val priority = short("priority")
 }
 
