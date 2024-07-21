@@ -129,6 +129,24 @@ private fun editAnticipatedRelease(issue: Issue): Screen =
  */
 private val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
 
+private fun editPriority(issue: Issue): Screen =
+    screenWithMenu {
+        var newPriority = ""
+        content { t ->
+            newPriority = t.prompt("Please enter priority", (1..5).map(Int::toString))
+            printIssueSummary(t, issue)
+            t.title("Update: Priority")
+            t.printLine("OLD: ${issue.priority}")
+            t.printLine("NEW: $newPriority")
+        }
+        option("Save") {
+            updateIssueAndGoBackToMenu(issue) {
+                it.priority = newPriority.toShort()
+            }
+        }
+        option("Back") { viewIssueMenu(issue) }
+    }
+
 /** ----
  * This function shows all the information present within the passed issue
  * and prompts the user to edit either the description, priority, status,
@@ -141,7 +159,7 @@ private fun viewIssueMenu(
         title("Issue #${issue.id}")
         transaction {
             option("Description: ${issue.description}") { editDescription(issue) }
-            option("Priority: ${issue.priority}") { noIssuesMatching }
+            option("Priority: ${issue.priority}") { editPriority(issue) }
             option("Status: ${issue.status}") { noIssuesMatching }
             option("AntRel: ${issue.anticipatedRelease.releaseId}") { editAnticipatedRelease(issue) }
             option("Created: ${issue.creationDate.format(formatter)} (not editable)") { viewIssueMenu(issue) }
