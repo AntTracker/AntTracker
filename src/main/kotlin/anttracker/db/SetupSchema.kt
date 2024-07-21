@@ -39,6 +39,17 @@ fun setupSchema(shouldPopulate: Boolean) {
     }
 }
 
+private val issueIdToStatus =
+    mapOf(
+        0 to "CREATED",
+        1 to "ASSESSED",
+        2 to "IN_PROGRESS",
+        3 to "DONE",
+        4 to "CANCELLED",
+    )
+
+private fun genStatus(id: Int): String = issueIdToStatus[id % 5]!!
+
 fun populate() {
     (0..5).forEach { productId ->
         val prodId = Products.insert { it[name] = "Product $productId" } get Products.id
@@ -54,7 +65,7 @@ fun populate() {
                 Issues.insert {
                     it[description] = "Issue $issueId"
                     it[product] = prodId
-                    it[status] = "done"
+                    it[status] = genStatus(issueId)
                     it[priority] = 1
                     it[creationDate] = CurrentDateTime
                     it[anticipatedRelease] = relId
