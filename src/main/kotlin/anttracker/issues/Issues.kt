@@ -127,7 +127,7 @@ private fun editAnticipatedRelease(issue: Issue): Screen =
 /**
  * Represents how the date will be formatted.
  */
-private val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
+private val formatter = DateTimeFormatter.ofPattern("YYYY/MM/dd")
 
 private fun editPriority(issue: Issue): Screen =
     screenWithMenu {

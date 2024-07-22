@@ -70,7 +70,7 @@ class Terminal {
     /**
      * Represents the wanted format for the date.
      */
-    private val formatter = DateTimeFormatter.ofPattern("YYYY-MM-dd")
+    private val formatter = DateTimeFormatter.ofPattern("YYYY/MM/dd")
 
     /** -----
      * This function displays a table to the screen using the passed columns and rows.
