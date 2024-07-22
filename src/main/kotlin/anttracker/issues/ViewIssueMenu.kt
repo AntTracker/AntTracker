@@ -4,6 +4,8 @@ import anttracker.db.Issue
 import anttracker.db.Release
 import anttracker.db.Releases
 import anttracker.db.toStatus
+import org.jetbrains.exposed.sql.StdOutSqlLogger
+import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.reflect.KMutableProperty1
 
@@ -20,13 +22,13 @@ private val nextPossibleStates: Map<Status, List<Status>> =
 /** ---
  * Edits the status of the issue using the possible transitions for the current status.
 --- */
-private fun editStatus(
-    issue: Issue, // in
-): Screen {
-    val nextStates = nextPossibleStates[issue.status] ?: return viewIssueMenu(issue)
-    val fn = editIssueAttribute(Issue::status, nextStates.map { it.toString() }) { requireNotNull(it.toStatus()) }
-    return fn(issue)
-}
+private val editStatus =
+    editIssueAttribute(
+        Issue::status,
+        { issue -> nextPossibleStates[issue.status]?.map { it.toString() } },
+    ) { issue ->
+        requireNotNull(issue.toStatus())
+    }
 
 /** ----
  * This function shows all the information present within the passed issue
@@ -57,42 +59,18 @@ private fun canBeChanged(
 ): String = if (status == Status.Done || status == Status.Cancelled) "(not editable)" else ""
 
 /** ----
- * This function presents a screen where the user is given a choice of saving their
- * issue with an updated anticipated release or going back to the previous menu.
------ */
-private fun confirmNewRelease(
-    newRelease: Release, // in
-    issue: Issue, // in
-): Screen =
-    screenWithMenu {
-        content { t ->
-            transaction {
-                printIssueSummary(t, issue)
-                t.title("Update: Release")
-                t.printLine("OLD: ${issue.anticipatedRelease.releaseId}")
-                t.printLine("NEW: ${newRelease.releaseId}")
-            }
-        }
-        option("Save") {
-            updateIssueAndGoBackToMenu(issue) {
-                it.anticipatedRelease = newRelease
-            }
-        }
-        option("Back") { editAnticipatedRelease(issue) }
-    }
-
-/** ----
  * This function shows the release versions the user can pick from
  * for the updated value of the anticipated release.
 ----- */
-private fun editAnticipatedRelease(issue: Issue): Screen =
-    screenWithMenu {
+private val editAnticipatedRelease =
+    editIssueAttribute(
+        Issue::anticipatedRelease,
+        { issue -> transaction { Release.find { Releases.product eq issue.product.id }.map { it.releaseId } } },
+    ) { newVal: String ->
         transaction {
-            Release
-                .find { Releases.product eq issue.product.id }
-                .forEach { option(it.releaseId) { confirmNewRelease(it, issue) } }
+            addLogger(StdOutSqlLogger)
+            Release.find { Releases.releaseId eq newVal }.first()
         }
-        promptMessage("Select the line corresponding to the new release id you want.")
     }
 
 /** ----
@@ -115,6 +93,20 @@ private fun printIssueSummary(
 
 private fun <T> editIssueAttribute(
     prop: KMutableProperty1<Issue, T>,
+    choicesFn: (Issue) -> List<String>?,
+    parse: (String) -> T,
+): (Issue) -> Screen =
+    { issue ->
+        val choices = choicesFn(issue)
+        if (choices == null) {
+            viewIssueMenu(issue)
+        } else {
+            editIssueAttribute(prop, choices, parse)(issue)
+        }
+    }
+
+private fun <T> editIssueAttribute(
+    prop: KMutableProperty1<Issue, T>,
     choices: List<String> = emptyList(),
     parse: (String) -> T,
 ): (Issue) -> Screen =
@@ -122,12 +114,14 @@ private fun <T> editIssueAttribute(
         screenWithMenu {
             var newVal = ""
             content { t ->
-                t.printLine("Options: ${choices.joinToString(", ")}")
-                newVal = t.prompt("Please enter ${prop.name}", choices)
-                printIssueSummary(t, issue)
-                t.title("Update: ${prop.name}")
-                t.printLine("OLD: ${prop.get(issue)}")
-                t.printLine("NEW: $newVal")
+                transaction {
+                    t.printLine("Options: ${choices.joinToString(", ")}")
+                    newVal = t.prompt("Please enter ${prop.name}", choices)
+                    printIssueSummary(t, issue)
+                    t.title("Update: ${prop.name}")
+                    t.printLine("OLD: ${prop.get(issue)}")
+                    t.printLine("NEW: $newVal")
+                }
             }
             option("Save") {
                 updateIssueAndGoBackToMenu(issue) { prop.set(it, parse(newVal)) }

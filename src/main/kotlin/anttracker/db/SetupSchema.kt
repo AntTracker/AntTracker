@@ -57,7 +57,7 @@ fun populate() {
             val relId =
                 Releases.insert {
                     it[product] = prodId
-                    it[releaseId] = "$id"
+                    it[releaseId] = "$prodId-$id"
                     it[releaseDate] = CurrentDateTime
                 } get Releases.id
             (0..20).forEach { issueId ->
@@ -113,6 +113,8 @@ class Release(
     var releaseId by Releases.releaseId
     var product by ProductEntity referencedOn Releases.product
     var releaseDate by Releases.releaseDate
+
+    override fun toString(): String = releaseId
 }
 
 /** ---
