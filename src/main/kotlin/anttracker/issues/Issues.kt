@@ -156,11 +156,11 @@ val nextPossibleState: Map<Status, List<Status>> =
 
 private val statusToString: Map<Status, String> =
     mapOf(
-        Status.Created to "Created",
-        Status.Assessed to "Assessed",
-        Status.InProgress to "In Progress",
-        Status.Done to "Done",
-        Status.Cancelled to "Cancelled",
+        Status.Created to "CREATED",
+        Status.Assessed to "ASSESSED",
+        Status.InProgress to "IN_PROGRESS",
+        Status.Done to "DONE",
+        Status.Cancelled to "CANCELLED",
     )
 
 private val toStatus: Map<String, Status> =
@@ -173,9 +173,25 @@ private val toStatus: Map<String, Status> =
     )
 
 private fun confirmNewStatus(
-    newStatus: Status,
-    issue: Issue,
-): Screen = noIssuesMatching
+    newStatus: Status, // in
+    issue: Issue, // in
+): Screen =
+    screenWithMenu {
+        content { t ->
+            transaction {
+                printIssueSummary(t, issue)
+                t.title("Update: Status")
+                t.printLine("OLD: ${issue.status}")
+                t.printLine("NEW: ${statusToString[newStatus]}")
+            }
+        }
+        option("Save") {
+            updateIssueAndGoBackToMenu(issue) {
+                it.status = statusToString[newStatus]!!
+            }
+        }
+        option("Back") { editStatus(issue) }
+    }
 
 private fun editStatus(issue: Issue): Screen =
     screenWithMenu {
@@ -203,7 +219,7 @@ private fun viewIssueMenu(
             option("Created: ${issue.creationDate.format(formatter)} (not editable)") { viewIssueMenu(issue) }
             option("Print") { noIssuesMatching }
         }
-        promptMessage("Enter 1, 2, or 3 to edit the respective fields.")
+        promptMessage("Enter 1, 2, 3, or 4 to edit the respective fields.")
     }
 
 // This data type represents the mapping between a row
