@@ -41,13 +41,20 @@ internal fun viewIssueMenu(
         transaction {
             option("Description: ${issue.description}") { editDescription(issue) }
             option("Priority: ${issue.priority}") { editPriority(issue) }
-            option("Status: ${issue.status}") { editStatus(issue) }
+            option("Status: ${issue.status} ${canBeChanged(issue.status)}") { editStatus(issue) }
             option("AntRel: ${issue.anticipatedRelease.releaseId}") { editAnticipatedRelease(issue) }
             option("Created: ${issue.creationDate.format(formatter)} (not editable)") { viewIssueMenu(issue) }
             option("Print") { noIssuesMatching }
         }
         promptMessage("Enter 1, 2, 3, or 4 to edit the respective fields.")
     }
+
+/** ----
+ * Returns a string indicating whether the status can be changed.
+--- */
+private fun canBeChanged(
+    status: Status, // in
+): String = if (status == Status.Done || status == Status.Cancelled) "(not editable)" else ""
 
 /** ----
  * This function presents a screen where the user is given a choice of saving their
@@ -115,7 +122,7 @@ private fun <T> editIssueAttribute(
         screenWithMenu {
             var newVal = ""
             content { t ->
-
+                t.printLine("Options: ${choices.joinToString(", ")}")
                 newVal = t.prompt("Please enter ${prop.name}", choices)
                 printIssueSummary(t, issue)
                 t.title("Update: ${prop.name}")

@@ -1,16 +1,15 @@
-/* SetupSchema.kt
-Revision History:
-Rev. 1 - 2024/07/02 Original by Eitan
-Rev. 2 - 2024/07/09 by T. Tracey
-Rev. 3 - 2024/07/16 by M. Baker
--------------------------------------------
-This file contains the schema for the
-database, defining the tables for
-products, contacts, requests, issues,
-and releases. It also contains
-a function which sets up the database.
----------------------------------
- */
+// SetupSchema.kt
+// Revision History:
+// Rev. 1 - 2024/07/02 Original by Eitan
+// Rev. 2 - 2024/07/09 by T. Tracey
+// Rev. 3 - 2024/07/16 by M. Baker
+// -------------------------------------------
+// This file contains the schema for the
+// database, defining the tables for
+// products, contacts, requests, issues,
+// and releases. It also contains
+// a function which sets up the database.
+// ---------------------------------
 
 package anttracker.db
 
@@ -41,15 +40,15 @@ fun setupSchema(shouldPopulate: Boolean) {
 }
 
 private val issueIdToStatus =
-    mapOf(
-        0 to "CREATED",
-        1 to "ASSESSED",
-        2 to "IN_PROGRESS",
-        3 to "DONE",
-        4 to "CANCELLED",
+    arrayOf(
+        Status.Created,
+        Status.Assessed,
+        Status.InProgress,
+        Status.Done,
+        Status.Cancelled,
     )
 
-private fun genStatus(id: Int): String = issueIdToStatus[id % 5]!!
+private fun genStatus(id: Int): Status = issueIdToStatus[id % 5]
 
 fun populate() {
     (0..5).forEach { productId ->
@@ -66,7 +65,7 @@ fun populate() {
                 Issues.insert {
                     it[description] = "Issue $issueId"
                     it[product] = prodId
-                    it[status] = genStatus(issueId)
+                    it[status] = genStatus(issueId).toString()
                     it[priority] = 1
                     it[creationDate] = CurrentDateTime
                     it[anticipatedRelease] = relId
@@ -142,7 +141,7 @@ class Issue(
     var creationDate by Issues.creationDate
     private var _status by Issues.status
     var status: Status
-        set(newStatus: Status) {
+        set(newStatus) {
             _status = newStatus.toString()
         }
         get() = requireNotNull(_status.toStatus())
@@ -151,11 +150,11 @@ class Issue(
 
 fun String.toStatus(): Status? =
     when (this) {
-        "CREATED" -> Status.Created
-        "ASSESSED" -> Status.Assessed
-        "IN_PROGRESS" -> Status.InProgress
-        "DONE" -> Status.Done
-        "CANCELLED" -> Status.Cancelled
+        "Created" -> Status.Created
+        "Assessed" -> Status.Assessed
+        "InProgress" -> Status.InProgress
+        "Done" -> Status.Done
+        "Cancelled" -> Status.Cancelled
         else -> null
     }
 
