@@ -14,6 +14,7 @@ a function which sets up the database.
 
 package anttracker.db
 
+import anttracker.issues.Status
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -139,9 +140,24 @@ class Issue(
     var product by ProductEntity referencedOn Issues.product
     var anticipatedRelease by Release referencedOn Issues.anticipatedRelease
     var creationDate by Issues.creationDate
-    var status by Issues.status
+    private var _status by Issues.status
+    var status: Status
+        set(newStatus: Status) {
+            _status = newStatus.toString()
+        }
+        get() = requireNotNull(_status.toStatus())
     var priority by Issues.priority
 }
+
+fun String.toStatus(): Status? =
+    when (this) {
+        "CREATED" -> Status.Created
+        "ASSESSED" -> Status.Assessed
+        "IN_PROGRESS" -> Status.InProgress
+        "DONE" -> Status.Done
+        "CANCELLED" -> Status.Cancelled
+        else -> null
+    }
 
 /** ---
  * Represents the priority an issue can have, being in [1, 5]
