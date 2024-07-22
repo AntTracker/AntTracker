@@ -147,20 +147,11 @@ private fun editPriority(issue: Issue): Screen =
         option("Back") { viewIssueMenu(issue) }
     }
 
-val nextPossibleState: Map<Status, List<Status>> =
+val nextPossibleStates: Map<Status, List<Status>> =
     mapOf(
         Status.Created to listOf(Status.Assessed),
         Status.Assessed to listOf(Status.InProgress, Status.Done, Status.Cancelled),
         Status.InProgress to listOf(Status.Done, Status.Cancelled),
-    )
-
-private val statusToString: Map<Status, String> =
-    mapOf(
-        Status.Created to "CREATED",
-        Status.Assessed to "ASSESSED",
-        Status.InProgress to "IN_PROGRESS",
-        Status.Done to "DONE",
-        Status.Cancelled to "CANCELLED",
     )
 
 private val toStatus: Map<String, Status> =
@@ -182,23 +173,28 @@ private fun confirmNewStatus(
                 printIssueSummary(t, issue)
                 t.title("Update: Status")
                 t.printLine("OLD: ${issue.status}")
-                t.printLine("NEW: ${statusToString[newStatus]}")
+                t.printLine("NEW: $newStatus")
             }
         }
         option("Save") {
             updateIssueAndGoBackToMenu(issue) {
-                it.status = statusToString[newStatus]!!
+                it.status = "$newStatus"
             }
         }
         option("Back") { editStatus(issue) }
     }
 
-private fun editStatus(issue: Issue): Screen =
+private fun editStatus(
+    issue: Issue, // in
+): Screen =
     screenWithMenu {
-        nextPossibleState[toStatus[issue.status]]?.forEach { status ->
-            option(statusToString[status]!!) { confirmNewStatus(status, issue) }
+        toStatus[issue.status].let {
+            nextPossibleStates[it]?.forEach { status ->
+                option("$status") { confirmNewStatus(status, issue) }
+            }
         }
         option("Back") { viewIssueMenu(issue) }
+        promptMessage("Select the line of the new status for the issue.")
     }
 
 /** ----

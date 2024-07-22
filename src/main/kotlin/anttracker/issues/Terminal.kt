@@ -11,7 +11,6 @@ the user, and displaying a table.
 
 package anttracker.issues
 
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -71,7 +70,7 @@ class Terminal {
     /**
      * Represents the wanted format for the date.
      */
-    private val formatter = DateTimeFormatter.ofPattern("yyyy/mm/dd")
+    private val formatter = DateTimeFormatter.ofPattern("YYYY-MM-dd")
 
     /** -----
      * This function displays a table to the screen using the passed columns and rows.
@@ -98,7 +97,6 @@ class Terminal {
                         when {
                             (col is Number) -> col.toString().padStart(length)
                             (col is LocalDateTime) -> col.format(formatter).padEnd(length)
-                            (col is LocalDate) -> col.format(formatter).padStart(length)
                             else -> col.toString().padEnd(length)
                         }
                     }.joinToString(separator = " | ", postfix = " |", prefix = " | ")

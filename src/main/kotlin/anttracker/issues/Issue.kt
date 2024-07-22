@@ -47,6 +47,15 @@ data class IssueInformation(
     val priority: Priority,
 )
 
+private val statusToString: Map<Status, String> =
+    mapOf(
+        Status.Created to "CREATED",
+        Status.Assessed to "ASSESSED",
+        Status.InProgress to "IN_PROGRESS",
+        Status.Done to "DONE",
+        Status.Cancelled to "CANCELLED",
+    )
+
 sealed class Status {
     data object Created : Status()
 
@@ -57,6 +66,8 @@ sealed class Status {
     data object Done : Status()
 
     data object Cancelled : Status()
+
+    override fun toString(): String = statusToString[this]!!
 }
 
 /** ---
