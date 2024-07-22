@@ -34,27 +34,17 @@ class Terminal {
         println(text)
     }
 
-    /** ---
-     * prints the given message and returns what the user entered.
-     --- */
-    fun prompt(
-        message: String, // in
-    ): String {
-        println(message)
-        return readln()
-    }
-
     /** ----
      * This function prompts the user for input and only returns their
      * input if it is valid. Otherwise, it prompts the user again.
      ----- */
     fun prompt(
         message: String, // in
-        choices: List<String>, // in
+        choices: List<String> = emptyList(), // in
     ): String {
         println(message)
         val choice = readln()
-        if (choices.contains(choice)) {
+        if (choices.isEmpty() || choices.contains(choice)) {
             return choice
         }
         return prompt(message, choices)

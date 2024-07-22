@@ -29,31 +29,6 @@ private val noIssuesMatching =
         }
     }
 
-/** ----
- * This function displays a screen where the user is presented with the
- * option of saving their issue with an edited description or going back
- * to the previous menu.
------ */
-private fun editDescription(
-    issue: Issue, // in
-): Screen =
-    screenWithMenu {
-        var newDescription = ""
-        content { t ->
-            newDescription = t.prompt("Please enter description")
-            printIssueSummary(t, issue)
-            t.title("Update: Description")
-            t.printLine("OLD: ${issue.description}")
-            t.printLine("NEW: $newDescription")
-        }
-        option("Save") {
-            updateIssueAndGoBackToMenu(issue) {
-                it.description = newDescription
-            }
-        }
-        option("Back") { viewIssueMenu(issue) }
-    }
-
 /** ---
  * Updates the issue using the function passed and returns
  * to the view issues menu.
@@ -132,9 +107,9 @@ private val formatter = DateTimeFormatter.ofPattern("YYYY/MM/dd")
 private fun editIssueAttribute(
     issue: Issue,
     get: (Issue) -> String,
-    setter: (String, Issue) -> Unit,
     attributeName: String,
     choices: List<String>,
+    setter: (String, Issue) -> Unit,
 ): Screen =
     screenWithMenu {
         var newVal = ""
@@ -155,10 +130,19 @@ private fun editPriority(issue: Issue): Screen =
     editIssueAttribute(
         issue,
         { it.priority.toString() },
-        { newVal, target -> target.priority = newVal.toShort() },
         "Priority",
         (1..5).map(Int::toString),
-    )
+    ) { newVal, target -> target.priority = newVal.toShort() }
+
+/** ----
+ * This function displays a screen where the user is presented with the
+ * option of saving their issue with an edited description or going back
+ * to the previous menu.
+----- */
+private fun editDescription(issue: Issue) =
+    editIssueAttribute(issue, { it.description }, "Description", emptyList()) { newVal, target ->
+        target.description = newVal
+    }
 
 val nextPossibleStates: Map<Status, List<Status>> =
     mapOf(
