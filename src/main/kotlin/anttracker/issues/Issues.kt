@@ -129,23 +129,36 @@ private fun editAnticipatedRelease(issue: Issue): Screen =
  */
 private val formatter = DateTimeFormatter.ofPattern("YYYY/MM/dd")
 
-private fun editPriority(issue: Issue): Screen =
+private fun editIssueAttribute(
+    issue: Issue,
+    get: (Issue) -> String,
+    setter: (String, Issue) -> Unit,
+    attributeName: String,
+    choices: List<String>,
+): Screen =
     screenWithMenu {
-        var newPriority = ""
+        var newVal = ""
         content { t ->
-            newPriority = t.prompt("Please enter priority", (1..5).map(Int::toString))
+            newVal = t.prompt("Please enter $attributeName", choices)
             printIssueSummary(t, issue)
-            t.title("Update: Priority")
-            t.printLine("OLD: ${issue.priority}")
-            t.printLine("NEW: $newPriority")
+            t.title("Update: $attributeName")
+            t.printLine("OLD: ${get(issue)}")
+            t.printLine("NEW: $newVal")
         }
         option("Save") {
-            updateIssueAndGoBackToMenu(issue) {
-                it.priority = newPriority.toShort()
-            }
+            updateIssueAndGoBackToMenu(issue) { setter(newVal, it) }
         }
         option("Back") { viewIssueMenu(issue) }
     }
+
+private fun editPriority(issue: Issue): Screen =
+    editIssueAttribute(
+        issue,
+        { it.priority.toString() },
+        { newVal, target -> target.priority = newVal.toShort() },
+        "Priority",
+        (1..5).map(Int::toString),
+    )
 
 val nextPossibleStates: Map<Status, List<Status>> =
     mapOf(
