@@ -15,6 +15,7 @@ import anttracker.db.Releases
 import org.jetbrains.exposed.dao.with
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.format.DateTimeFormatter
+import kotlin.reflect.KMutableProperty1
 
 // -------
 
@@ -104,24 +105,23 @@ private fun editAnticipatedRelease(issue: Issue): Screen =
  */
 private val formatter = DateTimeFormatter.ofPattern("YYYY/MM/dd")
 
-private fun editIssueAttribute(
+private fun <T> editIssueAttribute(
     issue: Issue,
-    get: (Issue) -> String,
-    attributeName: String,
-    choices: List<String>,
-    setter: (String, Issue) -> Unit,
+    prop: KMutableProperty1<Issue, T>,
+    choices: List<String> = emptyList(),
+    parse: (String) -> T,
 ): Screen =
     screenWithMenu {
         var newVal = ""
         content { t ->
-            newVal = t.prompt("Please enter $attributeName", choices)
+            newVal = t.prompt("Please enter ${prop.name}", choices)
             printIssueSummary(t, issue)
-            t.title("Update: $attributeName")
-            t.printLine("OLD: ${get(issue)}")
+            t.title("Update: ${prop.name}")
+            t.printLine("OLD: ${prop.get(issue)}")
             t.printLine("NEW: $newVal")
         }
         option("Save") {
-            updateIssueAndGoBackToMenu(issue) { setter(newVal, it) }
+            updateIssueAndGoBackToMenu(issue) { prop.set(it, parse(newVal)) }
         }
         option("Back") { viewIssueMenu(issue) }
     }
@@ -129,20 +129,16 @@ private fun editIssueAttribute(
 private fun editPriority(issue: Issue): Screen =
     editIssueAttribute(
         issue,
-        { it.priority.toString() },
-        "Priority",
+        Issue::priority,
         (1..5).map(Int::toString),
-    ) { newVal, target -> target.priority = newVal.toShort() }
+    ) { newVal -> newVal.toShort() }
 
 /** ----
  * This function displays a screen where the user is presented with the
  * option of saving their issue with an edited description or going back
  * to the previous menu.
 ----- */
-private fun editDescription(issue: Issue) =
-    editIssueAttribute(issue, { it.description }, "Description", emptyList()) { newVal, target ->
-        target.description = newVal
-    }
+private fun editDescription(issue: Issue) = editIssueAttribute(issue, Issue::description) { it }
 
 val nextPossibleStates: Map<Status, List<Status>> =
     mapOf(
