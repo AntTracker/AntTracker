@@ -17,18 +17,18 @@ import anttracker.request.menu as requestMenu
 
 sealed class Config(
     val db: String,
-    val shouldSetupDb: Boolean,
+    val shouldPopulateDb: Boolean,
 ) {
     data object InMemory : Config("mem:anttracker", true)
 
     class PersistentWithSetup(
         db: String,
-        shouldSetupDb: Boolean = true,
-    ) : Config(db, shouldSetupDb)
+        shouldPopulate: Boolean = true,
+    ) : Config(db, shouldPopulate)
 }
 
 fun extractArgs(args: Array<String>): Config =
-    args.sorted().fold(Config.InMemory as Config) { current, param ->
+    args.sorted().fold(Config.PersistentWithSetup("~/anttracker", false) as Config) { current, param ->
         when {
             param.startsWith("--db=") -> Config.PersistentWithSetup(param.removePrefix("--db="), false)
             param.startsWith("--setup") ->
@@ -36,6 +36,8 @@ fun extractArgs(args: Array<String>): Config =
                     is Config.PersistentWithSetup -> Config.PersistentWithSetup(current.db, true)
                     else -> current
                 }
+
+            param.startsWith("--testing") -> Config.InMemory
 
             else -> current
         }
@@ -45,7 +47,7 @@ fun main(args: Array<String>) {
     val config = extractArgs(args)
     Database.connect("jdbc:h2:${config.db};DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
 
-    setupSchema(config.shouldSetupDb)
+    setupSchema(config.shouldPopulateDb)
 
     while (true) {
         val mainMenuText =
