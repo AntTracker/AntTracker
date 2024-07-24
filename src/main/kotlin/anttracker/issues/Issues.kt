@@ -32,6 +32,43 @@ internal val noIssuesMatching =
  */
 internal val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
 
+private fun requestToRow(
+    request: Request, // in
+): List<Any> =
+    listOf(
+        request.affectedRelease,
+        request.requestDate,
+        request.contact.name,
+        request.contact.email,
+        request.contact.department,
+    )
+
+private fun viewRequests(
+    issue: Issue,
+    page: PageOf<Request> = PageOf(),
+): Screen =
+    screenWithTable {
+        table {
+            columns(
+                "Affected Release" to 17,
+                "Date requested" to 14,
+                "Name" to 32,
+                "Email" to 24,
+                "Department" to 12,
+            )
+            query {
+                Request
+                    .find { Requests.issue eq issue.id }
+                    .limit(page.limit, page.offset)
+                    .map(::requestToRow)
+            }
+
+            emptyMessage("No requests found.")
+            nextPage { viewRequests(issue, page.next()) }
+        }
+        promptMessage("Press 1 to go to the next page. 2 to print.")
+    }
+
 // This data type represents the mapping between a row
 // number and the issue corresponding to it
 typealias RowToIssuePage = Map<Int, Issue>
