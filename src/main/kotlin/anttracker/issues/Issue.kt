@@ -127,6 +127,8 @@ data class PageOf<T>(
     val limit: Int = 20,
 )
 
+fun <T> PageOf<T>.next() = this.copy(offset = this.offset + this.limit)
+
 /** ---
  * This class represents a page of issues that
  * includes a filter
