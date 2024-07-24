@@ -92,6 +92,9 @@ fun displayAllIssuesMenu(
                 selectIssueToViewMenu(it)
             }
         }
+        promptMessage(
+            "Enter 1 to select a filter, 2 to print, 3 to view the next page, and 4 to view an issue on the page.",
+        )
         val columns =
             listOf("ID" to 2, "Description" to 30, "Priority" to 9, "Status" to 14, "AntRel" to 8, "Created" to 10)
         content { t ->
