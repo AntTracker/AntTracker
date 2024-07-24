@@ -144,6 +144,7 @@ class Issue(
     private var _status by Issues.status
     var status: Status
         set(newStatus) {
+            println(newStatus.toString())
             _status = newStatus.toString()
         }
         get() = requireNotNull(_status.toStatus())
