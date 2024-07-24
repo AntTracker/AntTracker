@@ -61,14 +61,29 @@ fun populate() {
                     it[releaseDate] = CurrentDateTime
                 } get Releases.id
             (0..20).forEach { issueId ->
-
-                Issues.insert {
-                    it[description] = "Issue $issueId"
-                    it[product] = prodId
-                    it[status] = genStatus(issueId).toString()
-                    it[priority] = 1
-                    it[creationDate] = CurrentDateTime
-                    it[anticipatedRelease] = relId
+                val issId =
+                    Issues.insert {
+                        it[description] = "Issue $issueId"
+                        it[product] = prodId
+                        it[status] = "done"
+                        it[priority] = 1
+                        it[creationDate] = CurrentDateTime
+                        it[anticipatedRelease] = relId
+                    } get Issues.id
+                (0..45).forEach { requestId ->
+                    val contId =
+                        Contacts.insert {
+                            it[name] = "a-$requestId"
+                            it[email] = "a-$requestId@sfu.ca"
+                            it[phoneNumber] = "12345678901"
+                            it[department] = "Marketing"
+                        } get Contacts.id
+                    Requests.insert {
+                        it[affectedRelease] = relId
+                        it[issue] = issId
+                        it[requestDate] = CurrentDateTime
+                        it[contact] = contId
+                    }
                 }
             }
         }
@@ -186,10 +201,10 @@ object Contacts : IntIdTable() {
 /** ---
  * Represents a single row in the contacts table.
 --- */
-class ContactEntity(
+class Contact(
     id: EntityID<Int>,
 ) : IntEntity(id) {
-    companion object : IntEntityClass<ContactEntity>(Contacts)
+    companion object : IntEntityClass<Contact>(Contacts)
 
     var name by Contacts.name
     var email by Contacts.email
@@ -217,6 +232,6 @@ class Request(
 
     var affectedRelease by Requests.affectedRelease
     var issue by Requests.issue
-    var contact by Requests.contact
+    var contact by Contact referencedOn Requests.contact
     var requestDate by Requests.requestDate
 }

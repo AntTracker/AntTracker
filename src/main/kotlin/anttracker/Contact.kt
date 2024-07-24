@@ -11,7 +11,6 @@ package anttracker.contact
 
 import anttracker.db.*
 import org.jetbrains.exposed.dao.IntEntity
-
 import org.jetbrains.exposed.sql.transactions.transaction
 
 // ----------------------------------------------------------------------------
@@ -46,9 +45,7 @@ open class PageOf<T : IntEntity> {
         loadContents()
     }
 
-    fun lastPage(): Boolean {
-        return pagenum >= lastPageNum
-    }
+    fun lastPage(): Boolean = pagenum >= lastPageNum
 
     fun initLastPageNum(totalRecords: Int) {
         lastPageNum = Math.ceil(totalRecords.toDouble() / limit).toInt()
@@ -56,7 +53,7 @@ open class PageOf<T : IntEntity> {
 }
 
 // PageOfContact
-class PageOfContact : PageOf<ContactEntity>() {
+class PageOfContact : PageOf<Contact>() {
     fun display() {
         for ((index, contactRecord) in contents.withIndex()) {
             println("${index + 1}. ${contactRecord.name}")
@@ -66,9 +63,10 @@ class PageOfContact : PageOf<ContactEntity>() {
     override fun loadContents() {
         contents.clear()
         transaction {
-            val output = ContactEntity
-                .all()
-                .limit(limit, offset = (pagenum * limit).toLong())
+            val output =
+                Contact
+                    .all()
+                    .limit(limit, offset = (pagenum * limit).toLong())
             output.forEach {
                 contents.add(it)
             }
@@ -77,7 +75,7 @@ class PageOfContact : PageOf<ContactEntity>() {
 }
 
 // Display pages of contacts to console and select one
-fun selectContact(): ContactEntity? {
+fun selectContact(): Contact? {
     val contactPage = PageOfContact()
     contactPage.loadContents()
     contactPage.display()
@@ -93,6 +91,7 @@ fun selectContact(): ContactEntity? {
                     contactPage.display()
                 }
             }
+
             else -> {
                 linenum = userInput.toIntOrNull()
                 if (linenum == null || linenum !in 1..contactPage.contents.size) {
@@ -112,7 +111,7 @@ fun selectContact(): ContactEntity? {
 //     input when necessary, re-prompting where necessary.
 // Returns the created contact.
 // ---
-fun enterContactInformation(): ContactEntity? {
+fun enterContactInformation(): Contact? {
     while (true) {
         println("Please enter contact name (1-50 characters). ` to abort:")
         val name = readln()
@@ -150,14 +149,15 @@ fun enterContactInformation(): ContactEntity? {
             department = ""
         }
 
-        val contact = transaction {
-            ContactEntity.new {
-                this.name = name
-                this.phoneNumber = phone
-                this.email = email
-                this.department = department
+        val contact =
+            transaction {
+                Contact.new {
+                    this.name = name
+                    this.phoneNumber = phone
+                    this.email = email
+                    this.department = department
+                }
             }
-        }
 
         println("Contact ${contact.name} has been created.")
         return contact
@@ -167,8 +167,7 @@ fun enterContactInformation(): ContactEntity? {
 // ----------------------------------------------------------------------------
 // Returns all information about the contact identified by a given name.
 // ---
-fun getContactInfo(name: String): ContactEntity? {
-    return transaction {
-        ContactEntity.find { Contacts.name eq name }.firstOrNull()
+fun getContactInfo(name: String): Contact? =
+    transaction {
+        Contact.find { Contacts.name eq name }.firstOrNull()
     }
-}
