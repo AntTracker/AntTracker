@@ -5,6 +5,8 @@ Rev 1 - 2024/07/01 Original by Micah
 entry-point and main-menu of AntTracker.
  */
 
+package anttracker
+
 import anttracker.db.setupSchema
 import org.jetbrains.exposed.sql.Database
 import anttracker.contact.menu as contactMenu
@@ -13,10 +15,40 @@ import anttracker.product.menu as productMenu
 import anttracker.release.menu as releaseMenu
 import anttracker.request.menu as requestMenu
 
-fun main() {
-    Database.connect("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
+sealed class Config(
+    val db: String,
+    val shouldPopulateDb: Boolean,
+) {
+    data object InMemory : Config("mem:anttracker", true)
 
-    setupSchema()
+    class PersistentWithSetup(
+        db: String,
+        shouldPopulate: Boolean = true,
+    ) : Config(db, shouldPopulate)
+}
+
+fun extractArgs(args: Array<String>): Config =
+    args.sorted().fold(Config.PersistentWithSetup("~/anttracker", false) as Config) { current, param ->
+        when {
+            param.startsWith("--db=") -> Config.PersistentWithSetup(param.removePrefix("--db="), false)
+            param.startsWith("--setup") ->
+                when (current) {
+                    is Config.PersistentWithSetup -> Config.PersistentWithSetup(current.db, true)
+                    else -> current
+                }
+
+            param.startsWith("--testing") -> Config.InMemory
+
+            else -> current
+        }
+    }
+
+fun main(args: Array<String>) {
+    val config = extractArgs(args)
+    Database.connect("jdbc:h2:${config.db};DB_CLOSE_DELAY=-1", driver = "org.h2.Driver")
+
+    setupSchema(config.shouldPopulateDb)
+
     while (true) {
         val mainMenuText =
             """

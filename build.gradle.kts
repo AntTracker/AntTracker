@@ -10,6 +10,10 @@ repositories {
     mavenCentral()
 }
 
+tasks.named<JavaExec>("run") {
+    standardInput = System.`in`
+}
+
 val exposedVersion = "0.52.0"
 
 dependencies {
@@ -28,7 +32,7 @@ tasks.test {
 }
 
 application {
-    mainClass = "MainKt"
+    mainClass = "anttracker.MainKt"
 }
 
 kotlin {

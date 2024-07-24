@@ -29,29 +29,35 @@ import org.jetbrains.exposed.sql.transactions.transaction
  * This function creates the schema for the database and adds some sample
  * products, releases, and issues.
 ---- */
-fun setupSchema() {
+fun setupSchema(shouldPopulate: Boolean) {
     transaction {
         SchemaUtils.createMissingTablesAndColumns(Products, Issues, Releases, Requests, Contacts)
 
-        (0..5).forEach { productId ->
-            val prodId = Products.insert { it[name] = "Product $productId" } get Products.id
-            (0..5).forEach { id ->
-                val relId =
-                    Releases.insert {
-                        it[product] = prodId
-                        it[releaseId] = "$id"
-                        it[releaseDate] = CurrentDateTime
-                    } get Releases.id
-                (0..20).forEach { issueId ->
+        if (shouldPopulate) {
+            populate()
+        }
+    }
+}
 
-                    Issues.insert {
-                        it[description] = "Issue $issueId"
-                        it[product] = prodId
-                        it[status] = "done"
-                        it[priority] = 1
-                        it[creationDate] = CurrentDateTime
-                        it[anticipatedRelease] = relId
-                    }
+fun populate() {
+    (0..5).forEach { productId ->
+        val prodId = Products.insert { it[name] = "Product $productId" } get Products.id
+        (0..5).forEach { id ->
+            val relId =
+                Releases.insert {
+                    it[product] = prodId
+                    it[releaseId] = "$id"
+                    it[releaseDate] = CurrentDateTime
+                } get Releases.id
+            (0..20).forEach { issueId ->
+
+                Issues.insert {
+                    it[description] = "Issue $issueId"
+                    it[product] = prodId
+                    it[status] = "done"
+                    it[priority] = 1
+                    it[creationDate] = CurrentDateTime
+                    it[anticipatedRelease] = relId
                 }
             }
         }

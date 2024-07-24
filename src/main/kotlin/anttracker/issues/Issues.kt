@@ -55,7 +55,7 @@ private fun editDescription(
     }
 
 /** ---
- * Updates the issue with the new description and returns
+ * Updates the issue using the function passed and returns
  * to the view issues menu.
 --- */
 private fun updateIssueAndGoBackToMenu(
