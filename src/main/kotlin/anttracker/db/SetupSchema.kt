@@ -108,6 +108,14 @@ class ProductEntity(
     var name by Products.name
 }
 
+class Product(
+    id: EntityID<Int>,
+) : IntEntity(id) {
+    companion object : IntEntityClass<ProductEntity>(Products)
+
+    var name by Products.name
+}
+
 /** ---
  * Represents the releases table.
 --- */

@@ -11,6 +11,11 @@ package anttracker.issues
 
 import anttracker.db.*
 import org.jetbrains.exposed.dao.with
+import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.format.DateTimeFormatter
 
@@ -102,6 +107,37 @@ private fun selectIssueToViewMenu(
         }
     }
 
+private fun fetchPageOfIssuesMatchingFilter(page: PageWithFilter): List<Issue> {
+    val condition: Op<Boolean> =
+        page.filters.fold(Op.TRUE) { op: Op<Boolean>, filter ->
+            op.and(filter.toCondition())
+        }
+    return (Issues innerJoin Products innerJoin Releases)
+        .selectAll()
+        .where { condition }
+        .limit(page.pageInfo.limit, page.pageInfo.offset)
+        .map { Issue.wrapRow(it) }
+}
+
+fun Status.toDbValue(): String =
+    when (this) {
+        Status.Assessed -> "Assessed"
+        Status.Created -> "Created"
+        Status.Done -> "Done"
+        Status.Cancelled -> "Cancelled"
+        Status.InProgress -> "In Progress"
+        else -> ""
+    }
+
+private fun IssueFilter.toCondition(): Op<Boolean> =
+    when (this) {
+        is IssueFilter.ByDescription -> Issues.description like "%$description%"
+        is IssueFilter.ByPriority -> Issues.priority eq priority.priority.toShort()
+        is IssueFilter.ByAffectedRelease -> Releases.releaseId eq release
+        is IssueFilter.ByProduct -> Products.name eq product
+        is IssueFilter.ByStatus -> Issues.status eq status.toString()
+    }
+
 /** -----
  * This function displays at most 20 issues from the DB which
  * passed the issue filter, giving the user four options: view the
@@ -118,12 +154,7 @@ fun displayAllIssuesMenu(
         option("View issue") { displayViewIssuesMenu(page) }
         table {
             columns("ID" to 7, "Description" to 30, "Priority" to 9, "Status" to 14, "AntRel" to 8, "Created" to 10)
-            query {
-                Issue
-                    .all()
-                    .limit(page.pageInfo.limit, page.pageInfo.offset)
-                    .map(::toRow)
-            }
+            query { fetchPageOfIssuesMatchingFilter(page).map(::toRow) }
             emptyMessage("No issues found.")
             nextPage { displayAllIssuesMenu(page.next()) }
         }
@@ -159,6 +190,25 @@ private fun toRow(
     )
 }
 
+val searchByOptions =
+    mapOf(
+        "Description" to ::searchByDescriptionMenu,
+        "Product" to ::searchByProductMenu,
+        "Affected release" to ::searchByAffectedReleaseMenu,
+        "Anticipated release" to ::searchByAnticipatedReleaseMenu,
+        "Status" to ::searchByStatusMenu,
+        "Priority" to ::searchByPriorityMenu,
+    )
+
+private fun IssueFilter.toLabel(): String =
+    when (this) {
+        is IssueFilter.ByDescription -> "Description: ${this.description}"
+        is IssueFilter.ByPriority -> "Priority: ${this.priority}"
+        is IssueFilter.ByProduct -> "Product: ${this.product}"
+        is IssueFilter.ByAffectedRelease -> "Release: ${this.release}"
+        is IssueFilter.ByStatus -> "Status: ${this.status}"
+    }
+
 /** ------
 This function prints out a message asking the user how they would like
 to search for an issue.
@@ -169,14 +219,16 @@ fun mkIssuesMenu(
     screenWithMenu {
         title("VIEW/EDIT ISSUE")
         promptMessage("Please select search category.")
-        option("Search by description") { screenWithMenu { content { t -> t.printLine("There are no issues at the moment") } } }
-        option("Search by Product") { screenWithMenu { content { t -> t.printLine("There are no products at the moment") } } }
-        option("Search by Affected release") { noIssuesMatching }
-        option("Search by Anticipated release") { noIssuesMatching }
-        option("Search by status") { noIssuesMatching }
-        option("Search by priority") { noIssuesMatching }
+        searchByOptions.forEach { (column, action) ->
+            option("Search by $column") { action(page) }
+        }
         option("Display all issues") { displayAllIssuesMenu(page) }
-        option("Clear filters") { mkIssuesMenu(page.copy(filter = IssueFilter.NoFilter)) }
+        option("Clear filters") { mkIssuesMenu(page.copy(filters = emptyList())) }
+        content { t ->
+            val activeFilters =
+                page.filters.map(IssueFilter::toLabel).takeUnless { it.isEmpty() } ?: listOf("No filters")
+            t.printLine("Filters Active: ${activeFilters.joinToString(", ")}")
+        }
     }
 
 // This represents the default state of the issues menu with
