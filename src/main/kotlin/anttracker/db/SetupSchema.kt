@@ -39,38 +39,29 @@ fun setupSchema(shouldPopulate: Boolean) {
     }
 }
 
-private val issueIdToStatus =
-    arrayOf(
-        Status.Created,
-        Status.Assessed,
-        Status.InProgress,
-        Status.Done,
-        Status.Cancelled,
-    )
-
-private fun genStatus(id: Int): Status = issueIdToStatus[id % 5]
+val possibleStatus = listOf(Status.Created, Status.Assessed, Status.InProgress, Status.Done, Status.Cancelled)
 
 fun populate() {
     (0..5).forEach { productId ->
         val prodId = Products.insert { it[name] = "Product $productId" } get Products.id
-        (0..5).forEach { id ->
+        (0..10).forEach { id ->
             val relId =
                 Releases.insert {
                     it[product] = prodId
-                    it[releaseId] = "$prodId-$id"
+                    it[releaseId] = "p-$prodId-$id"
                     it[releaseDate] = CurrentDateTime
                 } get Releases.id
-            (0..20).forEach { issueId ->
+            (0..10).forEach { issueId ->
                 val issId =
                     Issues.insert {
                         it[description] = "Issue $issueId"
                         it[product] = prodId
-                        it[status] = genStatus(issueId).toString()
-                        it[priority] = 1
+                        it[status] = possibleStatus[issueId % 5].toString()
+                        it[priority] = (issueId % 5 + 1).toShort()
                         it[creationDate] = CurrentDateTime
                         it[anticipatedRelease] = relId
                     } get Issues.id
-                (0..45).forEach { requestId ->
+                (0..25).forEach { requestId ->
                     val contId =
                         Contacts.insert {
                             it[name] = "a-$requestId"
