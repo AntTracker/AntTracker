@@ -1,19 +1,19 @@
-/* SetupSchema.kt
-Revision History:
-Rev. 1 - 2024/07/02 Original by Eitan
-Rev. 2 - 2024/07/09 by T. Tracey
-Rev. 3 - 2024/07/16 by M. Baker
--------------------------------------------
-This file contains the schema for the
-database, defining the tables for
-products, contacts, requests, issues,
-and releases. It also contains
-a function which sets up the database.
----------------------------------
- */
+// SetupSchema.kt
+// Revision History:
+// Rev. 1 - 2024/07/02 Original by Eitan
+// Rev. 2 - 2024/07/09 by T. Tracey
+// Rev. 3 - 2024/07/16 by M. Baker
+// -------------------------------------------
+// This file contains the schema for the
+// database, defining the tables for
+// products, contacts, requests, issues,
+// and releases. It also contains
+// a function which sets up the database.
+// ---------------------------------
 
 package anttracker.db
 
+import anttracker.issues.Status
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -39,6 +39,17 @@ fun setupSchema(shouldPopulate: Boolean) {
     }
 }
 
+private val issueIdToStatus =
+    arrayOf(
+        Status.Created,
+        Status.Assessed,
+        Status.InProgress,
+        Status.Done,
+        Status.Cancelled,
+    )
+
+private fun genStatus(id: Int): Status = issueIdToStatus[id % 5]
+
 fun populate() {
     (0..5).forEach { productId ->
         val prodId = Products.insert { it[name] = "Product $productId" } get Products.id
@@ -46,7 +57,7 @@ fun populate() {
             val relId =
                 Releases.insert {
                     it[product] = prodId
-                    it[releaseId] = "$id"
+                    it[releaseId] = "$prodId-$id"
                     it[releaseDate] = CurrentDateTime
                 } get Releases.id
             (0..20).forEach { issueId ->
@@ -54,7 +65,7 @@ fun populate() {
                 Issues.insert {
                     it[description] = "Issue $issueId"
                     it[product] = prodId
-                    it[status] = "done"
+                    it[status] = genStatus(issueId).toString()
                     it[priority] = 1
                     it[creationDate] = CurrentDateTime
                     it[anticipatedRelease] = relId
@@ -102,6 +113,8 @@ class Release(
     var releaseId by Releases.releaseId
     var product by ProductEntity referencedOn Releases.product
     var releaseDate by Releases.releaseDate
+
+    override fun toString(): String = releaseId
 }
 
 /** ---
@@ -112,7 +125,7 @@ object Issues : IntIdTable() {
     val product = reference("product", Products)
     val anticipatedRelease = reference("release", Releases)
     val creationDate = datetime("creation_date")
-    val status = varchar("status", 9)
+    val status = varchar("status", 11)
     val priority = short("priority")
 }
 
@@ -128,9 +141,25 @@ class Issue(
     var product by ProductEntity referencedOn Issues.product
     var anticipatedRelease by Release referencedOn Issues.anticipatedRelease
     var creationDate by Issues.creationDate
-    var status by Issues.status
+    private var _status by Issues.status
+    var status: Status
+        set(newStatus) {
+            println(newStatus.toString())
+            _status = newStatus.toString()
+        }
+        get() = requireNotNull(_status.toStatus())
     var priority by Issues.priority
 }
+
+fun String.toStatus(): Status? =
+    when (this) {
+        "Created" -> Status.Created
+        "Assessed" -> Status.Assessed
+        "InProgress" -> Status.InProgress
+        "Done" -> Status.Done
+        "Cancelled" -> Status.Cancelled
+        else -> null
+    }
 
 /** ---
  * Represents the priority an issue can have, being in [1, 5]

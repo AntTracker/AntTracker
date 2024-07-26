@@ -47,6 +47,18 @@ data class IssueInformation(
     val priority: Priority,
 )
 
+sealed class Status {
+    data object Created : Status()
+
+    data object Assessed : Status()
+
+    data object InProgress : Status()
+
+    data object Done : Status()
+
+    data object Cancelled : Status()
+}
+
 /** ---
  * This data class represents the valid values an issue id can take on,
  * being between 1-99.

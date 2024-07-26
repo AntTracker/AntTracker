@@ -11,7 +11,6 @@ the user, and displaying a table.
 
 package anttracker.issues
 
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -35,27 +34,17 @@ class Terminal {
         println(text)
     }
 
-    /** ---
-     * prints the given message and returns what the user entered.
-     --- */
-    fun prompt(
-        message: String, // in
-    ): String {
-        println(message)
-        return readln()
-    }
-
     /** ----
      * This function prompts the user for input and only returns their
      * input if it is valid. Otherwise, it prompts the user again.
      ----- */
     fun prompt(
         message: String, // in
-        choices: List<String>, // in
+        choices: List<String> = emptyList(), // in
     ): String {
         println(message)
         val choice = readln()
-        if (choices.contains(choice)) {
+        if (choices.isEmpty() || choices.contains(choice)) {
             return choice
         }
         return prompt(message, choices)
@@ -71,7 +60,7 @@ class Terminal {
     /**
      * Represents the wanted format for the date.
      */
-    private val formatter = DateTimeFormatter.ofPattern("yyyy/mm/dd")
+    private val formatter = DateTimeFormatter.ofPattern("YYYY/MM/dd")
 
     /** -----
      * This function displays a table to the screen using the passed columns and rows.
@@ -98,7 +87,6 @@ class Terminal {
                         when {
                             (col is Number) -> col.toString().padStart(length)
                             (col is LocalDateTime) -> col.format(formatter).padEnd(length)
-                            (col is LocalDate) -> col.format(formatter).padStart(length)
                             else -> col.toString().padEnd(length)
                         }
                     }.joinToString(separator = " | ", postfix = " |", prefix = " | ")
