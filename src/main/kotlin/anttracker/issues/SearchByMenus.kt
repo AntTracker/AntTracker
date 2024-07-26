@@ -125,8 +125,9 @@ fun searchByPriorityMenu(page: PageWithFilter) =
         (1..5).map(Int::toString),
     ) { input -> Priority(input.toInt()).let(IssueFilter::ByPriority) }
 
-// fun searchByDaysSinceMenu(page: PageWithFilter) =
-//    SearchByOrGoBackToIssuesMenu(
-//        page,
-//        "",
-//    )
+fun searchByDaysSinceMenu(page: PageWithFilter) =
+    SearchByOrGoBackToIssuesMenu(
+        page,
+        "Date created",
+        (0..100).map(Int::toString),
+    ) { input -> Days(input.toInt()).let(IssueFilter::ByDateCreated) }

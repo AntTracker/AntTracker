@@ -12,10 +12,14 @@ package anttracker.issues
 import anttracker.db.*
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.greaterEq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 // -------
@@ -128,6 +132,8 @@ fun Status.toDbValue(): String =
         else -> ""
     }
 
+fun addOffset(numOfDays: Int): LocalDateTime = LocalDate.now().plusDays(numOfDays.toLong()).atStartOfDay()
+
 private fun IssueFilter.toCondition(): Op<Boolean> =
     when (this) {
         is IssueFilter.ByDescription -> Issues.description like "%$description%"
@@ -135,6 +141,11 @@ private fun IssueFilter.toCondition(): Op<Boolean> =
         is IssueFilter.ByAffectedRelease -> Releases.releaseId eq release
         is IssueFilter.ByProduct -> Products.name eq product
         is IssueFilter.ByStatus -> Issues.status eq status.toString()
+        is IssueFilter.ByDateCreated ->
+            Issues.creationDate greaterEq addOffset(-days.numOfDays) and (
+                Issues.creationDate lessEq
+                    addOffset(days.numOfDays)
+            )
     }
 
 /** -----
@@ -192,6 +203,7 @@ val searchByOptions =
         "Anticipated release" to ::searchByAnticipatedReleaseMenu,
         "Status" to ::searchByStatusMenu,
         "Priority" to ::searchByPriorityMenu,
+        "Date created" to ::searchByDaysSinceMenu,
     )
 
 private fun IssueFilter.toLabel(): String =
@@ -201,6 +213,7 @@ private fun IssueFilter.toLabel(): String =
         is IssueFilter.ByProduct -> "Product: ${this.product}"
         is IssueFilter.ByAffectedRelease -> "Release: ${this.release}"
         is IssueFilter.ByStatus -> "Status: ${this.status}"
+        is IssueFilter.ByDateCreated -> "Date created: within the last ${this.days.numOfDays} days"
     }
 
 /** ------

@@ -132,6 +132,10 @@ sealed interface IssueFilter {
     data class ByStatus(
         val status: Status,
     ) : IssueFilter
+
+    data class ByDateCreated(
+        val days: Days,
+    ) : IssueFilter
 }
 
 /** ---
