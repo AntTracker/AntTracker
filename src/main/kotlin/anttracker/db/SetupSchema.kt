@@ -19,9 +19,11 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.plus
 import org.jetbrains.exposed.sql.javatime.CurrentDateTime
 import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.LocalDate
 
 // -----
 
@@ -49,7 +51,7 @@ fun populate() {
                 Releases.insert {
                     it[product] = prodId
                     it[releaseId] = "p-$prodId-$id"
-                    it[releaseDate] = CurrentDateTime
+                    it[releaseDate] = LocalDate.now().plusDays((-40..0L).random()).atStartOfDay()
                 } get Releases.id
             (0..10).forEach { issueId ->
                 val issId =
@@ -58,7 +60,7 @@ fun populate() {
                         it[product] = prodId
                         it[status] = possibleStatus[issueId % 5].toString()
                         it[priority] = (issueId % 5 + 1).toShort()
-                        it[creationDate] = CurrentDateTime
+                        it[creationDate] = LocalDate.now().plusDays((-40..0L).random()).atStartOfDay()
                         it[anticipatedRelease] = relId
                     } get Issues.id
                 (0..25).forEach { requestId ->
