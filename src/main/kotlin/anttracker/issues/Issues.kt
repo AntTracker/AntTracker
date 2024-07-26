@@ -10,7 +10,6 @@ submenus contained within the user will interact with.
 package anttracker.issues
 
 import anttracker.db.*
-import org.jetbrains.exposed.dao.with
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
@@ -162,15 +161,10 @@ fun displayAllIssuesMenu(
 
 private fun displayViewIssuesMenu(page: PageWithFilter) =
     transaction {
-        Issue
-            .all()
-            .with(Issue::anticipatedRelease)
-            .limit(page.pageInfo.limit, page.pageInfo.offset)
+        fetchPageOfIssuesMatchingFilter(page)
             .zip(1..20) { issue, index -> index to issue }
             .toMap()
-    }.let {
-        selectIssueToViewMenu(it)
-    }
+    }.let(::selectIssueToViewMenu)
 
 /** ------
  * This function takes an issue and extracts out all the
