@@ -65,7 +65,7 @@ fun populate() {
                     Issues.insert {
                         it[description] = "Issue $issueId"
                         it[product] = prodId
-                        it[status] = "done"
+                        it[status] = genStatus(issueId).toString()
                         it[priority] = 1
                         it[creationDate] = CurrentDateTime
                         it[anticipatedRelease] = relId
