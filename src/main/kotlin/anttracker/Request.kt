@@ -33,7 +33,7 @@ fun displayRequester(request: Request?) {
     // get full information about this contact
     val contact =
         transaction {
-            Contact.find { Contacts.id eq request.contact }.firstOrNull()
+            Contact.find { Contacts.id eq request.contact.id }.firstOrNull()
         }
 
     if (contact == null) {
@@ -86,7 +86,7 @@ fun enterRequestInformation(): Request? {
             Request.new {
                 this.affectedRelease = release.id
                 this.issue = issue.id
-                this.contact = contact.id
+                this.contact = contact
                 this.requestDate = LocalDateTime.now()
             }
     }
