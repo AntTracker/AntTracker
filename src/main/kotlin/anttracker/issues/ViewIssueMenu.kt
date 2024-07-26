@@ -1,9 +1,7 @@
 package anttracker.issues
 
-import anttracker.db.Issue
-import anttracker.db.Release
-import anttracker.db.Releases
-import anttracker.db.toStatus
+import anttracker.db.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.StdOutSqlLogger
 import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -30,6 +28,49 @@ private val editStatus =
         requireNotNull(issue.toStatus())
     }
 
+/** ---
+ * Extracts out the information contained in a request.
+--- */
+private fun requestToRow(
+    request: Request, // in
+): List<Any> =
+    listOf(
+        request.affectedRelease,
+        request.requestDate,
+        request.contact.name,
+        request.contact.email,
+        request.contact.department,
+    )
+
+/** ---
+ * Displays all the requests associated to the passed issue.
+--- */
+private fun viewRequests(
+    issue: Issue, // in
+    page: PageOf<Request> = PageOf(), // in
+): Screen =
+    screenWithTable {
+        table {
+            columns(
+                "Affected Release" to 17,
+                "Date requested" to 14,
+                "Name" to 32,
+                "Email" to 24,
+                "Department" to 12,
+            )
+            query {
+                Request
+                    .find { Requests.issue eq issue.id }
+                    .limit(page.limit, page.offset)
+                    .map(::requestToRow)
+            }
+
+            emptyMessage("No requests found.")
+            nextPage { viewRequests(issue, page.next()) }
+        }
+        promptMessage("Press 1 to go to the next page. 2 to print.")
+    }
+
 /** ----
  * This function shows all the information present within the passed issue
  * and prompts the user to edit either the description, priority, status,
@@ -46,6 +87,7 @@ internal fun viewIssueMenu(
             option("Status: ${issue.status} ${canBeChanged(issue.status)}") { editStatus(issue) }
             option("AntRel: ${issue.anticipatedRelease.releaseId}") { editAnticipatedRelease(issue) }
             option("Created: ${issue.creationDate.format(formatter)} (not editable)") { viewIssueMenu(issue) }
+            option("Requests") { viewRequests(issue) }
             option("Print") { noIssuesMatching }
         }
         promptMessage("Enter 1, 2, 3, or 4 to edit the respective fields.")
@@ -91,10 +133,13 @@ private fun printIssueSummary(
     }
 }
 
+/** ---
+ * Displays a screen for editing the passed issue property.
+--- */
 private fun <T> editIssueAttribute(
-    prop: KMutableProperty1<Issue, T>,
-    choicesFn: (Issue) -> List<String>?,
-    parse: (String) -> T,
+    prop: KMutableProperty1<Issue, T>, // in
+    choicesFn: (Issue) -> List<String>?, // in
+    parse: (String) -> T, // in
 ): (Issue) -> Screen =
     { issue ->
         val choices = choicesFn(issue)
@@ -105,10 +150,13 @@ private fun <T> editIssueAttribute(
         }
     }
 
+/**
+ * Displays a screen for editing the passed issue property.
+ */
 private fun <T> editIssueAttribute(
-    prop: KMutableProperty1<Issue, T>,
-    choices: List<String> = emptyList(),
-    parse: (String) -> T,
+    prop: KMutableProperty1<Issue, T>, // in
+    choices: List<String> = emptyList(), // in
+    parse: (String) -> T, // in
 ): (Issue) -> Screen =
     { issue: Issue ->
         screenWithMenu {
@@ -143,6 +191,9 @@ private fun updateIssueAndGoBackToMenu(
     return viewIssueMenu(updatedIssue)
 }
 
+/** ---
+ * Represents the menu for editing th priority of an issue.
+--- */
 private val editPriority =
     editIssueAttribute(
         Issue::priority,
