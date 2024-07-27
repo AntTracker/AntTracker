@@ -26,18 +26,32 @@ class SearchByOrGoBackToIssuesMenu(
     private val page: PageWithFilter,
     private val target: String,
     private val options: List<String>,
+    private val prompt: String,
     private val createFilter: (filter: String) -> IssueFilter?,
 ) : ScreenWithTitle("Search by $target") {
     constructor(
         page: PageWithFilter,
         target: String,
         createFilter: (filter: String) -> IssueFilter?,
-    ) : this(page, target, emptyList(), createFilter)
+    ) : this(page, target, emptyList(), "", createFilter)
+
+    constructor(
+        page: PageWithFilter,
+        target: String,
+        options: List<String>,
+        createFilter: (filter: String) -> IssueFilter?,
+    ) : this(page, target, options, "", createFilter)
 
     override fun displayBody(t: Terminal): Screen {
         var filter: IssueFilter? = null
 
-        val message = "Please enter a $target to search for or leave it empty to go back to the issues menu"
+        val message =
+            when (prompt) {
+                "" -> "Please enter a $target to search for or leave it empty to go back to the issues menu"
+                else -> "$prompt or leave it empty to go back to the issues menu"
+            }
+
+//        val message = "Please enter a $searchedFor to search for or leave it empty to go back to the issues menu"
 
         val promptIt: (m: String) -> String =
             if (options.isEmpty()) {
@@ -128,6 +142,7 @@ fun searchByPriorityMenu(page: PageWithFilter) =
 fun searchByDaysSinceMenu(page: PageWithFilter) =
     SearchByOrGoBackToIssuesMenu(
         page,
-        "Date created",
+        "created within the last n days",
         (0..100).map(Int::toString),
+        "Enter a day to indicate how far back you want to search",
     ) { input -> Days(input.toInt()).let(IssueFilter::ByDateCreated) }

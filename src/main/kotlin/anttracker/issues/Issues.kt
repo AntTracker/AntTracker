@@ -13,7 +13,6 @@ import anttracker.db.*
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.greaterEq
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
@@ -141,11 +140,7 @@ private fun IssueFilter.toCondition(): Op<Boolean> =
         is IssueFilter.ByAffectedRelease -> Releases.releaseId eq release
         is IssueFilter.ByProduct -> Products.name eq product
         is IssueFilter.ByStatus -> Issues.status eq status.toString()
-        is IssueFilter.ByDateCreated ->
-            Issues.creationDate greaterEq addOffset(-days.numOfDays) and (
-                Issues.creationDate lessEq
-                    addOffset(days.numOfDays)
-            )
+        is IssueFilter.ByDateCreated -> Issues.creationDate greaterEq addOffset(-days.numOfDays)
     }
 
 /** -----
@@ -203,7 +198,7 @@ val searchByOptions =
         "Anticipated release" to ::searchByAnticipatedReleaseMenu,
         "Status" to ::searchByStatusMenu,
         "Priority" to ::searchByPriorityMenu,
-        "Date created" to ::searchByDaysSinceMenu,
+        "Date range" to ::searchByDaysSinceMenu,
     )
 
 private fun IssueFilter.toLabel(): String =
