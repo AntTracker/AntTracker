@@ -45,13 +45,12 @@ class SearchByOrGoBackToIssuesMenu(
     override fun displayBody(t: Terminal): Screen {
         var filter: IssueFilter? = null
 
+        val endOfMessage = "or leave it empty to go back to the issues menu"
         val message =
             when (prompt) {
-                "" -> "Please enter a $target to search for or leave it empty to go back to the issues menu"
-                else -> "$prompt or leave it empty to go back to the issues menu"
+                "" -> "Please enter a $target to search for $endOfMessage"
+                else -> "$prompt $endOfMessage"
             }
-
-//        val message = "Please enter a $searchedFor to search for or leave it empty to go back to the issues menu"
 
         val promptIt: (m: String) -> String =
             if (options.isEmpty()) {
