@@ -104,7 +104,7 @@ class ProductEntity(
 class Product(
     id: EntityID<Int>,
 ) : IntEntity(id) {
-    companion object : IntEntityClass<ProductEntity>(Products)
+    companion object : IntEntityClass<Product>(Products)
 
     var name by Products.name
 }

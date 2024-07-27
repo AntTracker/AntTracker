@@ -98,14 +98,6 @@ fun searchByDescriptionMenu(page: PageWithFilter) =
         IssueFilter::ByDescription,
     )
 
-fun searchByAffectedReleaseMenu(page: PageWithFilter): Screen =
-    SearchByOrGoBackToIssuesMenu(
-        page,
-        "affected release",
-        transaction { Release.all().map { it.releaseId } },
-        IssueFilter::ByAffectedRelease,
-    )
-
 fun searchByAnticipatedReleaseMenu(page: PageWithFilter) =
     SearchByOrGoBackToIssuesMenu(
         page,

@@ -194,7 +194,6 @@ val searchByOptions =
     mapOf(
         "Description" to ::searchByDescriptionMenu,
         "Product" to ::searchByProductMenu,
-        "Affected release" to ::searchByAffectedReleaseMenu,
         "Anticipated release" to ::searchByAnticipatedReleaseMenu,
         "Status" to ::searchByStatusMenu,
         "Priority" to ::searchByPriorityMenu,
