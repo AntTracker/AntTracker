@@ -110,14 +110,21 @@ private fun selectIssueToViewMenu(
 private fun fetchPageOfIssuesMatchingFilter(page: PageWithFilter): List<Issue> {
     val query = (Issues innerJoin Products innerJoin Releases).selectAll()
 
-    page.filters.filterIsInstance<IssueFilter.ByStatus>().forEach { query.orWhere { it.toCondition() } }
+//    page.filters.filterIsInstance<IssueFilter.ByStatus>().forEach { query.orWhere { it.toCondition() } }
+// //    page.filters.filterNot { it is IssueFilter.ByStatus }.forEach { query.andWhere { it.toCondition() } }
+//    val condition: Op<Boolean> =
+//        page.filters.filterNot { it is IssueFilter.ByStatus }.fold(Op.TRUE) { op: Op<Boolean>, filter ->
+//            op.and(filter.toCondition())
+//        }
 
     val condition: Op<Boolean> =
-        page.filters.filterNot { it is IssueFilter.ByStatus }.fold(Op.TRUE) { op: Op<Boolean>, filter ->
+        page.filters.fold(Op.TRUE) { op: Op<Boolean>, filter ->
             op.and(filter.toCondition())
         }
-    return query
-        .andWhere { condition }
+
+    return (Issues innerJoin Products innerJoin Releases)
+        .selectAll()
+        .where { condition }
         .limit(page.pageInfo.limit, page.pageInfo.offset)
         .map { Issue.wrapRow(it) }
 //    return (Issues innerJoin Products innerJoin Releases)
@@ -142,7 +149,7 @@ private fun IssueFilter.toCondition(): Op<Boolean> =
     when (this) {
         is IssueFilter.ByDescription -> Issues.description like "%$description%"
         is IssueFilter.ByPriority -> Issues.priority eq priority.priority.toShort()
-        is IssueFilter.ByAffectedRelease -> Releases.releaseId eq release
+        is IssueFilter.ByAnticipatedRelease -> Releases.releaseId eq release
         is IssueFilter.ByProduct -> Products.name eq product
         is IssueFilter.ByStatus -> Issues.status eq status.toStr()
         is IssueFilter.ByDateCreated -> Issues.creationDate greaterEq addOffset(-days.numOfDays)
@@ -192,6 +199,7 @@ private fun toRow(
         anIssue.status,
         elements,
         anIssue.creationDate,
+        anIssue.product.name,
     )
 }
 
@@ -210,7 +218,7 @@ private fun IssueFilter.toLabel(): String =
         is IssueFilter.ByDescription -> "Description: ${this.description}"
         is IssueFilter.ByPriority -> "Priority: ${this.priority}"
         is IssueFilter.ByProduct -> "Product: ${this.product}"
-        is IssueFilter.ByAffectedRelease -> "Release: ${this.release}"
+        is IssueFilter.ByAnticipatedRelease -> "Release: ${this.release}"
         is IssueFilter.ByStatus -> "Status: ${this.status}"
         is IssueFilter.ByDateCreated -> "Date created: within the last ${this.days.numOfDays} days"
     }

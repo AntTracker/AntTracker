@@ -91,7 +91,7 @@ fun searchByAnticipatedReleaseMenu(page: PageWithFilter) =
         page,
         "anticipated release",
         transaction { Release.all().map { it.releaseId } },
-        IssueFilter::ByAffectedRelease,
+        IssueFilter::ByAnticipatedRelease,
     )
 
 fun searchByStatusMenu(page: PageWithFilter) =

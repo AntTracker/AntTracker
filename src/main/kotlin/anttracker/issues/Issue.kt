@@ -106,7 +106,7 @@ sealed interface IssueFilter {
         val description: String,
     ) : IssueFilter
 
-    data class ByAffectedRelease(
+    data class ByAnticipatedRelease(
         val release: String,
     ) : IssueFilter
 
