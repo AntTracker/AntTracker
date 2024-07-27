@@ -51,6 +51,7 @@ fun populate() {
                     it[releaseDate] = LocalDate.now().plusDays((-40..0L).random()).atStartOfDay()
                 } get Releases.id
             (0..10).forEach { issueId ->
+
                 val issId =
                     Issues.insert {
                         it[description] = "Issue $issueId"
@@ -58,21 +59,23 @@ fun populate() {
                         it[status] = Status.all()[issueId % 5].toString()
                         it[priority] = (issueId % 5 + 1).toShort()
                         it[creationDate] = LocalDate.now().plusDays((-40..0L).random()).atStartOfDay()
-                        it[anticipatedRelease] = relId
+                        it[anticipatedRelease] = relId.takeUnless { issueId % 3 == 0 }
                     } get Issues.id
-                (0..25).forEach { requestId ->
-                    val contId =
-                        Contacts.insert {
-                            it[name] = "a-$requestId"
-                            it[email] = "a-$requestId@sfu.ca"
-                            it[phoneNumber] = "12345678901"
-                            it[department] = "Marketing"
-                        } get Contacts.id
-                    Requests.insert {
-                        it[affectedRelease] = relId
-                        it[issue] = issId
-                        it[requestDate] = CurrentDateTime
-                        it[contact] = contId
+                if (issueId % 3 == 0) {
+                    (0..25).forEach { requestId ->
+                        val contId =
+                            Contacts.insert {
+                                it[name] = "a-$requestId"
+                                it[email] = "a-$requestId@sfu.ca"
+                                it[phoneNumber] = "12345678901"
+                                it[department] = "Marketing"
+                            } get Contacts.id
+                        Requests.insert {
+                            it[affectedRelease] = relId
+                            it[issue] = issId
+                            it[requestDate] = CurrentDateTime
+                            it[contact] = contId
+                        }
                     }
                 }
             }
@@ -135,8 +138,8 @@ class Release(
 --- */
 object Issues : IntIdTable() {
     val description = varchar("description", 30)
-    val product = optReference("product", Products)
-    val anticipatedRelease = reference("release", Releases)
+    val product = reference("product", Products)
+    val anticipatedRelease = reference("release", Releases).nullable()
     val creationDate = datetime("creation_date")
     val status = varchar("status", 11)
     val priority = short("priority")
@@ -152,7 +155,7 @@ class Issue(
 
     var description by Issues.description
     var product by ProductEntity referencedOn Issues.product
-    var anticipatedRelease by Release referencedOn Issues.anticipatedRelease
+    var anticipatedRelease by Release optionalReferencedOn Issues.anticipatedRelease
     var creationDate by Issues.creationDate
     private var _status by Issues.status
     var status: Status

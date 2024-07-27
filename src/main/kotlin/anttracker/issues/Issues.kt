@@ -181,8 +181,8 @@ private fun displayViewIssuesMenu(page: PageWithFilter) =
 ----- */
 private fun toRow(
     anIssue: Issue, // in
-): List<Any> {
-    val elements = anIssue.anticipatedRelease.releaseId
+): List<Any?> {
+    val elements = anIssue.anticipatedRelease?.releaseId
     return listOf(
         anIssue.id.value,
         anIssue.description,
