@@ -31,9 +31,10 @@ fun displayRequester(request: Request?) {
     }
 
     // get full information about this contact
-    val contact = transaction {
-        ContactEntity.find { Contacts.id eq request.contact }.firstOrNull()
-    }
+    val contact =
+        transaction {
+            Contact.find { Contacts.id eq request.contact.id }.firstOrNull()
+        }
 
     if (contact == null) {
         println("Error: Bad contact for request")
@@ -81,12 +82,13 @@ fun enterRequestInformation(): Request? {
     var request: Request? = null
 
     transaction {
-        request = Request.new {
-            this.affectedRelease = release.id
-            this.issue = issue.id
-            this.contact = contact.id
-            this.requestDate = LocalDateTime.now()
-        }
+        request =
+            Request.new {
+                this.affectedRelease = release.id
+                this.issue = issue.id
+                this.contact = contact
+                this.requestDate = LocalDateTime.now()
+            }
     }
 
     println("Created request:")
