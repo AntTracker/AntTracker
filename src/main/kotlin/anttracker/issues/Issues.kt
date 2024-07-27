@@ -108,30 +108,21 @@ private fun selectIssueToViewMenu(
     }
 
 private fun fetchPageOfIssuesMatchingFilter(page: PageWithFilter): List<Issue> {
-    val query = (Issues innerJoin Products innerJoin Releases).selectAll()
-
-//    page.filters.filterIsInstance<IssueFilter.ByStatus>().forEach { query.orWhere { it.toCondition() } }
-// //    page.filters.filterNot { it is IssueFilter.ByStatus }.forEach { query.andWhere { it.toCondition() } }
-//    val condition: Op<Boolean> =
-//        page.filters.filterNot { it is IssueFilter.ByStatus }.fold(Op.TRUE) { op: Op<Boolean>, filter ->
-//            op.and(filter.toCondition())
-//        }
-
     val condition: Op<Boolean> =
         page.filters.fold(Op.TRUE) { op: Op<Boolean>, filter ->
             op.and(filter.toCondition())
         }
 
-    return (Issues innerJoin Products innerJoin Releases)
-        .selectAll()
+    return Products
+        .join(
+            Issues leftJoin Releases,
+            joinType = JoinType.INNER,
+            otherColumn = Issues.product,
+            onColumn = Products.id,
+        ).selectAll()
         .where { condition }
         .limit(page.pageInfo.limit, page.pageInfo.offset)
         .map { Issue.wrapRow(it) }
-//    return (Issues innerJoin Products innerJoin Releases)
-//        .selectAll()
-//        .where { condition }
-//        .limit(page.pageInfo.limit, page.pageInfo.offset)
-//        .map { Issue.wrapRow(it) }
 }
 
 fun addOffset(numOfDays: Int): LocalDateTime = LocalDate.now().plusDays(numOfDays.toLong()).atStartOfDay()
@@ -237,7 +228,7 @@ fun mkIssuesMenu(
             option("Search by $column") { action(page) }
         }
         option("Display all issues") { displayAllIssuesMenu(page) }
-        option("Clear filters") { mkIssuesMenu(page.copy(filters = emptyList())) }
+        option("Clear filters") { mkIssuesMenu(PageWithFilter()) }
         content { t ->
             val activeFilters =
                 page.filters.map(IssueFilter::toLabel).takeUnless { it.isEmpty() } ?: listOf("No filters")

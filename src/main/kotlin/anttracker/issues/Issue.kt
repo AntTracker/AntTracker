@@ -153,7 +153,7 @@ data class PageWithFilter(
     val pageInfo: PageOf<Issue> = PageOf(),
 )
 
-fun PageWithFilter.addFilter(newFilter: IssueFilter): PageWithFilter = this.copy(filters = filters + newFilter)
+fun PageWithFilter.addFilter(newFilter: IssueFilter): PageWithFilter = PageWithFilter(filters = filters + newFilter)
 
 /** ---
  * This function generates the next page, updating the offset.

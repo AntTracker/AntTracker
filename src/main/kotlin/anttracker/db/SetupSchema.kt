@@ -135,7 +135,7 @@ class Release(
 --- */
 object Issues : IntIdTable() {
     val description = varchar("description", 30)
-    val product = reference("product", Products)
+    val product = optReference("product", Products)
     val anticipatedRelease = reference("release", Releases)
     val creationDate = datetime("creation_date")
     val status = varchar("status", 11)
