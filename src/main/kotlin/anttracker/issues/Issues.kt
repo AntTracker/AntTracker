@@ -9,7 +9,7 @@ submenus contained within the user will interact with.
 
 package anttracker.issues
 
-import anttracker.db.Issue
+import anttracker.db.*
 import org.jetbrains.exposed.dao.with
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.format.DateTimeFormatter
@@ -30,7 +30,7 @@ internal val noIssuesMatching =
 /**
  * Represents how the date will be formatted.
  */
-internal val formatter = DateTimeFormatter.ofPattern("YYYY/MM/dd")
+internal val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
 
 // This data type represents the mapping between a row
 // number and the issue corresponding to it
@@ -75,43 +75,33 @@ private fun selectIssueToViewMenu(
 fun displayAllIssuesMenu(
     page: PageWithFilter, // in
 ): Screen =
-    screenWithMenu {
+    screenWithTable {
         title("Search Results")
         option("Select filter") { mkIssuesMenu(page) }
-        option("Print") { screenWithMenu { content { t -> t.printLine("Not currently implemented. In next version") } } }
-        option("Next page") { displayAllIssuesMenu(page.next()) }
-        option("View issue") {
-            transaction {
-                Issue
-                    .all()
-                    .with(Issue::anticipatedRelease)
-                    .limit(page.pageInfo.limit, page.pageInfo.offset)
-                    .zip(1..20) { issue, index -> index to issue }
-                    .toMap()
-            }.let {
-                selectIssueToViewMenu(it)
-            }
-        }
-        promptMessage(
-            "Enter 1 to select a filter, 2 to print, 3 to view the next page, and 4 to view an issue on the page.",
-        )
-        val columns =
-            listOf("ID" to 2, "Description" to 30, "Priority" to 9, "Status" to 14, "AntRel" to 8, "Created" to 10)
-        content { t ->
-            transaction {
+        option("View issue") { displayViewIssuesMenu(page) }
+        table {
+            columns("ID" to 7, "Description" to 30, "Priority" to 9, "Status" to 14, "AntRel" to 8, "Created" to 10)
+            query {
                 Issue
                     .all()
                     .limit(page.pageInfo.limit, page.pageInfo.offset)
                     .map(::toRow)
-                    .let {
-                        if (it.isEmpty()) {
-                            t.printLine("No more issues")
-                        } else {
-                            t.displayTable(columns, it)
-                        }
-                    }
             }
+            emptyMessage("No issues found.")
+            nextPage { displayAllIssuesMenu(page.next()) }
         }
+    }
+
+private fun displayViewIssuesMenu(page: PageWithFilter) =
+    transaction {
+        Issue
+            .all()
+            .with(Issue::anticipatedRelease)
+            .limit(page.pageInfo.limit, page.pageInfo.offset)
+            .zip(1..20) { issue, index -> index to issue }
+            .toMap()
+    }.let {
+        selectIssueToViewMenu(it)
     }
 
 /** ------
