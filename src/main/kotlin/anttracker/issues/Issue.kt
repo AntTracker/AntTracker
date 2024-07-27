@@ -57,6 +57,10 @@ sealed class Status {
     data object Done : Status()
 
     data object Cancelled : Status()
+
+    companion object {
+        fun all() = arrayOf(Created, Assessed, InProgress, Done, Cancelled)
+    }
 }
 
 /** ---
@@ -88,18 +92,6 @@ value class Days(
             "The number of days must be non-negative"
         }
     }
-}
-
-sealed class Status {
-    data object Assessed : Status()
-
-    data object Created : Status()
-
-    data object Done : Status()
-
-    data object Cancelled : Status()
-
-    data object InProgress : Status()
 }
 
 /** ---

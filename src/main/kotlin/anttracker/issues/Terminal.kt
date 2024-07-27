@@ -42,6 +42,11 @@ class Terminal {
         message: String, // in
         choices: List<String> = emptyList(), // in
     ): String {
+        if (choices.isNotEmpty()) {
+            print("Options: ")
+            printLine(choices.joinToString(", "))
+            printLine()
+        }
         println(message)
         val choice = readln()
         if (choices.isEmpty() || choices.contains(choice)) {

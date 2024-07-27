@@ -10,12 +10,10 @@ submenus contained within the user will interact with.
 package anttracker.issues
 
 import anttracker.db.*
-import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.greaterEq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.like
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -110,28 +108,35 @@ private fun selectIssueToViewMenu(
     }
 
 private fun fetchPageOfIssuesMatchingFilter(page: PageWithFilter): List<Issue> {
+    val query = (Issues innerJoin Products innerJoin Releases).selectAll()
+
+    page.filters.filterIsInstance<IssueFilter.ByStatus>().forEach { query.orWhere { it.toCondition() } }
+
     val condition: Op<Boolean> =
-        page.filters.fold(Op.TRUE) { op: Op<Boolean>, filter ->
+        page.filters.filterNot { it is IssueFilter.ByStatus }.fold(Op.TRUE) { op: Op<Boolean>, filter ->
             op.and(filter.toCondition())
         }
-    return (Issues innerJoin Products innerJoin Releases)
-        .selectAll()
-        .where { condition }
+    return query
+        .andWhere { condition }
         .limit(page.pageInfo.limit, page.pageInfo.offset)
         .map { Issue.wrapRow(it) }
+//    return (Issues innerJoin Products innerJoin Releases)
+//        .selectAll()
+//        .where { condition }
+//        .limit(page.pageInfo.limit, page.pageInfo.offset)
+//        .map { Issue.wrapRow(it) }
 }
 
-fun Status.toDbValue(): String =
+fun addOffset(numOfDays: Int): LocalDateTime = LocalDate.now().plusDays(numOfDays.toLong()).atStartOfDay()
+
+private fun Status.toStr() =
     when (this) {
         Status.Assessed -> "Assessed"
+        Status.Cancelled -> "Cancelled"
         Status.Created -> "Created"
         Status.Done -> "Done"
-        Status.Cancelled -> "Cancelled"
-        Status.InProgress -> "In Progress"
-        else -> ""
+        Status.InProgress -> "In progress"
     }
-
-fun addOffset(numOfDays: Int): LocalDateTime = LocalDate.now().plusDays(numOfDays.toLong()).atStartOfDay()
 
 private fun IssueFilter.toCondition(): Op<Boolean> =
     when (this) {
@@ -139,7 +144,7 @@ private fun IssueFilter.toCondition(): Op<Boolean> =
         is IssueFilter.ByPriority -> Issues.priority eq priority.priority.toShort()
         is IssueFilter.ByAffectedRelease -> Releases.releaseId eq release
         is IssueFilter.ByProduct -> Products.name eq product
-        is IssueFilter.ByStatus -> Issues.status eq status.toString()
+        is IssueFilter.ByStatus -> Issues.status eq status.toStr()
         is IssueFilter.ByDateCreated -> Issues.creationDate greaterEq addOffset(-days.numOfDays)
     }
 

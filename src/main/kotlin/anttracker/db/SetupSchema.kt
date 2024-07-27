@@ -19,7 +19,6 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.plus
 import org.jetbrains.exposed.sql.javatime.CurrentDateTime
 import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -41,8 +40,6 @@ fun setupSchema(shouldPopulate: Boolean) {
     }
 }
 
-val possibleStatus = listOf(Status.Created, Status.Assessed, Status.InProgress, Status.Done, Status.Cancelled)
-
 fun populate() {
     (0..5).forEach { productId ->
         val prodId = Products.insert { it[name] = "Product $productId" } get Products.id
@@ -58,7 +55,7 @@ fun populate() {
                     Issues.insert {
                         it[description] = "Issue $issueId"
                         it[product] = prodId
-                        it[status] = possibleStatus[issueId % 5].toString()
+                        it[status] = Status.all()[issueId % 5].toString()
                         it[priority] = (issueId % 5 + 1).toShort()
                         it[creationDate] = LocalDate.now().plusDays((-40..0L).random()).atStartOfDay()
                         it[anticipatedRelease] = relId

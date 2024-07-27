@@ -52,20 +52,8 @@ class SearchByOrGoBackToIssuesMenu(
                 else -> "$prompt $endOfMessage"
             }
 
-        val promptIt: (m: String) -> String =
-            if (options.isEmpty()) {
-                t::prompt
-            } else {
-                { msg ->
-                    t.print("Options: ")
-                    t.printLine(options.joinToString(", "))
-                    t.printLine()
-                    t.prompt(msg, options + "")
-                }
-            }
-
         while (filter == null) {
-            val input = promptIt(message)
+            val input = t.prompt(message, options.takeIf { it.isNotEmpty() }?.let { it + "" } ?: emptyList())
 
             t.printLine()
 
@@ -110,16 +98,16 @@ fun searchByStatusMenu(page: PageWithFilter) =
     SearchByOrGoBackToIssuesMenu(
         page,
         "status",
-        listOf("assessed", "created", "done", "cancelled", "in progress"),
+        listOf("Assessed", "Created", "Done", "Cancelled", "In progress"),
     ) { input -> parseStatus(input)?.let(IssueFilter::ByStatus) }
 
 private fun parseStatus(input: String): Status? =
     when (input) {
-        "assessed" -> Status.Assessed
-        "created" -> Status.Created
-        "done" -> Status.Done
-        "cancelled" -> Status.Cancelled
-        "in progress" -> Status.InProgress
+        "Assessed" -> Status.Assessed
+        "Created" -> Status.Created
+        "Done" -> Status.Done
+        "Cancelled" -> Status.Cancelled
+        "InProgress" -> Status.InProgress
         else -> null
     }
 
