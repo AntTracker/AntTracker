@@ -57,6 +57,10 @@ sealed class Status {
     data object Done : Status()
 
     data object Cancelled : Status()
+
+    companion object {
+        fun all() = arrayOf(Created, Assessed, InProgress, Done, Cancelled)
+    }
 }
 
 /** ---
@@ -94,25 +98,36 @@ value class Days(
  * This class represents what an issue
  * can be filtered by.
 --- */
-sealed class IssueFilter {
+sealed interface IssueFilter {
     /** ---
      * Represents a filter that uses the description.
      --- */
     data class ByDescription(
-        val description: Regex,
-    ) : IssueFilter()
+        val description: String,
+    ) : IssueFilter
+
+    data class ByAnticipatedRelease(
+        val release: String,
+    ) : IssueFilter
+
+    data class ByPriority(
+        val priority: Priority,
+    ) : IssueFilter
 
     /** ---
      * Represents a filter that uses the product.
      --- */
     data class ByProduct(
         val product: String,
-    ) : IssueFilter()
+    ) : IssueFilter
 
-    /** ---
-     * Represents the lack of a filter.
-     --- */
-    data object NoFilter : IssueFilter()
+    data class ByStatus(
+        val statuses: List<Status>,
+    ) : IssueFilter
+
+    data class ByDateCreated(
+        val days: Days,
+    ) : IssueFilter
 }
 
 /** ---
@@ -134,9 +149,11 @@ fun <T> PageOf<T>.next() = this.copy(offset = this.offset + this.limit)
  * includes a filter
 --- */
 data class PageWithFilter(
-    val filter: IssueFilter = IssueFilter.NoFilter,
+    val filters: List<IssueFilter> = emptyList(),
     val pageInfo: PageOf<Issue> = PageOf(),
 )
+
+fun PageWithFilter.addFilter(newFilter: IssueFilter): PageWithFilter = PageWithFilter(filters = filters + newFilter)
 
 /** ---
  * This function generates the next page, updating the offset.

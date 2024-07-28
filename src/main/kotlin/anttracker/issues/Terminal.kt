@@ -42,6 +42,11 @@ class Terminal {
         message: String, // in
         choices: List<String> = emptyList(), // in
     ): String {
+        if (choices.isNotEmpty()) {
+            print("Options: ")
+            printLine(choices.joinToString(", "))
+            printLine()
+        }
         println(message)
         val choice = readln()
         if (choices.isEmpty() || choices.contains(choice)) {
@@ -67,7 +72,7 @@ class Terminal {
      ----- */
     fun displayTable(
         columns: List<Pair<String, Int>>, // in
-        rows: List<List<Any>>, // in
+        rows: List<List<Any?>>, // in
     ) {
         // This aligns the columns according to their format and then prints them out.
         columns
@@ -87,6 +92,7 @@ class Terminal {
                         when {
                             (col is Number) -> col.toString().padStart(length)
                             (col is LocalDateTime) -> col.format(formatter).padEnd(length)
+                            (col == null) -> "".padEnd(length)
                             else -> col.toString().padEnd(length)
                         }
                     }.joinToString(separator = " | ", postfix = " |", prefix = " | ")

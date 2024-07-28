@@ -1,7 +1,6 @@
 package anttracker.issues
 
 import anttracker.db.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.StdOutSqlLogger
 import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -85,7 +84,7 @@ internal fun viewIssueMenu(
             option("Description: ${issue.description}") { editDescription(issue) }
             option("Priority: ${issue.priority}") { editPriority(issue) }
             option("Status: ${issue.status} ${canBeChanged(issue.status)}") { editStatus(issue) }
-            option("AntRel: ${issue.anticipatedRelease.releaseId}") { editAnticipatedRelease(issue) }
+            option("AntRel: ${issue.anticipatedRelease?.releaseId}") { editAnticipatedRelease(issue) }
             option("Created: ${issue.creationDate.format(formatter)} (not editable)") { viewIssueMenu(issue) }
             option("Requests") { viewRequests(issue) }
             option("Print") { noIssuesMatching }
@@ -127,7 +126,7 @@ private fun printIssueSummary(
         t.printLine("Description: ${issue.description}")
         t.printLine("Priority: ${issue.priority}")
         t.printLine("Status: ${issue.status}")
-        t.printLine("AntRel: ${issue.anticipatedRelease.releaseId}")
+        t.printLine("AntRel: ${issue.anticipatedRelease?.releaseId}")
         t.printLine("Created: ${issue.creationDate.format(formatter)}")
         t.printLine()
     }
