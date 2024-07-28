@@ -97,9 +97,14 @@ fun searchByAnticipatedReleaseMenu(page: PageWithFilter) =
 fun searchByStatusMenu(page: PageWithFilter) =
     SearchByOrGoBackToIssuesMenu(
         page,
-        "status",
-        listOf("Assessed", "Created", "Done", "Cancelled", "In progress"),
-    ) { input -> parseStatus(input)?.let(IssueFilter::ByStatus) }
+        "statuses",
+        emptyList(),
+        "Enter all the statuses to search for separated by commas (Assessed, Created, Done, Cancelled, InProgress)",
+    ) { input -> splitStatuses(input).sequence(::parseStatus)?.takeIf { it.isNotEmpty() }?.let(IssueFilter::ByStatus) }
+
+private fun <T, R> List<T>.sequence(f: (T) -> R?): List<R>? = this.mapNotNull(f).takeIf { it.size == this.size }
+
+private fun splitStatuses(statuses: String): List<String> = statuses.split(",").map { it.trim() }
 
 private fun parseStatus(input: String): Status? =
     when (input) {

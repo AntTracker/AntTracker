@@ -122,7 +122,7 @@ sealed interface IssueFilter {
     ) : IssueFilter
 
     data class ByStatus(
-        val status: Status,
+        val statuses: List<Status>,
     ) : IssueFilter
 
     data class ByDateCreated(

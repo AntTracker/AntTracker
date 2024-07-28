@@ -142,7 +142,11 @@ private fun IssueFilter.toCondition(): Op<Boolean> =
         is IssueFilter.ByPriority -> Issues.priority eq priority.priority.toShort()
         is IssueFilter.ByAnticipatedRelease -> Releases.releaseId eq release
         is IssueFilter.ByProduct -> Products.name eq product
-        is IssueFilter.ByStatus -> Issues.status eq status.toStr()
+        is IssueFilter.ByStatus ->
+            statuses.fold(Op.FALSE) { op: Op<Boolean>, status ->
+                op.or(Issues.status eq status.toStr())
+            }
+
         is IssueFilter.ByDateCreated -> Issues.creationDate greaterEq addOffset(-days.numOfDays)
     }
 
@@ -218,7 +222,7 @@ private fun IssueFilter.toLabel(): String =
         is IssueFilter.ByPriority -> "Priority: ${this.priority}"
         is IssueFilter.ByProduct -> "Product: ${this.product}"
         is IssueFilter.ByAnticipatedRelease -> "Release: ${this.release}"
-        is IssueFilter.ByStatus -> "Status: ${this.status}"
+        is IssueFilter.ByStatus -> "Status: ${this.statuses.joinToString(", ")}"
         is IssueFilter.ByDateCreated -> "Date created: within the last ${this.days.numOfDays} days"
     }
 
