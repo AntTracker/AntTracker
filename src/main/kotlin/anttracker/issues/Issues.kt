@@ -161,7 +161,15 @@ fun displayAllIssuesMenu(
         option("Select filter") { mkIssuesMenu(page) }
         option("View issue") { displayViewIssuesMenu(page) }
         table {
-            columns("ID" to 7, "Description" to 30, "Priority" to 9, "Status" to 14, "AntRel" to 8, "Created" to 10)
+            columns(
+                "ID" to 7,
+                "Description" to 30,
+                "Priority" to 9,
+                "Status" to 14,
+                "AntRel" to 8,
+                "Created" to 10,
+                "Product" to 10,
+            )
             query { fetchPageOfIssuesMatchingFilter(page).map(::toRow) }
             emptyMessage("No issues found.")
             nextPage { displayAllIssuesMenu(page.next()) }
