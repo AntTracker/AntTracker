@@ -10,10 +10,6 @@ abstract class ScreenWithTitle(
 ) : Screen {
     private var menuTitle: String? = theTitle
 
-    fun title(theTitle: String) {
-        this.menuTitle = theTitle
-    }
-
     override fun run(t: Terminal): Screen? {
         menuTitle?.let(t::title)
         return this.displayBody(t)
@@ -28,12 +24,14 @@ class SearchByOrGoBackToIssuesMenu(
     private val options: List<String>,
     private val prompt: String,
     private val createFilter: (filter: String) -> IssueFilter?,
+    private val isValidChoice: (String) -> Boolean,
 ) : ScreenWithTitle("Search by $target") {
     constructor(
         page: PageWithFilter,
         target: String,
         createFilter: (filter: String) -> IssueFilter?,
-    ) : this(page, target, emptyList(), "", createFilter)
+        validationFn: (String) -> Boolean,
+    ) : this(page, target, emptyList(), "", createFilter, validationFn)
 
     constructor(
         page: PageWithFilter,
@@ -41,6 +39,14 @@ class SearchByOrGoBackToIssuesMenu(
         options: List<String>,
         createFilter: (filter: String) -> IssueFilter?,
     ) : this(page, target, options, "", createFilter)
+
+    constructor(
+        page: PageWithFilter,
+        target: String,
+        options: List<String>,
+        prompt: String,
+        createFilter: (filter: String) -> IssueFilter?,
+    ) : this(page, target, options, prompt, createFilter, { true })
 
     override fun displayBody(t: Terminal): Screen {
         var filter: IssueFilter? = null
@@ -53,7 +59,7 @@ class SearchByOrGoBackToIssuesMenu(
             }
 
         while (filter == null) {
-            val input = t.prompt(message, options.takeIf { it.isNotEmpty() }?.let { it + "" } ?: emptyList())
+            val input = t.prompt(message, options.takeUnless { it.isNotEmpty() }?.let { it + "" } ?: isValidChoice)
 
             t.printLine()
 
@@ -84,7 +90,7 @@ fun searchByDescriptionMenu(page: PageWithFilter) =
         page,
         "description",
         IssueFilter::ByDescription,
-    )
+    ) { input -> input.length in 1..30 }
 
 fun searchByAnticipatedReleaseMenu(page: PageWithFilter) =
     SearchByOrGoBackToIssuesMenu(
@@ -100,7 +106,9 @@ fun searchByStatusMenu(page: PageWithFilter) =
         "statuses",
         emptyList(),
         "Enter all the statuses to search for separated by commas (Assessed, Created, Done, Cancelled, InProgress)",
-    ) { input -> splitStatuses(input).sequence(::parseStatus)?.takeIf { it.isNotEmpty() }?.let(IssueFilter::ByStatus) }
+    ) { input: String ->
+        splitStatuses(input).sequence(::parseStatus)?.takeIf { it.isNotEmpty() }?.let(IssueFilter::ByStatus)
+    }
 
 private fun <T, R> List<T>.sequence(f: (T) -> R?): List<R>? = this.mapNotNull(f).takeIf { it.size == this.size }
 

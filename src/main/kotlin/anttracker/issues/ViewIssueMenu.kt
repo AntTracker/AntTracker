@@ -22,12 +22,10 @@ private val nextPossibleStates: Map<Status, List<Status>> =
  * Edits the status of the issue using the possible transitions for the current status.
 --- */
 private val editStatus =
-    editIssueAttribute(
+    editWithDynamicOptions(
         Issue::status,
-        { issue -> nextPossibleStates[issue.status]?.map { it.toString() } },
-    ) { issue ->
-        requireNotNull(issue.toStatus())
-    }
+        { input: String -> requireNotNull(input.toStatus()) },
+    ) { issue: Issue -> nextPossibleStates[issue.status]?.map { it.toString() } }
 
 /** ---
  * Extracts out the information contained in a request.
@@ -106,14 +104,14 @@ private fun canBeChanged(
  * for the updated value of the anticipated release.
 ----- */
 private val editAnticipatedRelease =
-    editIssueAttribute(
+    editWithDynamicOptions(
         Issue::anticipatedRelease,
-        { issue -> transaction { Release.find { Releases.product eq issue.product.id }.map { it.releaseId } } },
-    ) { newVal: String ->
-        transaction {
-            Release.find { Releases.releaseId eq newVal }.first()
-        }
-    }
+        { newVal: String ->
+            transaction {
+                Release.find { Releases.releaseId eq newVal }.first()
+            }
+        },
+    ) { issue: Issue -> transaction { Release.find { Releases.product eq issue.product.id }.map { it.releaseId } } }
 
 /** ----
  * This function prints out all the information contained within an issue.
@@ -136,18 +134,27 @@ private fun printIssueSummary(
 /** ---
  * Displays a screen for editing the passed issue property.
 --- */
-private fun <T> editIssueAttribute(
+private fun <T> editWithDynamicOptions(
     prop: KMutableProperty1<Issue, T>, // in
-    choicesFn: (Issue) -> List<String>?, // in
     parse: (String) -> T, // in
+    choicesFn: (Issue) -> List<String>?, // in
 ): (Issue) -> Screen =
     { issue ->
         val choices = choicesFn(issue)
         if (choices == null) {
             viewIssueMenu(issue)
         } else {
-            editIssueAttribute(prop, choices, { input: String -> choices.contains(input) }, parse)(issue)
+            editIssueAttribute(prop, parse, choices)(issue)
         }
+    }
+
+private fun <T> editIssueAttribute(
+    prop: KMutableProperty1<Issue, T>,
+    parse: (String) -> T,
+    choices: List<String>,
+): (Issue) -> Screen =
+    editIssueAttribute(prop, parse) { t: Terminal ->
+        t.prompt("Please enter ${prop.name}", choices)
     }
 
 /**
@@ -155,17 +162,15 @@ private fun <T> editIssueAttribute(
  */
 private fun <T> editIssueAttribute(
     prop: KMutableProperty1<Issue, T>,
-    choices: List<String> = emptyList(),
-    validationFn: (String) -> Boolean,
     parse: (String) -> T,
+    prompt: (Terminal) -> String,
 ): (Issue) -> Screen =
     { issue: Issue ->
         screenWithMenu {
             var newVal = ""
             content { t ->
                 transaction {
-                    t.printLine("Options: ${choices.joinToString(", ")}")
-                    newVal = t.prompt("Please enter ${prop.name}", validationFn)
+                    newVal = prompt(t)
                     printIssueSummary(t, issue)
                     t.title("Update: ${prop.name}")
                     t.printLine("OLD: ${prop.get(issue)}")
@@ -198,9 +203,9 @@ private fun updateIssueAndGoBackToMenu(
 private val editPriority =
     editIssueAttribute(
         Issue::priority,
+        { newVal -> newVal.toShort() },
         (1..5).map(Int::toString),
-        { input -> input in (1..5).map(Int::toString) },
-    ) { newVal -> newVal.toShort() }
+    )
 
 private fun isValidDescription(description: String) = description.length in (1..30)
 
@@ -209,4 +214,7 @@ private fun isValidDescription(description: String) = description.length in (1..
  * option of saving their issue with an edited description or going back
  * to the previous menu.
 ----- */
-private val editDescription = editIssueAttribute(Issue::description, emptyList(), ::isValidDescription) { it }
+private val editDescription =
+    editIssueAttribute(Issue::description, { it }) { t: Terminal ->
+        t.prompt("Please enter description", ::isValidDescription)
+    }
