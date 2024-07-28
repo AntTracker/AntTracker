@@ -40,7 +40,7 @@ class Terminal {
      ----- */
     fun prompt(
         message: String, // in
-        choices: List<String> = emptyList(), // in
+        isValidChoice: (String) -> Boolean,
     ): String {
         if (choices.isNotEmpty()) {
             print("Options: ")
@@ -49,10 +49,10 @@ class Terminal {
         }
         println(message)
         val choice = readln()
-        if (choices.isEmpty() || choices.contains(choice)) {
+        if (isValidChoice(choice)) {
             return choice
         }
-        return prompt(message, choices)
+        return prompt(message, isValidChoice)
     }
 
     /** ---

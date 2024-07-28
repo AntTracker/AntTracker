@@ -115,7 +115,8 @@ open class ScreenWithMenu : Screen {
 
         // Prompt the user for their response and then change to the screen corresponding
         // to their response.
-        val response = t.prompt(promptMessage + backToMainMenuMessage, choices = choices)
+
+        val response = t.prompt(promptMessage + backToMainMenuMessage) { input -> input in choices }
 
         return when (response) {
             mainMenuChoice -> null

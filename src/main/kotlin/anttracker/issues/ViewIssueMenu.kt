@@ -1,8 +1,10 @@
 package anttracker.issues
 
 import anttracker.db.*
-import org.jetbrains.exposed.sql.StdOutSqlLogger
-import org.jetbrains.exposed.sql.addLogger
+import anttracker.db.Issue
+import anttracker.db.Release
+import anttracker.db.Releases
+import anttracker.db.toStatus
 import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.reflect.KMutableProperty1
 
@@ -109,7 +111,6 @@ private val editAnticipatedRelease =
         { issue -> transaction { Release.find { Releases.product eq issue.product.id }.map { it.releaseId } } },
     ) { newVal: String ->
         transaction {
-            addLogger(StdOutSqlLogger)
             Release.find { Releases.releaseId eq newVal }.first()
         }
     }
@@ -145,7 +146,7 @@ private fun <T> editIssueAttribute(
         if (choices == null) {
             viewIssueMenu(issue)
         } else {
-            editIssueAttribute(prop, choices, parse)(issue)
+            editIssueAttribute(prop, choices, { input: String -> choices.contains(input) }, parse)(issue)
         }
     }
 
@@ -153,9 +154,10 @@ private fun <T> editIssueAttribute(
  * Displays a screen for editing the passed issue property.
  */
 private fun <T> editIssueAttribute(
-    prop: KMutableProperty1<Issue, T>, // in
-    choices: List<String> = emptyList(), // in
-    parse: (String) -> T, // in
+    prop: KMutableProperty1<Issue, T>,
+    choices: List<String> = emptyList(),
+    validationFn: (String) -> Boolean,
+    parse: (String) -> T,
 ): (Issue) -> Screen =
     { issue: Issue ->
         screenWithMenu {
@@ -163,7 +165,7 @@ private fun <T> editIssueAttribute(
             content { t ->
                 transaction {
                     t.printLine("Options: ${choices.joinToString(", ")}")
-                    newVal = t.prompt("Please enter ${prop.name}", choices)
+                    newVal = t.prompt("Please enter ${prop.name}", validationFn)
                     printIssueSummary(t, issue)
                     t.title("Update: ${prop.name}")
                     t.printLine("OLD: ${prop.get(issue)}")
@@ -197,11 +199,14 @@ private val editPriority =
     editIssueAttribute(
         Issue::priority,
         (1..5).map(Int::toString),
+        { input -> input in (1..5).map(Int::toString) },
     ) { newVal -> newVal.toShort() }
+
+private fun isValidDescription(description: String) = description.length in (1..30)
 
 /** ----
  * This function displays a screen where the user is presented with the
  * option of saving their issue with an edited description or going back
  * to the previous menu.
 ----- */
-private val editDescription = editIssueAttribute(Issue::description) { it }
+private val editDescription = editIssueAttribute(Issue::description, emptyList(), ::isValidDescription) { it }
