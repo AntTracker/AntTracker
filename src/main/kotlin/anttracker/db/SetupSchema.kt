@@ -22,6 +22,7 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.CurrentDateTime
 import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.LocalDate
 
 // -----
 
@@ -39,50 +40,42 @@ fun setupSchema(shouldPopulate: Boolean) {
     }
 }
 
-private val issueIdToStatus =
-    arrayOf(
-        Status.Created,
-        Status.Assessed,
-        Status.InProgress,
-        Status.Done,
-        Status.Cancelled,
-    )
-
-private fun genStatus(id: Int): Status = issueIdToStatus[id % 5]
-
 fun populate() {
     (0..5).forEach { productId ->
         val prodId = Products.insert { it[name] = "Product $productId" } get Products.id
-        (0..5).forEach { id ->
+        (0..10).forEach { id ->
             val relId =
                 Releases.insert {
                     it[product] = prodId
-                    it[releaseId] = "$prodId-$id"
-                    it[releaseDate] = CurrentDateTime
+                    it[releaseId] = "p-$prodId-$id"
+                    it[releaseDate] = LocalDate.now().plusDays((-40..0L).random()).atStartOfDay()
                 } get Releases.id
-            (0..20).forEach { issueId ->
+            (0..10).forEach { issueId ->
+
                 val issId =
                     Issues.insert {
                         it[description] = "Issue $issueId"
                         it[product] = prodId
-                        it[status] = genStatus(issueId).toString()
-                        it[priority] = 1
-                        it[creationDate] = CurrentDateTime
-                        it[anticipatedRelease] = relId
+                        it[status] = Status.all()[issueId % 5].toString()
+                        it[priority] = (issueId % 5 + 1).toShort()
+                        it[creationDate] = LocalDate.now().plusDays((-40..0L).random()).atStartOfDay()
+                        it[anticipatedRelease] = relId.takeUnless { issueId % 3 == 0 }
                     } get Issues.id
-                (0..45).forEach { requestId ->
-                    val contId =
-                        Contacts.insert {
-                            it[name] = "a-$requestId"
-                            it[email] = "a-$requestId@sfu.ca"
-                            it[phoneNumber] = "12345678901"
-                            it[department] = "Marketing"
-                        } get Contacts.id
-                    Requests.insert {
-                        it[affectedRelease] = relId
-                        it[issue] = issId
-                        it[requestDate] = CurrentDateTime
-                        it[contact] = contId
+                if (issueId % 3 == 0) {
+                    (0..25).forEach { requestId ->
+                        val contId =
+                            Contacts.insert {
+                                it[name] = "a-$requestId"
+                                it[email] = "a-$requestId@sfu.ca"
+                                it[phoneNumber] = "12345678901"
+                                it[department] = "Marketing"
+                            } get Contacts.id
+                        Requests.insert {
+                            it[affectedRelease] = relId
+                            it[issue] = issId
+                            it[requestDate] = CurrentDateTime
+                            it[contact] = contId
+                        }
                     }
                 }
             }
@@ -104,6 +97,14 @@ class ProductEntity(
     id: EntityID<Int>,
 ) : IntEntity(id) {
     companion object : IntEntityClass<ProductEntity>(Products)
+
+    var name by Products.name
+}
+
+class Product(
+    id: EntityID<Int>,
+) : IntEntity(id) {
+    companion object : IntEntityClass<Product>(Products)
 
     var name by Products.name
 }
@@ -138,7 +139,7 @@ class Release(
 object Issues : IntIdTable() {
     val description = varchar("description", 30)
     val product = reference("product", Products)
-    val anticipatedRelease = reference("release", Releases)
+    val anticipatedRelease = reference("release", Releases).nullable()
     val creationDate = datetime("creation_date")
     val status = varchar("status", 11)
     val priority = short("priority")
@@ -154,7 +155,7 @@ class Issue(
 
     var description by Issues.description
     var product by ProductEntity referencedOn Issues.product
-    var anticipatedRelease by Release referencedOn Issues.anticipatedRelease
+    var anticipatedRelease by Release optionalReferencedOn Issues.anticipatedRelease
     var creationDate by Issues.creationDate
     private var _status by Issues.status
     var status: Status

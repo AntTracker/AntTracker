@@ -1,6 +1,7 @@
 package anttracker.issues
 
 import anttracker.db.Request
+import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.transactions.transaction
 
 private fun requestToRow(
@@ -24,6 +25,7 @@ class ScreenWithTable : ScreenWithMenu() {
         option("Print") { screenWithMenu { content { t -> t.printLine("Not currently implemented. In next version") } } }
         content { t ->
             transaction {
+                addLogger(org.jetbrains.exposed.sql.StdOutSqlLogger)
                 table.fetchRows().let { rows ->
                     if (rows.isEmpty()) {
                         t.printLine(table.emptyMessage)
@@ -37,12 +39,12 @@ class ScreenWithTable : ScreenWithMenu() {
 }
 
 class TableConfiguration {
-    var fetchRows: () -> List<List<Any>> = { emptyList() }
+    var fetchRows: () -> List<List<Any?>> = { emptyList() }
     var columns: List<Pair<String, Int>> = emptyList()
     var emptyMessage: String = ""
     var nextPage: ScreenHandler? = null
 
-    fun query(query: () -> List<List<Any>>/* in */) {
+    fun query(query: () -> List<List<Any?>>/* in */) {
         this.fetchRows = query
     }
 
