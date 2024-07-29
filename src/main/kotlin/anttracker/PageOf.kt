@@ -41,7 +41,9 @@ abstract class PageOf<T : IntEntity>(
     // If there are more pages to go, will indicate to user the no. of records to be seen.
     // ---
     fun display() {
+        var linenumber = 0
         for (record in records) {
+            print(linenumber++.toString().padEnd(4))
             printRecord(record)
         }
         if (!lastPage()) {
