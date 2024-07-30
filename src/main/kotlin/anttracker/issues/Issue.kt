@@ -180,26 +180,3 @@ fun searchIssues(
 ): PageWithFilter {
     TODO()
 }
-
-/** -------
- * This function takes a predicate to apply on an issue, the number of issues to show per
- * page N, and shows the issues from the database which satisfy the predicate in pages of
- * size N.
- * For example, calling displayIssues(hasLowPriority, 3) will show all the issues
- * with a low priority in pages containing only three issues
-------- */
-fun selectIssue(
-    filter: IssueFilter, // in
-    issuesPerPage: Int, // in
-): Issue? {
-    TODO()
-}
-
-/** ---
- * This function collects from the user all the information needed to create an issue
-by prompting them for the description, product, affectedRelease, and priority.
- * Returns null if the user (somehow) indicates to leave: optional
----- */
-fun enterIssueInformation(): IssueInformation? {
-    TODO()
-}

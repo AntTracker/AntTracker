@@ -69,7 +69,7 @@ fun selectRelease(
                     // Check page contains the line number
                     // If page doesn't, prompt again.
                     val userInputInt = userInput.toInt()
-                    if (userInputInt in (1..20) && userInputInt < relPage.recordsSize()) {
+                    if (userInputInt in (0..19) && userInputInt < relPage.recordsSize()) {
                         linenum = userInput.toInt()
                     }
                 } catch (e: java.lang.NumberFormatException) {

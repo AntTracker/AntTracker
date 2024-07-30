@@ -47,7 +47,11 @@ abstract class PageOf<T : IntEntity>(
             printRecord(record)
         }
         if (!lastPage()) {
-            println("<Enter> for ${countRemainingRecords()} more.")
+            if (countRemainingRecords() <= queryLimit) {
+                println("<Enter> for ${countRemainingRecords()} more.")
+            } else {
+                println("<Enter> for $queryLimit of ${countRemainingRecords()} more.")
+            }
         }
     }
 
