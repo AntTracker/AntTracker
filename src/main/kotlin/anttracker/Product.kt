@@ -161,8 +161,3 @@ private fun saveProduct(productName: ProductName): ProductEntity? {
         return null
     }
 }
-
-private fun productExists(productString: String): Boolean =
-    transaction {
-        !ProductEntity.find { Products.name eq productString }.empty()
-    }

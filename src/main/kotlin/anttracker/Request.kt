@@ -63,6 +63,29 @@ private class PageOfIssues(
 
 // ----------------------------------------------------------------
 
+// display the column titles (should precede displayIssue)
+private fun displayIssueColumnTitles(
+    displayLineNum: Boolean // in
+) {
+    // create column strings
+    val linenum = "##".padEnd(3)
+    val id = "ID".padEnd(4)
+    val desc = "Description".padEnd(30)
+    val priority = "Priority".padStart(9)
+    val status = "Status".padEnd(14)
+    val antrel = "AntRel".padEnd(8)
+    val created = "Created".padEnd(10)
+
+    // print columns
+    if (displayLineNum) {
+        println("$linenum | $id | $desc | $priority | $status | $antrel | $created")
+    } else {
+        println("$id | $desc | $priority | $status | $antrel | $created")
+    }
+}
+
+// ----------------------------------------------------------------
+
 // display a given issue
 private fun displayIssue(
     issue: Issue, // in
@@ -80,29 +103,6 @@ private fun displayIssue(
 
     if (displayLeadingBar) {
         println("| $id | $desc | $priority | $status | $antrel | $created")
-    } else {
-        println("$id | $desc | $priority | $status | $antrel | $created")
-    }
-}
-
-// ----------------------------------------------------------------
-
-// display the column titles (should precede displayIssue)
-private fun displayIssueColumnTitles(
-    displayLineNum: Boolean // in
-) {
-    // create column strings
-    val linenum = "##".padEnd(3)
-    val id = "ID".padEnd(4)
-    val desc = "Description".padEnd(30)
-    val priority = "Priority".padStart(9)
-    val status = "Status".padEnd(14)
-    val antrel = "AntRel".padEnd(8)
-    val created = "Created".padEnd(10)
-
-    // print columns
-    if (displayLineNum) {
-        println("$linenum | $id | $desc | $priority | $status | $antrel | $created")
     } else {
         println("$id | $desc | $priority | $status | $antrel | $created")
     }
@@ -254,6 +254,20 @@ private fun enterIssueInformation(
 
 // ----------------------------------------------------------------
 
+private fun displayRequestColumnTitles() {
+    // column title strings (with fixed lengths)
+    val affrel = "AffRel".padEnd(8)
+    val date = "Requested".padEnd(10)
+    val name = "Name".padEnd(30)
+    val email = "Email".padEnd(30)
+    val dept = "Department".padEnd(10)
+
+    // print titles to console
+    println("$affrel | $date | $name | $email | $dept")
+}
+
+// ----------------------------------------------------------------
+
 // display a given request to the screen
 private fun displayRequester(request: Request) {
     // strings to be printed (with fixed lengths)
@@ -271,20 +285,6 @@ private fun displayRequester(request: Request) {
     val date = request.requestDate.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
 
     // print request to console
-    println("$affrel | $date | $name | $email | $dept")
-}
-
-// ----------------------------------------------------------------
-
-private fun displayRequestColumnTitles() {
-    // column title strings (with fixed lengths)
-    val affrel = "AffRel".padEnd(8)
-    val date = "Requested".padEnd(10)
-    val name = "Name".padEnd(30)
-    val email = "Email".padEnd(30)
-    val dept = "Dept".padEnd(10)
-
-    // print titles to console
     println("$affrel | $date | $name | $email | $dept")
 }
 
