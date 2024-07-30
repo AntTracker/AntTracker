@@ -256,27 +256,20 @@ private fun enterIssueInformation(
 
 // display a given request to the screen
 private fun displayRequester(request: Request) {
-    // get full affected release
-    val affrelEntity = transaction {
-        Release.find { Releases.id eq request.affectedRelease }.firstOrNull()
-    }
-
-    // check for integrity of contact and affrel references
-    if (affrelEntity == null) {
-        println("Error: Anomalies in request $request.id")
-        return
-    }
-
     // strings to be printed (with fixed lengths)
-    val affrel = affrelEntity.releaseId.padEnd(8)
-    val date = request.requestDate.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
-    var name: String = ""; var email: String = ""; var dept: String = ""
+    var affrel = ""; var name = ""; var email = ""; var dept = ""
+
     // get info on contact
     transaction {
+        affrel = request.affectedRelease.releaseId.padEnd(8)
         name = request.contact.name.padEnd(30)
         email = request.contact.email.padEnd(30)
         dept = request.contact.department.padEnd(10)
     }
+
+    // format date as string (10 chars)
+    val date = request.requestDate.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
+
     // print request to console
     println("$affrel | $date | $name | $email | $dept")
 }
@@ -329,7 +322,7 @@ fun enterRequestInformation(): Request? {
     // insert request into the db
     val request = transaction {
         Request.new {
-            this.affectedRelease = release.id
+            this.affectedRelease = release
             this.issue = issue.id
             this.contact = contact
             this.requestDate = LocalDateTime.now()
@@ -347,6 +340,10 @@ fun enterRequestInformation(): Request? {
     println("For issue:")
     displayIssueColumnTitles(false)
     displayIssue(issue, false)
+
+    // print product to console
+    println() // blank line
+    println("For product: ${product.name}")
 
     println() // blank line
 

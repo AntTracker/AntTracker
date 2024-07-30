@@ -251,7 +251,7 @@ class Request(
 ) : IntEntity(id) {
     companion object : IntEntityClass<Request>(Requests)
 
-    var affectedRelease by Requests.affectedRelease
+    var affectedRelease by Release referencedOn Requests.affectedRelease
     var issue by Requests.issue
     var contact by Contact referencedOn Requests.contact
     var requestDate by Requests.requestDate
