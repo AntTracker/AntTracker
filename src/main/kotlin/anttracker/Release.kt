@@ -29,9 +29,7 @@ import java.time.format.DateTimeFormatter
 fun menu() {
     println("== NEW RELEASE ==")
     val selectedProduct = selectProduct()
-    if (selectedProduct == null) {
-        println("Error: NULL product. Aborting to main menu.")
-    } else {
+    if (selectedProduct != null) {
         createRelease(selectedProduct.name)
     }
 }
@@ -69,7 +67,7 @@ fun selectRelease(
                     // Check page contains the line number
                     // If page doesn't, prompt again.
                     val userInputInt = userInput.toInt()
-                    if (userInputInt in (1..20) && userInputInt < relPage.recordsSize()) {
+                    if (relPage.isValidLineNum(userInputInt)) {
                         linenum = userInput.toInt()
                     }
                 } catch (e: java.lang.NumberFormatException) {

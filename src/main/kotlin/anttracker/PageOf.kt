@@ -41,7 +41,7 @@ abstract class PageOf<T : IntEntity>(
     // If there are more pages to go, will indicate to user the no. of records to be seen.
     // ---
     fun display() {
-        var linenumber = 0
+        var linenumber = 1
         for (record in records) {
             print(linenumber++.toString().padEnd(4))
             printRecord(record)
@@ -92,6 +92,11 @@ abstract class PageOf<T : IntEntity>(
     // Returns the number of yet-to-be-displayed records after the current page.
     // ---
     fun countRemainingRecords(): Int = getQueryRecordCount() - (queryLimit * (pagenum + 1))
+
+    // -------------------------------------------------------------------------------
+    // Returns whether a user-entered line number exists on the current page.
+    // ---
+    fun isValidLineNum(linenum: Int): Boolean = linenum in (1..20) && linenum < recordsSize()
 
     // -------------------------------------------------------------------------------
     // Used in init/ctor block to calculate the last page number.
