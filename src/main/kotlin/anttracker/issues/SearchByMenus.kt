@@ -1,5 +1,6 @@
 package anttracker.issues
 
+import anttracker.db.IssueDescription
 import anttracker.db.Priority
 import anttracker.db.Product
 import anttracker.db.Release
@@ -93,9 +94,10 @@ fun searchByProductMenu(page: PageWithFilter): Screen =
 fun searchByDescriptionMenu(page: PageWithFilter) =
     SearchByOrGoBackToIssuesMenu(
         page,
-        "description",
+        "description (1-${IssueDescription.MAX_LENGTH} characters)",
         IssueFilter::ByDescription,
-    ) { input -> input.length in 1..30 }
+        IssueDescription::isValid,
+    )
 
 fun searchByAnticipatedReleaseMenu(page: PageWithFilter) =
     SearchByOrGoBackToIssuesMenu(
