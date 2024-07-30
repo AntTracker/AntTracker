@@ -21,15 +21,15 @@ value class ProductName(
 /** --------------
  * This function takes the name of a potential product name. Returns TRUE if
  * product name is 1..30 characters, and doesn't yet exist in the database.
- * Returns FALSE if product name already exists in database.
- * Throws an IllegalArgumentException if name is not 1..30 characters.
+ * Returns FALSE if product name already exists in database or exceeds char limits.
 ----------------- */
 fun validateProductName(
-    name: ProductName, // in
+    name: String, // in
 ): Boolean =
-    transaction {
-        ProductEntity.find { Products.name eq name.toString() }.empty()
-    }
+    (name.length in 1..30) &&
+        transaction {
+            ProductEntity.find { Products.name eq name }.empty()
+        }
 
 // Pagination class for Product
 private class PageOfProducts : PageOf<ProductEntity>(ProductEntity) {
@@ -113,7 +113,7 @@ fun enterProductInformation(): ProductName? {
             if (productNameEntry.toString() == "`") { // User wants to abort
                 return null
             }
-            if (!validateProductName(productNameEntry)) {
+            if (!validateProductName(productNameEntry.toString())) {
                 println("ERROR: Product already exists.")
                 productNameEntry = null
             }
