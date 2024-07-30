@@ -160,7 +160,7 @@ fun selectContact(): Contact? {
                     // Check if the line number is valid and within the current page's range
                     val userInputInt = userInput.toInt()
                     // validate integer selection
-                    if (issuePage.isValidLineNum(userInputInt)) {
+                    if (contactPage.isValidLineNum(userInputInt)) {
                         linenum = userInputInt
                     } else {
                         println("ERROR: Invalid line number.")
