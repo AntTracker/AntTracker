@@ -133,11 +133,26 @@ class Release(
     override fun toString(): String = releaseId
 }
 
+@JvmInline
+value class IssueDescription private constructor(
+    val description: String,
+) {
+    companion object {
+        const val MAX_LENGTH = 30
+
+        fun isValid(description: String) = description.length in (1..MAX_LENGTH)
+
+        fun maybeParse(candidate: String) = candidate.takeIf(::isValid)?.let(::IssueDescription)
+    }
+
+    override fun toString() = this.description
+}
+
 /** ---
  * Represents the issues table.
 --- */
 object Issues : IntIdTable() {
-    val description = varchar("description", 30)
+    val description = varchar("description", IssueDescription.MAX_LENGTH)
     val product = reference("product", Products)
     val anticipatedRelease = reference("release", Releases).nullable()
     val creationDate = datetime("creation_date")
@@ -153,7 +168,12 @@ class Issue(
 ) : IntEntity(id) {
     companion object : IntEntityClass<Issue>(Issues)
 
-    var description by Issues.description
+    private var _description by Issues.description
+    var description: IssueDescription
+        set(newDescription) {
+            _description = newDescription.description
+        }
+        get() = requireNotNull(IssueDescription.maybeParse(_description))
     var product by ProductEntity referencedOn Issues.product
     var anticipatedRelease by Release optionalReferencedOn Issues.anticipatedRelease
     var creationDate by Issues.creationDate

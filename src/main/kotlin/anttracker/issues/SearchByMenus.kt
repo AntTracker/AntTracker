@@ -59,7 +59,12 @@ class SearchByOrGoBackToIssuesMenu(
             }
 
         while (filter == null) {
-            val input = t.prompt(message, options.takeUnless { it.isNotEmpty() }?.let { it + "" } ?: isValidChoice)
+            val input =
+                if (options.isNotEmpty()) {
+                    t.prompt(message, options + "")
+                } else {
+                    t.prompt(message, isValidChoice)
+                }
 
             t.printLine()
 

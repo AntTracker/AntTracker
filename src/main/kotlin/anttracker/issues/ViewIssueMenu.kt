@@ -215,6 +215,6 @@ private fun isValidDescription(description: String) = description.length in (1..
  * to the previous menu.
 ----- */
 private val editDescription =
-    editIssueAttribute(Issue::description, { it }) { t: Terminal ->
-        t.prompt("Please enter description", ::isValidDescription)
+    editIssueAttribute(Issue::description, { IssueDescription.maybeParse(it)!! }) { t: Terminal ->
+        t.prompt("Please enter description", IssueDescription::isValid)
     }
