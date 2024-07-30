@@ -205,6 +205,9 @@ class Issue(
     var priority by Issues.priority
 }
 
+/** ---
+ * Returns the corresponding status for the passed string
+--- */
 fun String.toStatus(): Status? =
     when (this) {
         "Created" -> Status.Created
