@@ -9,12 +9,12 @@ The Request module contains all exported classes and functions pertaining to
 */
 package anttracker.request
 
+import anttracker.PageOf
 import anttracker.contact.enterContactInformation
 import anttracker.contact.selectContact
 import anttracker.db.*
 import anttracker.issues.*
 import anttracker.product.selectProduct
-import anttracker.PageOf
 import anttracker.release.selectRelease
 import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SortOrder
@@ -26,9 +26,8 @@ import java.time.format.DateTimeFormatter
 
 // a page of issues: performs db queries to load each page into memory, then display
 private class PageOfIssues(
-    private val productName: String // in
+    private val productName: String, // in
 ) : PageOf<Issue>(Issue) {
-
     // ----------------------------------------------------------------
 
     init {
@@ -57,7 +56,7 @@ private class PageOfIssues(
             .select(Issues.columns)
             .where { Products.name eq productName }
             .orderBy(
-                Issues.creationDate to SortOrder.DESC
+                Issues.creationDate to SortOrder.DESC,
             )
 }
 
@@ -65,7 +64,7 @@ private class PageOfIssues(
 
 // display the column titles (should precede displayIssue)
 private fun displayIssueColumnTitles(
-    displayLineNum: Boolean // in
+    displayLineNum: Boolean, // in
 ) {
     // create column strings
     val linenum = "##".padEnd(3)
@@ -89,7 +88,7 @@ private fun displayIssueColumnTitles(
 // display a given issue
 private fun displayIssue(
     issue: Issue, // in
-    displayLeadingBar: Boolean // in
+    displayLeadingBar: Boolean, // in
 ) {
     val id = "${issue.id}".padEnd(4)
     val desc = issue.description.toString().padEnd(30)
@@ -113,7 +112,7 @@ private fun displayIssue(
 /* display list of issues for a given issue, for selecting
  * issues are ordered by creation date */
 private fun selectIssue(
-    productName: String // in
+    productName: String, // in
 ): Issue? {
     // prepare page of issues
     val issuePage = PageOfIssues(productName)
@@ -238,16 +237,17 @@ private fun enterIssueInformation(
     }
 
     // insert new issue into db
-    val issue = transaction {
-        Issue.new {
-            this.description = IssueDescription.maybeParse(desc)!!
-            this.product = product
-            this.anticipatedRelease = release
-            this.creationDate = LocalDateTime.now()
-            this.status = Status.Created
-            this.priority = priority
+    val issue =
+        transaction {
+            Issue.new {
+                this.description = IssueDescription.maybeParse(desc)!!
+                this.product = product
+                this.anticipatedRelease = release
+                this.creationDate = LocalDateTime.now()
+                this.status = Status.Created
+                this.priority = priority
+            }
         }
-    }
 
     return issue
 }
@@ -271,7 +271,10 @@ private fun displayRequestColumnTitles() {
 // display a given request to the screen
 private fun displayRequester(request: Request) {
     // strings to be printed (with fixed lengths)
-    var affrel = ""; var name = ""; var email = ""; var dept = ""
+    var affrel = ""
+    var name = ""
+    var email = ""
+    var dept = ""
 
     // get info on contact
     transaction {
@@ -320,14 +323,15 @@ fun enterRequestInformation(): Request? {
     }
 
     // insert request into the db
-    val request = transaction {
-        Request.new {
-            this.affectedRelease = release
-            this.issue = issue.id
-            this.contact = contact
-            this.requestDate = LocalDateTime.now()
+    val request =
+        transaction {
+            Request.new {
+                this.affectedRelease = release
+                this.issue = issue
+                this.contact = contact
+                this.requestDate = LocalDateTime.now()
+            }
         }
-    }
 
     // print created request to console
     println() // blank line
