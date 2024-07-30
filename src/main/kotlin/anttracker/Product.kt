@@ -18,6 +18,19 @@ value class ProductName(
     override fun toString(): String = id
 }
 
+/** --------------
+ * This function takes the name of a potential product name. Returns TRUE if
+ * product name is 1..30 characters, and doesn't yet exist in the database.
+ * Returns FALSE if product name already exists in database or exceeds char limits.
+----------------- */
+fun validateProductName(
+    name: String, // in
+): Boolean =
+    (name.length in 1..30) &&
+        transaction {
+            ProductEntity.find { Products.name eq name }.empty()
+        }
+
 // Pagination class for Product
 private class PageOfProducts : PageOf<ProductEntity>(ProductEntity) {
     init {
@@ -59,13 +72,13 @@ fun selectProduct(): ProductEntity? {
                     // Check page contains the line number
                     // If page doesn't, prompt again.
                     val userInputInt = userInput.toInt()
-                    if (userInputInt in (0..19) && userInputInt < productPage.recordsSize()) {
+                    if (userInputInt in (1..20) && userInputInt < productPage.recordsSize()) {
                         linenum = userInput.toInt()
                     } else {
                         println("ERROR: Invalid line number.")
                     }
                 } catch (e: java.lang.NumberFormatException) {
-                    println(e.message)
+                    println("ERROR: Please enter a number.")
                 }
             }
         }
@@ -82,25 +95,25 @@ fun selectProduct(): ProductEntity? {
 // ---
 fun menu() {
     println("== NEW PRODUCT==")
-    val newProduct: ProductEntity? = enterProductInformation()
-    if (newProduct != null) {
-        // saveProduct(newProduct)
+    val newProductName = enterProductInformation()
+    if (newProductName != null) {
+        saveProduct(newProductName)
     }
 }
 
 // Displays a sub-menu for entering product information.
-fun enterProductInformation(): ProductEntity? {
-    var productNameEntry: String? = null
+fun enterProductInformation(): ProductName? {
+    var productNameEntry: ProductName? = null
 
     while (productNameEntry == null) {
-        println("Please enter product name (1-30 characters). ` to exit:")
+        println("Please enter product name (1-30 characters). ` to abort:")
 
         try {
-            productNameEntry = ProductName(readln()).toString()
-            if (productNameEntry == "`") { // User wants to abort
+            productNameEntry = ProductName(readln())
+            if (productNameEntry.toString() == "`") { // User wants to abort
                 return null
             }
-            if (productExists(productNameEntry)) {
+            if (!validateProductName(productNameEntry.toString())) {
                 println("ERROR: Product already exists.")
                 productNameEntry = null
             }
@@ -108,12 +121,7 @@ fun enterProductInformation(): ProductEntity? {
             println(e.message)
         }
     }
-
-    return transaction {
-        ProductEntity.new {
-            this.name = productNameEntry
-        }
-    }
+    return productNameEntry
 }
 
 // Displays all products as a string
@@ -138,16 +146,20 @@ fun displayProducts() {
 }
 
 // Save a product to the database
-private fun saveProduct(product: ProductEntity) {
-    transaction {
-        if (ProductEntity.find { Products.name eq product.name }.empty()) {
-            product.flush()
-            println("${product.name} has been created.")
-        } else {
-            println("ERROR: Product already exists.")
-        }
+private fun saveProduct(productName: ProductName): ProductEntity? {
+    try {
+        val newProduct =
+            transaction {
+                ProductEntity.new {
+                    this.name = productName.toString()
+                }
+            }
+        println("Product ${newProduct.name} created.")
+        return newProduct
+    } catch (e: Exception) {
+        println("ERROR: Failed to create product.")
+        return null
     }
-    menu()
 }
 
 private fun productExists(productString: String): Boolean =
