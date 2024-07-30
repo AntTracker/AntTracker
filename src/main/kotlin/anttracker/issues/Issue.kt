@@ -16,7 +16,6 @@ package anttracker.issues
 import anttracker.db.Issue
 import anttracker.db.IssueDescription
 import anttracker.db.Priority
-import anttracker.db.Request
 import anttracker.release.ReleaseId
 
 // ------
@@ -143,6 +142,9 @@ data class PageOf<T>(
     val limit: Int = 20,
 )
 
+/** ---
+ * Returns a new page with an updated offset.
+--- */
 fun <T> PageOf<T>.next() = this.copy(offset = this.offset + this.limit)
 
 /** ---
@@ -154,16 +156,14 @@ data class PageWithFilter(
     val pageInfo: PageOf<Issue> = PageOf(),
 )
 
-fun PageWithFilter.addFilter(newFilter: IssueFilter): PageWithFilter = PageWithFilter(filters = filters + newFilter)
+/** ---
+ * Adds a new filter to the current set of filters.
+--- */
+fun PageWithFilter.addFilter(
+    newFilter: IssueFilter, // in
+): PageWithFilter = PageWithFilter(filters = filters + newFilter)
 
 /** ---
  * This function generates the next page, updating the offset.
 --- */
 fun PageWithFilter.next(): PageWithFilter = this.copy(pageInfo = pageInfo.copy(offset = pageInfo.offset + 20))
-
-/** ---
- *  Represents a page of requests.
---- */
-data class RequestPage(
-    val pageInfo: PageOf<Request>,
-)

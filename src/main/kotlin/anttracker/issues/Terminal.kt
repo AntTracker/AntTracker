@@ -35,8 +35,8 @@ class Terminal {
     }
 
     /** ----
-     * This function prompts the user for input and only returns their
-     * input if it is valid. Otherwise, it prompts the user again.
+     * This function displays the list of options a user can enter
+     * and prompts the user for their input.
      ----- */
     fun prompt(
         message: String, // in
@@ -50,10 +50,14 @@ class Terminal {
         return prompt(message) { input -> choices.contains(input) }
     }
 
+    /** ----
+     * This function prompts the user for input and only returns their
+     * input if it is valid. Otherwise, it prompts the user again.
+     ----- */
     fun prompt(
         message: String, // in
-        allowEmpty: Boolean = false,
-        isValidChoice: (String) -> Boolean,
+        allowEmpty: Boolean = false, // in
+        isValidChoice: (String) -> Boolean, // in
     ): String {
         println(message)
         val choice = readln()
