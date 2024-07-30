@@ -20,9 +20,9 @@ import org.jetbrains.exposed.sql.transactions.transaction
 class ScreenWithTable : ScreenWithMenu() {
     private var table: TableConfiguration = TableConfiguration()
 
-    /**
+    /** ---
      * Configures the table to be shown on the screen
-     */
+     --- */
     fun table(
         config: TableConfiguration.() -> Unit, // in
     ) {
@@ -53,36 +53,36 @@ class TableConfiguration {
     var emptyMessage: String = ""
     var nextPage: ScreenHandler? = null
 
-    /**
+    /** ---
      * Sets the query to be used
-     */
+     --- */
     fun query(
         query: () -> List<List<Any?>>, // in
     ) {
         this.fetchRows = query
     }
 
-    /**
+    /** ---
      * Sets the column formatting to be used
-     */
+     --- */
     fun columns(
         vararg columns: Pair<String, Int>, // in
     ) {
         this.columns = columns.toList()
     }
 
-    /**
+    /** ---
      * Sets the message to be displayed when an empty page is shown
-     */
+     --- */
     fun emptyMessage(
         message: String, // in
     ) {
         this.emptyMessage = message
     }
 
-    /**
+    /** ---
      * Sets the function which will transition to the next page
-     */
+     --- */
     fun nextPage(
         nextPage: ScreenHandler, // in
     ) {
@@ -90,6 +90,9 @@ class TableConfiguration {
     }
 }
 
+/** ---
+ * Creates a screen with a table configured using the passed configuration.
+--- */
 fun screenWithTable(
     config: ScreenWithTable.() -> Unit, // in
 ): Screen {
