@@ -244,7 +244,7 @@ private fun enterIssueInformation(
     // insert new issue into db
     val issue = transaction {
         Issue.new {
-            this.description = IssueDescription(desc)
+            this.description = IssueDescription.maybeParse(desc)!!
             this.product = product
             this.anticipatedRelease = release
             this.creationDate = LocalDateTime.now()
