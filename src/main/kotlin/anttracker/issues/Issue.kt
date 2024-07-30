@@ -14,6 +14,7 @@ and searching for issues are also present in this file.
 package anttracker.issues
 
 import anttracker.db.Issue
+import anttracker.db.IssueDescription
 import anttracker.db.Priority
 import anttracker.db.Request
 import anttracker.release.ReleaseId
@@ -57,6 +58,10 @@ sealed class Status {
     data object Done : Status()
 
     data object Cancelled : Status()
+
+    companion object {
+        fun all() = arrayOf(Created, Assessed, InProgress, Done, Cancelled)
+    }
 }
 
 /** ---
@@ -80,7 +85,7 @@ value class IssueId(
  * number of days.
 --- */
 @JvmInline
-value class Days(
+value class NumberOfDays(
     val numOfDays: Int,
 ) {
     init {
@@ -94,25 +99,36 @@ value class Days(
  * This class represents what an issue
  * can be filtered by.
 --- */
-sealed class IssueFilter {
+sealed interface IssueFilter {
     /** ---
      * Represents a filter that uses the description.
      --- */
     data class ByDescription(
-        val description: Regex,
-    ) : IssueFilter()
+        val description: IssueDescription,
+    ) : IssueFilter
+
+    data class ByAnticipatedRelease(
+        val release: String,
+    ) : IssueFilter
+
+    data class ByPriority(
+        val priority: Priority,
+    ) : IssueFilter
 
     /** ---
      * Represents a filter that uses the product.
      --- */
     data class ByProduct(
         val product: String,
-    ) : IssueFilter()
+    ) : IssueFilter
 
-    /** ---
-     * Represents the lack of a filter.
-     --- */
-    data object NoFilter : IssueFilter()
+    data class ByStatus(
+        val statuses: List<Status>,
+    ) : IssueFilter
+
+    data class ByDateCreated(
+        val days: NumberOfDays,
+    ) : IssueFilter
 }
 
 /** ---
@@ -127,14 +143,18 @@ data class PageOf<T>(
     val limit: Int = 20,
 )
 
+fun <T> PageOf<T>.next() = this.copy(offset = this.offset + this.limit)
+
 /** ---
  * This class represents a page of issues that
  * includes a filter
 --- */
 data class PageWithFilter(
-    val filter: IssueFilter = IssueFilter.NoFilter,
+    val filters: List<IssueFilter> = emptyList(),
     val pageInfo: PageOf<Issue> = PageOf(),
 )
+
+fun PageWithFilter.addFilter(newFilter: IssueFilter): PageWithFilter = PageWithFilter(filters = filters + newFilter)
 
 /** ---
  * This function generates the next page, updating the offset.
