@@ -1,5 +1,6 @@
 package anttracker.issues
 
+import anttracker.db.IssueDescription
 import anttracker.db.Priority
 import anttracker.db.Product
 import anttracker.db.Release
@@ -9,10 +10,6 @@ abstract class ScreenWithTitle(
     theTitle: String? = null,
 ) : Screen {
     private var menuTitle: String? = theTitle
-
-    fun title(theTitle: String) {
-        this.menuTitle = theTitle
-    }
 
     override fun run(t: Terminal): Screen? {
         menuTitle?.let(t::title)
@@ -32,12 +29,6 @@ class SearchByOrGoBackToIssuesMenu(
     constructor(
         page: PageWithFilter,
         target: String,
-        createFilter: (filter: String) -> IssueFilter?,
-    ) : this(page, target, emptyList(), "", createFilter)
-
-    constructor(
-        page: PageWithFilter,
-        target: String,
         options: List<String>,
         createFilter: (filter: String) -> IssueFilter?,
     ) : this(page, target, options, "", createFilter)
@@ -53,7 +44,12 @@ class SearchByOrGoBackToIssuesMenu(
             }
 
         while (filter == null) {
-            val input = t.prompt(message, options.takeIf { it.isNotEmpty() }?.let { it + "" } ?: emptyList())
+            val input =
+                if (options.isNotEmpty()) {
+                    t.prompt(message, options + "")
+                } else {
+                    t.prompt(message, true) { createFilter(it) != null }
+                }
 
             t.printLine()
 
@@ -82,9 +78,9 @@ fun searchByProductMenu(page: PageWithFilter): Screen =
 fun searchByDescriptionMenu(page: PageWithFilter) =
     SearchByOrGoBackToIssuesMenu(
         page,
-        "description",
-        IssueFilter::ByDescription,
-    )
+        "description (1-${IssueDescription.MAX_LENGTH} characters)",
+        emptyList(),
+    ) { IssueDescription.maybeParse(it)?.let(IssueFilter::ByDescription) }
 
 fun searchByAnticipatedReleaseMenu(page: PageWithFilter) =
     SearchByOrGoBackToIssuesMenu(
@@ -99,8 +95,13 @@ fun searchByStatusMenu(page: PageWithFilter) =
         page,
         "statuses",
         emptyList(),
-        "Enter all the statuses to search for separated by commas (Assessed, Created, Done, Cancelled, InProgress)",
-    ) { input -> splitStatuses(input).sequence(::parseStatus)?.takeIf { it.isNotEmpty() }?.let(IssueFilter::ByStatus) }
+        Status
+            .all()
+            .joinToString(", ")
+            .let { "Enter all the statuses to search for separated by commas ($it)" },
+    ) { input: String ->
+        splitStatuses(input).sequence(::parseStatus)?.takeIf { it.isNotEmpty() }?.let(IssueFilter::ByStatus)
+    }
 
 private fun <T, R> List<T>.sequence(f: (T) -> R?): List<R>? = this.mapNotNull(f).takeIf { it.size == this.size }
 
@@ -127,6 +128,12 @@ fun searchByDaysSinceMenu(page: PageWithFilter) =
     SearchByOrGoBackToIssuesMenu(
         page,
         "created within the last n days",
-        (0..100).map(Int::toString),
-        "Enter a day to indicate how far back you want to search",
-    ) { input -> Days(input.toInt()).let(IssueFilter::ByDateCreated) }
+        emptyList(),
+        "Enter how many days back to search for (positive number)",
+    ) { candidate ->
+        candidate
+            .takeIf { it.matches(Regex("""\d+""")) }
+            ?.toInt()
+            ?.let(::NumberOfDays)
+            ?.let(IssueFilter::ByDateCreated)
+    }

@@ -14,6 +14,7 @@ and searching for issues are also present in this file.
 package anttracker.issues
 
 import anttracker.db.Issue
+import anttracker.db.IssueDescription
 import anttracker.db.Priority
 import anttracker.db.Request
 import anttracker.release.ReleaseId
@@ -84,7 +85,7 @@ value class IssueId(
  * number of days.
 --- */
 @JvmInline
-value class Days(
+value class NumberOfDays(
     val numOfDays: Int,
 ) {
     init {
@@ -103,7 +104,7 @@ sealed interface IssueFilter {
      * Represents a filter that uses the description.
      --- */
     data class ByDescription(
-        val description: String,
+        val description: IssueDescription,
     ) : IssueFilter
 
     data class ByAnticipatedRelease(
@@ -126,7 +127,7 @@ sealed interface IssueFilter {
     ) : IssueFilter
 
     data class ByDateCreated(
-        val days: Days,
+        val days: NumberOfDays,
     ) : IssueFilter
 }
 

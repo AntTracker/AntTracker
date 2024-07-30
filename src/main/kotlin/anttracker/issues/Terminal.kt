@@ -40,19 +40,27 @@ class Terminal {
      ----- */
     fun prompt(
         message: String, // in
-        choices: List<String> = emptyList(), // in
+        choices: List<String>, // in
     ): String {
         if (choices.isNotEmpty()) {
             print("Options: ")
             printLine(choices.joinToString(", "))
             printLine()
         }
+        return prompt(message) { input -> choices.contains(input) }
+    }
+
+    fun prompt(
+        message: String, // in
+        allowEmpty: Boolean = false,
+        isValidChoice: (String) -> Boolean,
+    ): String {
         println(message)
         val choice = readln()
-        if (choices.isEmpty() || choices.contains(choice)) {
+        if ((choice.isBlank() && allowEmpty) || isValidChoice(choice)) {
             return choice
         }
-        return prompt(message, choices)
+        return prompt(message, allowEmpty, isValidChoice)
     }
 
     /** ---

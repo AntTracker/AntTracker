@@ -90,11 +90,11 @@ private fun selectIssueToViewMenu(
             t.printLine("== View issue ==")
             val mainMenuChoice = "`"
             val backToMainMenuMessage = " Or press ` (backtick) to go back to the main menu:"
+            val choices = rows.keys.map { it.toString() } + mainMenuChoice
             val response =
                 t.prompt(
                     "Enter the row number of the issue you want to view.$backToMainMenuMessage",
-                    rows.keys.map { it.toString() } + mainMenuChoice,
-                )
+                ) { input -> input in choices }
             t.printLine()
 
             return when (response) {
