@@ -30,7 +30,9 @@ import java.time.LocalDate
  * This function creates the schema for the database and adds some sample
  * products, releases, and issues.
 ---- */
-fun setupSchema(shouldPopulate: Boolean) {
+fun setupSchema(
+    shouldPopulate: Boolean, // in
+) {
     transaction {
         SchemaUtils.createMissingTablesAndColumns(Products, Issues, Releases, Requests, Contacts)
 
@@ -40,6 +42,9 @@ fun setupSchema(shouldPopulate: Boolean) {
     }
 }
 
+/**
+ * Generates sample data for the database.
+ */
 fun populate() {
     (0..5).forEach { productId ->
         val prodId = Products.insert { it[name] = "Product $productId" } get Products.id
@@ -133,6 +138,9 @@ class Release(
     override fun toString(): String = releaseId
 }
 
+/** ---
+ * Represents a valid description for an issue.
+--- */
 @JvmInline
 value class IssueDescription private constructor(
     val description: String,
@@ -140,9 +148,19 @@ value class IssueDescription private constructor(
     companion object {
         const val MAX_LENGTH = 30
 
-        fun isValid(description: String) = description.length in (1..MAX_LENGTH)
+        /** ---
+         *
+         --- */
+        fun isValid(
+            description: String, // in
+        ) = description.length in (1..MAX_LENGTH)
 
-        fun maybeParse(candidate: String) = candidate.takeIf(::isValid)?.let(::IssueDescription)
+        /** ---
+         *
+         --- */
+        fun maybeParse(
+            candidate: String, // in
+        ) = candidate.takeIf(::isValid)?.let(::IssueDescription)
     }
 
     override fun toString() = this.description

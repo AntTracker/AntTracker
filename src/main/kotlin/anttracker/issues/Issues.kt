@@ -104,8 +104,14 @@ private fun fetchPageOfIssuesMatchingFilter(
         .map { Issue.wrapRow(it) }
 }
 
+/** ---
+ * Returns the current date offset by the number of days passed.
+--- */
 fun addOffset(numOfDays: Int): LocalDateTime = LocalDate.now().plusDays(numOfDays.toLong()).atStartOfDay()
 
+/** ---
+ * Converts a Status to its string representation.
+--- */
 private fun Status.toStr() =
     when (this) {
         Status.Assessed -> "Assessed"
@@ -115,6 +121,9 @@ private fun Status.toStr() =
         Status.InProgress -> "In progress"
     }
 
+/** ---
+ * Converts an IssueFilter to a query condition.
+--- */
 private fun IssueFilter.toCondition(): Op<Boolean> =
     when (this) {
         is IssueFilter.ByDescription -> Issues.description like "%$description%"
@@ -159,7 +168,12 @@ fun displayAllIssuesMenu(
         }
     }
 
-private fun displayViewIssuesMenu(page: PageWithFilter) =
+/** ---
+ * Generates the issues which can be selected on the current page.
+--- */
+private fun displayViewIssuesMenu(
+    page: PageWithFilter, // in
+) =
     transaction {
         fetchPageOfIssuesMatchingFilter(page)
             .zip(1..20) { issue, index -> index to issue }
@@ -185,6 +199,10 @@ private fun toRow(
     )
 }
 
+/**
+ * Represents the association between an issue attribute
+ * and the menu to edit that attribute.
+ */
 val searchByOptions =
     mapOf(
         "Description" to ::searchByDescriptionMenu,
@@ -195,6 +213,9 @@ val searchByOptions =
         "Date range" to ::searchByDaysSinceMenu,
     )
 
+/** ---
+ * Generates a label for the issue filter.
+--- */
 private fun IssueFilter.toLabel(): String =
     when (this) {
         is IssueFilter.ByDescription -> "Description: ${this.description}"
