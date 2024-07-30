@@ -15,6 +15,7 @@ import anttracker.db.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 
+/*
 // Data class for storing the attributes of a given contact.
 data class Contact(
     val name: String,
@@ -22,6 +23,7 @@ data class Contact(
     val email: String,
     val department: String? = null // optional
 )
+*/
 
 // ----------------------------------------------------------------------------
 // Displays a sub-menu for creating a new contact and adding it to the
