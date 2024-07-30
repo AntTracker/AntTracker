@@ -72,7 +72,10 @@ private fun displayIssue(
     val desc = issue.description.toString().padEnd(30)
     val priority = "${issue.priority}".padStart(9)
     val status = "${issue.status}".padEnd(14)
-    val antrel = issue.anticipatedRelease?.releaseId?.padEnd(8) ?: "".padEnd(8)
+    var antrel: String = "".padEnd(8)
+    transaction {
+        antrel = issue.anticipatedRelease?.releaseId?.padEnd(8) ?: "".padEnd(8)
+    }
     val created = issue.creationDate.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
 
     if (displayLeadingBar) {
