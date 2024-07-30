@@ -227,8 +227,7 @@ private fun enterIssueInformation(
                         // continue
                     }
                 } catch (e: java.lang.NumberFormatException) {
-                    // print error message, then re-prompt user
-                    println(e.message)
+                    println("Bad input.")
                     // continue
                 }
             }
