@@ -137,7 +137,11 @@ private class PageOfContact : PageOf<Contact>(Contact) {
             )
 
     override fun printRecord(record: Contact) {
-        println(record.name)
+        if (record.department.isEmpty()) {
+            println("${record.name}, <${record.email}>, ${record.phoneNumber}")
+        } else {
+            println("${record.name}, <${record.email}>, ${record.phoneNumber}, ${record.department}")
+        }
     }
 }
 
