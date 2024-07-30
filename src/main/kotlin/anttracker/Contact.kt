@@ -39,7 +39,7 @@ fun menu() {
 }
 
 // Displays a sub-menu for entering contact information.
-fun enterContactInformation(): ContactEntity? {
+fun enterContactInformation(): Contact? {
     var name: String
     var phone: String
     var email: String
@@ -102,7 +102,7 @@ fun enterContactInformation(): ContactEntity? {
     }
 
     return transaction {
-        ContactEntity.new {
+        Contact.new {
             this.name = name
             this.phoneNumber = phone
             this.email = email
@@ -114,7 +114,7 @@ fun enterContactInformation(): ContactEntity? {
 // Checks if the contact name is unique in the database
 private fun isUniqueContactName(name: String): Boolean {
     return transaction {
-        ContactEntity.find { Contacts.name eq name }.empty()
+        Contact.find { Contacts.name eq name }.empty()
     }
 }
 
@@ -122,7 +122,7 @@ private fun isUniqueContactName(name: String): Boolean {
 // A class that represents a page of contacts.
 // This class handles pagination and display of contacts from the database.
 // ---
-private class PageOfContact : PageOf<ContactEntity>(ContactEntity) {
+private class PageOfContact : PageOf<Contact>(Contact) {
     init {
         initLastPageNum()
     }
@@ -134,13 +134,13 @@ private class PageOfContact : PageOf<ContactEntity>(ContactEntity) {
                 Contacts.name to SortOrder.ASC,
             )
 
-    override fun printRecord(record: ContactEntity) {
+    override fun printRecord(record: Contact) {
         println(record.name)
     }
 }
 
 // Display pages of contacts to console and select one
-fun selectContact(): ContactEntity? {
+fun selectContact(): Contact? {
     val contactPage = PageOfContact()
     contactPage.loadRecords() // Adjust limit and offset as necessary
     contactPage.display()
@@ -174,4 +174,3 @@ fun selectContact(): ContactEntity? {
     }
     return contactPage.getContentAt(linenum - 1)
 }
-
