@@ -90,6 +90,11 @@ private fun createRelease(
 ) {
     displayReleases(productName)
     var releaseEntry: String? = null
+    val product =
+        transaction {
+            ProductEntity.find { Products.name eq productName }.firstOrNull()
+                ?: throw IllegalArgumentException("Error: Product not found")
+        }
 
     // Prompt user until valid releaseId is entered
     while (releaseEntry == null) {
@@ -99,6 +104,10 @@ private fun createRelease(
             if (releaseEntry == "`") { // User wants to abort
                 return
             }
+            if (releaseExists(product, releaseEntry)) {
+                println("ERROR: Release already exists.")
+                releaseEntry = null
+            }
         } catch (e: java.lang.IllegalArgumentException) {
             println(e.message)
         }
@@ -106,9 +115,6 @@ private fun createRelease(
 
     // Insert release into the database.
     transaction {
-        val product =
-            ProductEntity.find { Products.name eq productName }.firstOrNull()
-                ?: throw IllegalArgumentException("Error: Product not found")
         Release.new {
             releaseId = releaseEntry
             this.product = product
@@ -209,6 +215,19 @@ private class PageOfReleases(
                 Releases.releaseDate to SortOrder.DESC,
             )
 }
+
+fun releaseExists(
+    product: ProductEntity,
+    releaseId: String,
+): Boolean =
+    !transaction {
+        Release
+            .find {
+                Releases.product eq product.id
+                Releases.releaseId eq releaseId
+            }.toList()
+            .isEmpty()
+    }
 
 private val promptEnterRel = "\nPlease enter new release name. ` to abort:"
 
