@@ -77,7 +77,7 @@ fun selectRelease(
         }
     }
     // Return selected release record
-    return relPage.getContentAt(linenum)
+    return relPage.getContentAt(linenum - 1)
 }
 
 // -------------------------------------------------------------------------------

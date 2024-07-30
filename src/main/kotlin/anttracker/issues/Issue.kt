@@ -167,36 +167,3 @@ fun PageWithFilter.next(): PageWithFilter = this.copy(pageInfo = pageInfo.copy(o
 data class RequestPage(
     val pageInfo: PageOf<Request>,
 )
-
-// -----------------
-
-/** ---
- * This function takes in issue information and saves it into the database
- * Returns an Issue object containing the id and createdAt fields populated,
- * according to what was returned by the database
---- */
-fun saveIssue(issueInformation: IssueInformation): Issue? {
-    TODO()
-}
-
-/** ---
- * This function returns the next page of issues to display based on the current page
---- */
-fun nextPage(
-    oldPage: PageWithFilter, // in
-): PageWithFilter {
-    TODO()
-}
-
-/** -----
-//This function takes a predicate to apply on an issue and the maximum number of issues to
-//display at a time and returns the first issue from the database which satisfies the predicate
-//For example, searchIssues(createdYesterday, 10) will return the first issue from the database
-which was created yesterday
-// ----- */
-fun searchIssues(
-    filter: IssueFilter, // in
-    issuesPerPage: Int, // in
-): PageWithFilter {
-    TODO()
-}
