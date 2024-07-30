@@ -16,7 +16,6 @@ package anttracker.issues
 import anttracker.db.Issue
 import anttracker.db.IssueDescription
 import anttracker.db.Priority
-import anttracker.release.ReleaseId
 
 // ------
 
@@ -34,18 +33,6 @@ value class Description(
         }
     }
 }
-
-/** ---
- * This class represents the information of an issue before saving
- * it to the DB.
---- */
-data class IssueInformation(
-    val description: Description,
-    val productName: String,
-    val affectedRelease: ReleaseId,
-    val anticipatedRelease: ReleaseId? = null,
-    val priority: Priority,
-)
 
 /**
  * Represents a status an issue can have
