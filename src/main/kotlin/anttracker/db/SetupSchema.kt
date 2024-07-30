@@ -139,7 +139,7 @@ class Release(
 }
 
 /** ---
- * Represents a valid description for an issue.
+ * Represents a valid description for an issue
 --- */
 @JvmInline
 value class IssueDescription private constructor(
@@ -149,14 +149,14 @@ value class IssueDescription private constructor(
         const val MAX_LENGTH = 30
 
         /** ---
-         *
+         * Checks if the description is of the expected length
          --- */
         fun isValid(
             description: String, // in
         ) = description.length in (1..MAX_LENGTH)
 
         /** ---
-         *
+         * Parses the candidate description
          --- */
         fun maybeParse(
             candidate: String, // in
@@ -270,7 +270,7 @@ class Request(
     companion object : IntEntityClass<Request>(Requests)
 
     var affectedRelease by Release referencedOn Requests.affectedRelease
-    var issue by Requests.issue
+    var issue by Issue referencedOn Requests.issue
     var contact by Contact referencedOn Requests.contact
     var requestDate by Requests.requestDate
 }
