@@ -1,18 +1,6 @@
 package anttracker.issues
 
-import anttracker.db.Request
 import org.jetbrains.exposed.sql.transactions.transaction
-
-private fun requestToRow(
-    request: Request, // in
-): List<Any> =
-    listOf(
-        request.affectedRelease,
-        request.requestDate,
-        request.contact.name,
-        request.contact.email,
-        request.contact.department,
-    )
 
 class ScreenWithTable : ScreenWithMenu() {
     private var table: TableConfiguration = TableConfiguration()

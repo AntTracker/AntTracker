@@ -1,3 +1,12 @@
+/* ViewIssueMenu.kt
+Revision History
+Rev 1 - 7/30/2024 Original by Eitan
+-------------------------------------------
+This file contains the menu for viewing a single
+issue and all the submenus within.
+---------------------------------
+ */
+
 package anttracker.issues
 
 import anttracker.db.*
@@ -7,6 +16,8 @@ import anttracker.db.Releases
 import anttracker.db.toStatus
 import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.reflect.KMutableProperty1
+
+// -----------
 
 /** ----
  * Represents a map between a status and possible transitions.
@@ -132,7 +143,8 @@ private fun printIssueSummary(
 }
 
 /** ---
- * Displays a screen for editing the passed issue property.
+ * Displays a screen for editing the issue property if there are options. Returns to the screen
+ * showing the issue information otherwise.
 --- */
 private fun <T> editWithDynamicOptions(
     prop: KMutableProperty1<Issue, T>, // in
@@ -148,10 +160,13 @@ private fun <T> editWithDynamicOptions(
         }
     }
 
+/** ---
+ * Displays a screen for editing the passed issue property.
+--- */
 private fun <T> editIssueAttribute(
-    prop: KMutableProperty1<Issue, T>,
-    parse: (String) -> T,
-    choices: List<String>,
+    prop: KMutableProperty1<Issue, T>, // in
+    parse: (String) -> T, // in
+    choices: List<String>, // in
 ): (Issue) -> Screen =
     editIssueAttribute(prop, parse) { t: Terminal ->
         t.prompt("Please enter ${prop.name}", choices)
@@ -161,9 +176,9 @@ private fun <T> editIssueAttribute(
  * Displays a screen for editing the passed issue property.
  */
 private fun <T> editIssueAttribute(
-    prop: KMutableProperty1<Issue, T>,
-    parse: (String) -> T,
-    prompt: (Terminal) -> String,
+    prop: KMutableProperty1<Issue, T>, // in
+    parse: (String) -> T, // in
+    prompt: (Terminal) -> String, // in
 ): (Issue) -> Screen =
     { issue: Issue ->
         screenWithMenu {
@@ -206,8 +221,6 @@ private val editPriority =
         { newVal -> newVal.toShort() },
         (1..5).map(Int::toString),
     )
-
-private fun isValidDescription(description: String) = description.length in (1..30)
 
 /** ----
  * This function displays a screen where the user is presented with the
