@@ -81,7 +81,12 @@ private fun selectIssueToViewMenu(
         }
     }
 
-private fun fetchPageOfIssuesMatchingFilter(page: PageWithFilter): List<Issue> {
+/** ---
+ * Returns all the issues satisfying the filters selected.
+--- */
+private fun fetchPageOfIssuesMatchingFilter(
+    page: PageWithFilter, // in
+): List<Issue> {
     val condition: Op<Boolean> =
         page.filters.fold(Op.TRUE) { op: Op<Boolean>, filter ->
             op.and(filter.toCondition())
