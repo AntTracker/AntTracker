@@ -69,11 +69,15 @@ private fun displayIssue(
     displayLeadingBar: Boolean // in
 ) {
     val id = "${issue.id}".padEnd(4)
-    val desc = issue.description.padEnd(30)
+    val desc = issue.description.toString().padEnd(30)
     val priority = "${issue.priority}".padStart(9)
     val status = "${issue.status}".padEnd(14)
-    val antrel = transaction {
-        issue.anticipatedRelease.releaseId.padEnd(8)
+    var antrel = "".padEnd(8)
+    // get info on anticipatedRelease of issue
+    transaction {
+        if (issue.anticipatedRelease != null) {
+            antrel = issue.anticipatedRelease!!.releaseId.padEnd(8)
+        }
     }
     val created = issue.creationDate.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
 
@@ -240,7 +244,7 @@ private fun enterIssueInformation(
     // insert new issue into db
     val issue = transaction {
         Issue.new {
-            this.description = desc
+            this.description = IssueDescription(desc)
             this.product = product
             this.anticipatedRelease = release
             this.creationDate = LocalDateTime.now()
@@ -256,18 +260,13 @@ private fun enterIssueInformation(
 
 // display a given request to the screen
 private fun displayRequester(request: Request) {
-    // get full information about this contact
-    val contactEntity = transaction {
-        ContactEntity.find { Contacts.id eq request.contact }.firstOrNull()
-    }
-
     // get full affected release
     val affrelEntity = transaction {
         Release.find { Releases.id eq request.affectedRelease }.firstOrNull()
     }
 
     // check for integrity of contact and affrel references
-    if (contactEntity == null || affrelEntity == null) {
+    if (affrelEntity == null) {
         println("Error: Anomalies in request $request.id")
         return
     }
@@ -275,10 +274,13 @@ private fun displayRequester(request: Request) {
     // strings to be printed (with fixed lengths)
     val affrel = affrelEntity.releaseId.padEnd(8)
     val date = request.requestDate.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
-    val name = contactEntity.name.padEnd(30)
-    val email = contactEntity.email.padEnd(30)
-    val dept = contactEntity.department.padEnd(10)
-
+    var name: String = ""; var email: String = ""; var dept: String = ""
+    // get info on contact
+    transaction {
+        name = request.contact.name.padEnd(30)
+        email = request.contact.email.padEnd(30)
+        dept = request.contact.department.padEnd(10)
+    }
     // print request to console
     println("$affrel | $date | $name | $email | $dept")
 }
@@ -333,7 +335,7 @@ fun enterRequestInformation(): Request? {
         Request.new {
             this.affectedRelease = release.id
             this.issue = issue.id
-            this.contact = contact.id
+            this.contact = contact
             this.requestDate = LocalDateTime.now()
         }
     }

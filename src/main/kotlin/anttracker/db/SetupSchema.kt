@@ -134,7 +134,7 @@ class Release(
 }
 
 @JvmInline
-value class IssueDescription private constructor(
+value class IssueDescription (
     val description: String,
 ) {
     companion object {
