@@ -15,16 +15,6 @@ import anttracker.db.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 
-/*
-// Data class for storing the attributes of a given contact.
-data class Contact(
-    val name: String,
-    val phone: String,
-    val email: String,
-    val department: String? = null // optional
-)
-*/
-
 // ----------------------------------------------------------------------------
 // Displays a sub-menu for creating a new contact and adding it to the
 // AntTracker database. To be used by the Main module.
@@ -128,14 +118,16 @@ private class PageOfContact : PageOf<Contact>(Contact) {
     init {
         initLastPageNum()
     }
-
+    // Query object that defines how to retrieve the contacts from the database.
+    //creates a query to select all records from the Contacts table, 
+    //ordering them by the name column in ascending order.
     override fun getQuery(): Query =
         Contacts
             .selectAll()
             .orderBy(
                 Contacts.name to SortOrder.ASC,
             )
-
+    // prints employee info (name, email, phone number, dept (if internal))
     override fun printRecord(record: Contact) {
         if (record.department.isEmpty()) {
             println("${record.name}, <${record.email}>, ${record.phoneNumber}")
@@ -167,7 +159,8 @@ fun selectContact(): Contact? {
                 try {
                     // Check if the line number is valid and within the current page's range
                     val userInputInt = userInput.toInt()
-                    if (userInputInt in 1..20 && userInputInt <= contactPage.recordsSize()) {
+                    // validate integer selection
+                    if (issuePage.isValidLineNum(userInputInt)) {
                         linenum = userInputInt
                     } else {
                         println("ERROR: Invalid line number.")
