@@ -52,14 +52,15 @@ class Terminal {
 
     fun prompt(
         message: String, // in
+        allowEmpty: Boolean = false,
         isValidChoice: (String) -> Boolean,
     ): String {
         println(message)
         val choice = readln()
-        if (isValidChoice(choice)) {
+        if ((choice.isBlank() && allowEmpty) || isValidChoice(choice)) {
             return choice
         }
-        return prompt(message, isValidChoice)
+        return prompt(message, allowEmpty, isValidChoice)
     }
 
     /** ---

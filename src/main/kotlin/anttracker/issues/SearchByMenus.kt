@@ -25,29 +25,13 @@ class SearchByOrGoBackToIssuesMenu(
     private val options: List<String>,
     private val prompt: String,
     private val createFilter: (filter: String) -> IssueFilter?,
-    private val isValidChoice: (String) -> Boolean,
 ) : ScreenWithTitle("Search by $target") {
-    constructor(
-        page: PageWithFilter,
-        target: String,
-        createFilter: (filter: String) -> IssueFilter?,
-        validationFn: (String) -> Boolean,
-    ) : this(page, target, emptyList(), "", createFilter, validationFn)
-
     constructor(
         page: PageWithFilter,
         target: String,
         options: List<String>,
         createFilter: (filter: String) -> IssueFilter?,
     ) : this(page, target, options, "", createFilter)
-
-    constructor(
-        page: PageWithFilter,
-        target: String,
-        options: List<String>,
-        prompt: String,
-        createFilter: (filter: String) -> IssueFilter?,
-    ) : this(page, target, options, prompt, createFilter, { true })
 
     override fun displayBody(t: Terminal): Screen {
         var filter: IssueFilter? = null
@@ -64,7 +48,7 @@ class SearchByOrGoBackToIssuesMenu(
                 if (options.isNotEmpty()) {
                     t.prompt(message, options + "")
                 } else {
-                    t.prompt(message, isValidChoice)
+                    t.prompt(message, true) { createFilter(it) != null }
                 }
 
             t.printLine()
@@ -95,9 +79,8 @@ fun searchByDescriptionMenu(page: PageWithFilter) =
     SearchByOrGoBackToIssuesMenu(
         page,
         "description (1-${IssueDescription.MAX_LENGTH} characters)",
-        IssueFilter::ByDescription,
-        IssueDescription::isValid,
-    )
+        emptyList(),
+    ) { IssueDescription.maybeParse(it)?.let(IssueFilter::ByDescription) }
 
 fun searchByAnticipatedReleaseMenu(page: PageWithFilter) =
     SearchByOrGoBackToIssuesMenu(
@@ -112,7 +95,10 @@ fun searchByStatusMenu(page: PageWithFilter) =
         page,
         "statuses",
         emptyList(),
-        "Enter all the statuses to search for separated by commas (Assessed, Created, Done, Cancelled, InProgress)",
+        Status
+            .all()
+            .joinToString(", ")
+            .let { "Enter all the statuses to search for separated by commas ($it)" },
     ) { input: String ->
         splitStatuses(input).sequence(::parseStatus)?.takeIf { it.isNotEmpty() }?.let(IssueFilter::ByStatus)
     }
@@ -142,6 +128,12 @@ fun searchByDaysSinceMenu(page: PageWithFilter) =
     SearchByOrGoBackToIssuesMenu(
         page,
         "created within the last n days",
-        (0..100).map(Int::toString),
-        "Enter a day to indicate how far back you want to search",
-    ) { input -> Days(input.toInt()).let(IssueFilter::ByDateCreated) }
+        emptyList(),
+        "Enter how many days back to search for (positive number)",
+    ) { candidate ->
+        candidate
+            .takeIf { it.matches(Regex("""\d+""")) }
+            ?.toInt()
+            ?.let(::NumberOfDays)
+            ?.let(IssueFilter::ByDateCreated)
+    }
