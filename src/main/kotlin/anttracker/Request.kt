@@ -183,7 +183,7 @@ private fun enterIssueInformation(
     // select description of issue; loops until a valid desc is entered
     while (desc == null) {
         // prompt user for input
-        println("Issue description (max 30 chars). ` to abort:")
+        print("Issue description (max 30 chars). ` to abort: ")
 
         when (val inputDesc = readln()) {
             // user aborts
@@ -203,6 +203,7 @@ private fun enterIssueInformation(
     }
 
     // select release or leave blank (null)
+    println("${product.name} Releases:")
     val release = selectRelease(product.name, "leave blank")
 
     var priority: Short? = null
@@ -303,6 +304,7 @@ private fun displayRequester(
 // Returns the created request.
 fun enterRequestInformation(): Request? {
     // select product for this request
+    println("Products:")
     val product = selectProduct() ?: return null
 
     // select release for this request
@@ -310,6 +312,7 @@ fun enterRequestInformation(): Request? {
     val release = selectRelease(product.name) ?: return null
 
     // select contact for this request
+    println("Contacts:")
     var contact = selectContact("create contact")
 
     // if user doesn't select a contact, make them enter the contact information
@@ -318,6 +321,7 @@ fun enterRequestInformation(): Request? {
     }
 
     // select issue for this request
+    println("Issues:")
     var issue = selectIssue(product.name)
 
     // check if user aborted the select issue menu: offer to create an issue instead
