@@ -1,3 +1,14 @@
+/* Product.kt
+Revision History:
+Rev. 1 - 2024/07/01 Original by Micah Baker
+Rev. 2 - 2024/07/16 By Angela Kim
+Rev. 3 - 2024/07/30 By Tyrus Tracey
+-------------------------------------------------------------------------------
+The Product module contains all exported classes and functions pertaining to
+the creation or selection of product entities.
+-------------------------------------------------------------------------------
+*/
+
 package anttracker.product
 
 import anttracker.PageOf

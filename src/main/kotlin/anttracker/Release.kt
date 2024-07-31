@@ -8,7 +8,7 @@ The Release module encapsulates the group of functions related to release creati
     release selection, and printing releases to console.
 The module hides validation of release attributes, the interactive menu prompts during
     the release creation process, as well as interfacing with the database.
-----------------------------------------------------------
+-------------------------------------------------------------------------------
 */
 
 package anttracker.release

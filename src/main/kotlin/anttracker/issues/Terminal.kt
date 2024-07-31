@@ -1,12 +1,13 @@
 /* Terminal.kt
 Revision History
-Rev 1 - 7/15/2024 Original by Eitan
--------------------------------------------
+Rev. 1 - 2024/7/15 Original by Eitan Barylko
+Rev. 2 - 2024/7/30 By Eitan Barylko
+-------------------------------------------------------------------------------
 This file contains the abstraction of a Terminal
 along with the operations one can do on a
 terminal. These include printing, prompting
 the user, and displaying a table.
----------------------------------
+-------------------------------------------------------------------------------
  */
 
 package anttracker.issues

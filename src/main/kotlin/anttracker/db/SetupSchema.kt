@@ -1,15 +1,14 @@
-// SetupSchema.kt
-// Revision History:
-// Rev. 1 - 2024/07/02 Original by Eitan
-// Rev. 2 - 2024/07/09 by T. Tracey
-// Rev. 3 - 2024/07/16 by M. Baker
-// -------------------------------------------
-// This file contains the schema for the
-// database, defining the tables for
-// products, contacts, requests, issues,
-// and releases. It also contains
-// a function which sets up the database.
-// ---------------------------------
+/* SetupSchema.kt
+Revision History:
+Rev. 1 - 2024/07/02 Original by Eitan Barylko
+Rev. 2 - 2024/07/30 By Tyrus Tracey, Micah Baker
+-------------------------------------------------------------------------------
+This file contains the schema for the
+database, defining the tables for products, contacts, requests, issues,
+and releases. It also contains
+a function which sets up the database.
+-------------------------------------------------------------------------------
+*/
 
 package anttracker.db
 

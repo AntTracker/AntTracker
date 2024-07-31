@@ -12,7 +12,7 @@ Subclasses must define 3 things:
     2. getQuery() - a DAO query representing the whole record set you want to pull. Other base class
                         functions will handle paginating from this set.
     3. printRecord() - how to print a single record to the console.
-----------------------------------------------------------
+-------------------------------------------------------------------------------
 */
 
 package anttracker
