@@ -1,3 +1,13 @@
+/* ScreenWithTable.kt
+Revision History
+Rev 1 - 7/30/2024 Original by Eitan
+-------------------------------------------
+This file contains all the menus used
+when filtering an issue by a collection of
+its attributes.
+---------------------------------
+*/
+
 package anttracker.issues
 
 import anttracker.db.IssueDescription
@@ -6,6 +16,11 @@ import anttracker.db.Product
 import anttracker.db.Release
 import org.jetbrains.exposed.sql.transactions.transaction
 
+// -----
+
+/** ---
+ * Represents a screen containing a title
+--- */
 abstract class ScreenWithTitle(
     theTitle: String? = null,
 ) : Screen {
@@ -19,6 +34,9 @@ abstract class ScreenWithTitle(
     abstract fun displayBody(t: Terminal): Screen?
 }
 
+/** ---
+ * Represents a menu for filtering an issue by one of its attribute.
+--- */
 class SearchByOrGoBackToIssuesMenu(
     private val page: PageWithFilter,
     private val target: String,
@@ -33,7 +51,13 @@ class SearchByOrGoBackToIssuesMenu(
         createFilter: (filter: String) -> IssueFilter?,
     ) : this(page, target, options, "", createFilter)
 
-    override fun displayBody(t: Terminal): Screen {
+    /**
+     * Shows a menu displaying the options the user has for
+     * filtering the issue.
+     */
+    override fun displayBody(
+        t: Terminal, // in
+    ): Screen {
         var filter: IssueFilter? = null
 
         val endOfMessage = "or leave it empty to go back to the issues menu"
@@ -66,7 +90,12 @@ class SearchByOrGoBackToIssuesMenu(
     }
 }
 
-fun searchByProductMenu(page: PageWithFilter): Screen =
+/** ----
+ * Represents the menu used when filtering an issue by its product
+---- */
+fun searchByProductMenu(
+    page: PageWithFilter, // in
+): Screen =
     SearchByOrGoBackToIssuesMenu(
         page,
         "product",
@@ -75,14 +104,24 @@ fun searchByProductMenu(page: PageWithFilter): Screen =
         IssueFilter.ByProduct(it)
     }
 
-fun searchByDescriptionMenu(page: PageWithFilter) =
+/** ---
+ * Represents the menu used when filtering an issue by its description
+--- */
+fun searchByDescriptionMenu(
+    page: PageWithFilter, // in
+) =
     SearchByOrGoBackToIssuesMenu(
         page,
         "description (1-${IssueDescription.MAX_LENGTH} characters)",
         emptyList(),
     ) { IssueDescription.maybeParse(it)?.let(IssueFilter::ByDescription) }
 
-fun searchByAnticipatedReleaseMenu(page: PageWithFilter) =
+/** ---
+ * Represents the menu used when filtering an issue by its anticipated release
+--- */
+fun searchByAnticipatedReleaseMenu(
+    page: PageWithFilter, // in
+) =
     SearchByOrGoBackToIssuesMenu(
         page,
         "anticipated release",
@@ -90,7 +129,12 @@ fun searchByAnticipatedReleaseMenu(page: PageWithFilter) =
         IssueFilter::ByAnticipatedRelease,
     )
 
-fun searchByStatusMenu(page: PageWithFilter) =
+/** ---
+ * Represents the menu used when filtering an issue by its status
+--- */
+fun searchByStatusMenu(
+    page: PageWithFilter, // in
+) =
     SearchByOrGoBackToIssuesMenu(
         page,
         "statuses",
@@ -103,11 +147,26 @@ fun searchByStatusMenu(page: PageWithFilter) =
         splitStatuses(input).sequence(::parseStatus)?.takeIf { it.isNotEmpty() }?.let(IssueFilter::ByStatus)
     }
 
-private fun <T, R> List<T>.sequence(f: (T) -> R?): List<R>? = this.mapNotNull(f).takeIf { it.size == this.size }
+/** ---
+ * Returns the transformed collection if all elements are not null
+--- */
+private fun <T, R> List<T>.sequence(
+    f: (T) -> R?, // in
+): List<R>? = this.mapNotNull(f).takeIf { it.size == this.size }
 
-private fun splitStatuses(statuses: String): List<String> = statuses.split(",").map { it.trim() }
+/** ---
+ * Splits the given potential statuses
+--- */
+private fun splitStatuses(
+    statuses: String, // in
+): List<String> = statuses.split(",").map { it.trim() }
 
-private fun parseStatus(input: String): Status? =
+/** ---
+ * Parses the given status
+--- */
+private fun parseStatus(
+    input: String, // in
+): Status? =
     when (input) {
         "Assessed" -> Status.Assessed
         "Created" -> Status.Created
@@ -117,19 +176,29 @@ private fun parseStatus(input: String): Status? =
         else -> null
     }
 
-fun searchByPriorityMenu(page: PageWithFilter) =
+/**
+ * Represents the menu used when filtering an issue by its priority
+ */
+fun searchByPriorityMenu(
+    page: PageWithFilter, // in
+) =
     SearchByOrGoBackToIssuesMenu(
         page,
         "priority",
         (1..5).map(Int::toString),
     ) { input -> Priority(input.toInt()).let(IssueFilter::ByPriority) }
 
-fun searchByDaysSinceMenu(page: PageWithFilter) =
+/**
+ * Represents the menu used when filtering an issue by how recently it was created
+ */
+fun searchByDaysSinceMenu(
+    page: PageWithFilter, // in
+) =
     SearchByOrGoBackToIssuesMenu(
         page,
         "created within the last n days",
         emptyList(),
-        "Enter how many days back to search for (positive number)",
+        "Enter how many days back to search for (non-negative number)",
     ) { candidate ->
         candidate
             .takeIf { it.matches(Regex("""\d+""")) }

@@ -48,32 +48,6 @@ private fun requestToRow(
         request.contact.department,
     )
 
-private fun viewRequests(
-    issue: Issue,
-    page: PageOf<Request> = PageOf(),
-): Screen =
-    screenWithTable {
-        table {
-            columns(
-                "Affected Release" to 17,
-                "Date requested" to 14,
-                "Name" to 32,
-                "Email" to 24,
-                "Department" to 12,
-            )
-            query {
-                Request
-                    .find { Requests.issue eq issue.id }
-                    .limit(page.limit, page.offset)
-                    .map(::requestToRow)
-            }
-
-            emptyMessage("No requests found.")
-            nextPage { viewRequests(issue, page.next()) }
-        }
-        promptMessage("Press 1 to go to the next page. 2 to print.")
-    }
-
 // This data type represents the mapping between a row
 // number and the issue corresponding to it
 typealias RowToIssuePage = Map<Int, Issue>
@@ -107,7 +81,12 @@ private fun selectIssueToViewMenu(
         }
     }
 
-private fun fetchPageOfIssuesMatchingFilter(page: PageWithFilter): List<Issue> {
+/** ---
+ * Returns all the issues satisfying the filters selected.
+--- */
+private fun fetchPageOfIssuesMatchingFilter(
+    page: PageWithFilter, // in
+): List<Issue> {
     val condition: Op<Boolean> =
         page.filters.fold(Op.TRUE) { op: Op<Boolean>, filter ->
             op.and(filter.toCondition())
@@ -125,8 +104,14 @@ private fun fetchPageOfIssuesMatchingFilter(page: PageWithFilter): List<Issue> {
         .map { Issue.wrapRow(it) }
 }
 
+/** ---
+ * Returns the current date offset by the number of days passed.
+--- */
 fun addOffset(numOfDays: Int): LocalDateTime = LocalDate.now().plusDays(numOfDays.toLong()).atStartOfDay()
 
+/** ---
+ * Converts a Status to its string representation.
+--- */
 private fun Status.toStr() =
     when (this) {
         Status.Assessed -> "Assessed"
@@ -136,6 +121,9 @@ private fun Status.toStr() =
         Status.InProgress -> "In progress"
     }
 
+/** ---
+ * Converts an IssueFilter to a query condition.
+--- */
 private fun IssueFilter.toCondition(): Op<Boolean> =
     when (this) {
         is IssueFilter.ByDescription -> Issues.description like "%$description%"
@@ -180,7 +168,12 @@ fun displayAllIssuesMenu(
         }
     }
 
-private fun displayViewIssuesMenu(page: PageWithFilter) =
+/** ---
+ * Generates the issues which can be selected on the current page.
+--- */
+private fun displayViewIssuesMenu(
+    page: PageWithFilter, // in
+) =
     transaction {
         fetchPageOfIssuesMatchingFilter(page)
             .zip(1..20) { issue, index -> index to issue }
@@ -206,6 +199,10 @@ private fun toRow(
     )
 }
 
+/**
+ * Represents the association between an issue attribute
+ * and the menu to edit that attribute.
+ */
 val searchByOptions =
     mapOf(
         "Description" to ::searchByDescriptionMenu,
@@ -216,6 +213,9 @@ val searchByOptions =
         "Date range" to ::searchByDaysSinceMenu,
     )
 
+/** ---
+ * Generates a label for the issue filter.
+--- */
 private fun IssueFilter.toLabel(): String =
     when (this) {
         is IssueFilter.ByDescription -> "Description: ${this.description}"
