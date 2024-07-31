@@ -1,13 +1,14 @@
 /* Screen.kt
 Revision History
-Rev 1 - 7/15/2024 Original by Eitan
--------------------------------------------
+Rev. 1 - 2024/7/15 Original by Eitan Barylko
+Rev. 2 - 2024/7/30 By Eitan Barylko
+-------------------------------------------------------------------------------
 This file contains the abstraction of a screen
 and a screen with a menu. Helper methods for
 prompting the user, validating their input,
 displaying the options for them to pick, and
 transitioning to the next screen are also present.
----------------------------------
+-------------------------------------------------------------------------------
  */
 
 package anttracker.issues

@@ -1,8 +1,11 @@
 /* Main.kt
 Revision History:
-Rev 1 - 2024/07/01 Original by Micah
-----------------
+Rev. 1 - 2024/07/01 Original by Micah Baker
+Rev. 2 - 2024/07/16 By Eitan Barylko
+Rev. 3 - 2024/07/30 By Eitan Barylko
+-------------------------------------------------------------------------------
 entry-point and main-menu of AntTracker.
+-------------------------------------------------------------------------------
  */
 
 package anttracker

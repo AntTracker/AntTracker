@@ -1,12 +1,10 @@
-/*
-ProductTest.kt
------------------
-Revision History
-Rev 1 - 7/1/2024 Original by Eitan
--------------------------------------------
+/* ProductTest.kt
+Revision History:
+Rev. 1 - 2024/7/1 Original by Eitan Barylko
+-------------------------------------------------------------------------------
 This file contains the tests for the function
 validateProductName.
----------------------------------
+-------------------------------------------------------------------------------
  */
 import anttracker.product.validateProductName
 import io.kotest.core.spec.style.DescribeSpec

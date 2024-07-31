@@ -1,7 +1,7 @@
 /* Revision History:
-Rev. 1 - 2024/07/01 Original by M. Baker
-Rev. 2 - 2024/07/08 Updated by A. Kim
-Rev.3 - 2024/07/30 Updated by A. Kim
+Rev. 1 - 2024/07/01 Original by Micah Baker
+Rev. 2 - 2024/07/16 By Angela Kim
+Rev. 3 - 2024/07/30 By Angela Kim
 -------------------------------------------------------------------------------
 The Contact module contains all exported classes and functions pertaining to
     the creation or selection of contact entities.
