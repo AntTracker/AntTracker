@@ -1,9 +1,9 @@
 /* Release.kt
 Revision History:
 Rev. 1 - 2024/07/01 Original by Tyrus Tracey
-Rev. 2 - 2024/07/15 By Tyrus Tracey
-Rev. 3 - 2024/07/30 By Tyrus Tracey
--------------------------------------------------------------------------------
+Rev. 2 - 2024/07/15 Full implementation by Tyrus Tracey
+Rev. 3 - 2024/07/29 Bug fixing by Tyrus Tracey
+----------------------------------------------------------
 The Release module encapsulates the group of functions related to release creation,
     release selection, and printing releases to console.
 The module hides validation of release attributes, the interactive menu prompts during
@@ -18,6 +18,7 @@ import anttracker.db.*
 import anttracker.product.selectProduct
 import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -96,6 +97,11 @@ private fun createRelease(
 ) {
     displayReleases(productName)
     var releaseEntry: String? = null
+    val product =
+        transaction {
+            ProductEntity.find { Products.name eq productName }.firstOrNull()
+                ?: throw IllegalArgumentException("Error: Product not found")
+        }
 
     // Prompt user until valid releaseId is entered
     while (releaseEntry == null) {
@@ -105,6 +111,10 @@ private fun createRelease(
             if (releaseEntry == "`") { // User wants to abort
                 return
             }
+            if (releaseExists(product, releaseEntry)) {
+                println("ERROR: Release already exists.")
+                releaseEntry = null
+            }
         } catch (e: java.lang.IllegalArgumentException) {
             println(e.message)
         }
@@ -112,9 +122,6 @@ private fun createRelease(
 
     // Insert release into the database.
     transaction {
-        val product =
-            ProductEntity.find { Products.name eq productName }.firstOrNull()
-                ?: throw IllegalArgumentException("Error: Product not found")
         Release.new {
             releaseId = releaseEntry
             this.product = product
@@ -215,6 +222,21 @@ private class PageOfReleases(
                 Releases.releaseDate to SortOrder.DESC,
             )
 }
+
+// -------------------------------------------------------------------------------
+// Returns TRUE if a releaseId of a certain product already exists in the database.
+// ---
+fun releaseExists(
+    product: ProductEntity,
+    releaseId: String,
+): Boolean =
+    !transaction {
+        Release
+            .find {
+                (Releases.product eq product.id) and (Releases.releaseId eq releaseId)
+            }.toList()
+            .isEmpty()
+    }
 
 private val promptEnterRel = "\nPlease enter new release name. ` to abort:"
 
