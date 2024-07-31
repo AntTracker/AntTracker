@@ -83,7 +83,7 @@ fun selectProduct(): ProductEntity? {
                     // Check page contains the line number
                     // If page doesn't, prompt again.
                     val userInputInt = userInput.toInt()
-                    if (userInputInt in (1..20) && userInputInt < productPage.recordsSize()) {
+                    if (productPage.isValidLineNum(userInputInt)) {
                         linenum = userInput.toInt()
                     } else {
                         println("ERROR: Invalid line number.")
