@@ -138,14 +138,20 @@ private class PageOfContact : PageOf<Contact>(Contact) {
 }
 
 // Display pages of contacts to console and select one
-fun selectContact(): Contact? {
+fun selectContact(
+    nullAction: String? = null // in
+): Contact? {
     val contactPage = PageOfContact()
     contactPage.loadRecords() // Adjust limit and offset as necessary
     contactPage.display()
 
     var linenum: Int? = null
     while (linenum == null) {
-        println("Please select contact. ` to abort:")
+        if (nullAction == null) {
+            println("Please select contact. ` to abort:")
+        } else {
+            println("Please select contact. ` to $nullAction:")
+        }
         val userInput = readln()
         when (userInput) {
             "`" -> return null

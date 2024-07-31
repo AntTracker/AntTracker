@@ -130,7 +130,7 @@ private fun selectIssue(
 
         // prompt user for input
         println() // blank line
-        print("Please select issue. ` to create an issue instead: ")
+        print("Please select issue. ` to create a new issue: ")
 
         // switch on user selection
         when (val selection = readln()) {
@@ -202,8 +202,8 @@ private fun enterIssueInformation(
         }
     }
 
-    // select anticipated release for this issue
-    val release = selectRelease(product.name) ?: return null
+    // select release or leave blank (null)
+    val release = selectRelease(product.name, "leave blank")
 
     var priority: Short? = null
 
@@ -270,7 +270,9 @@ private fun displayRequestColumnTitles() {
 // ----------------------------------------------------------------
 
 // display a given request to the screen
-private fun displayRequester(request: Request) {
+private fun displayRequester(
+    request: Request // in
+) {
     // strings to be printed (with fixed lengths)
     var affrel = ""
     var name = ""
@@ -304,10 +306,11 @@ fun enterRequestInformation(): Request? {
     val product = selectProduct() ?: return null
 
     // select release for this request
+    println("Product ${product.name} Releases:")
     val release = selectRelease(product.name) ?: return null
 
     // select contact for this request
-    var contact = selectContact()
+    var contact = selectContact("create contact")
 
     // if user doesn't select a contact, make them enter the contact information
     if (contact == null) {

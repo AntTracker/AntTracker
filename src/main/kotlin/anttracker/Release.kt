@@ -43,6 +43,7 @@ fun menu() {
 // ---
 fun selectRelease(
     productName: String, // in
+    nullAction: String? = null // in
 ): Release? {
     val relPage = PageOfReleases(productName)
     relPage.loadRecords()
@@ -52,7 +53,11 @@ fun selectRelease(
 
     // Prompt user until system receives valid line number.
     while (linenum == null) {
-        println(promptSelectRel) // i.e. "Please select release. ` to abort:"
+        if (nullAction == null) {
+            println(promptSelectRel) // i.e. "Please select release. ` to abort:"
+        } else {
+            print("\nPlease select release. ` to $nullAction: ")
+        }
         val userInput = readln()
         when (userInput) {
             "`" -> return null // User wants to abort
