@@ -60,7 +60,7 @@ fun populate() {
             issue[priority] = 1
             issue[anticipatedRelease] = Releases.insert {
                 it[product] = prod1
-                it[releaseId] = "1.00"
+                it[releaseId] = "rel.1.00"
                 it[releaseDate] = LocalDate.now().plusDays((-40..0L).random()).atStartOfDay()
             } get Releases.id
         } get Issues.id
@@ -69,7 +69,7 @@ fun populate() {
         val relId =
             Releases.insert {
                 it[product] = prod1
-                it[releaseId] = "1.${(reqId + 1).toString().padStart(2, '0')}"
+                it[releaseId] = "rel.1.${(reqId + 1).toString().padStart(2, '0')}"
                 it[releaseDate] = LocalDate.now().plusDays((-40..0L).random()).atStartOfDay()
             } get Releases.id
         val contactId =
@@ -102,7 +102,7 @@ fun populate() {
         val relId =
             Releases.insert {
                 it[product] = prod4
-                it[releaseId] = "4.0${idx + 1}"
+                it[releaseId] = "rel.4.0${idx + 1}"
                 it[releaseDate] = CurrentDateTime
             } get Releases.id
         val contactId =
