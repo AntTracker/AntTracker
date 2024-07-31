@@ -169,7 +169,7 @@ private fun <T> editIssueAttribute(
     choices: List<String>, // in
 ): (Issue) -> Screen =
     editIssueAttribute(prop, parse) { t: Terminal ->
-        t.prompt("Please enter ${prop.name}", choices)
+        t.prompt("Please enter a new ${prop.name}", choices)
     }
 
 /** ---
@@ -182,12 +182,14 @@ private fun <T> editIssueAttribute(
 ): (Issue) -> Screen =
     { issue: Issue ->
         screenWithMenu {
+            title("Updating ${prop.name}")
             var newVal = ""
             content { t ->
                 transaction {
                     newVal = prompt(t)
+                    t.printLine()
                     printIssueSummary(t, issue)
-                    t.title("Update: ${prop.name}")
+                    t.printLine("Please confirm the change:")
                     t.printLine("OLD: ${prop.get(issue)}")
                     t.printLine("NEW: $newVal")
                 }

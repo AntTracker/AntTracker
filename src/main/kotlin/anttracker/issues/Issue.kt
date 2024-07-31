@@ -77,41 +77,41 @@ value class NumberOfDays(
  * This class represents what an issue
  * can be filtered by.
 --- */
-sealed interface IssueFilter {
+sealed class IssueFilter {
     /** ---
      * Represents a filter that uses the description.
      --- */
     data class ByDescription(
         val description: IssueDescription,
-    ) : IssueFilter
+    ) : IssueFilter()
 
     /** ---
      * Represents a filter that uses the anticipated release
      --- */
     data class ByAnticipatedRelease(
         val release: String,
-    ) : IssueFilter
+    ) : IssueFilter()
 
     /** ---
      * Represents a filter that uses the priority
      --- */
     data class ByPriority(
         val priority: Priority,
-    ) : IssueFilter
+    ) : IssueFilter()
 
     /** ---
      * Represents a filter that uses the product.
      --- */
     data class ByProduct(
         val product: String,
-    ) : IssueFilter
+    ) : IssueFilter()
 
     /** ---
      * Represents a filter that uses the status
      --- */
     data class ByStatus(
         val statuses: List<Status>,
-    ) : IssueFilter
+    ) : IssueFilter()
 
     /** ---
      * Represents a filter that uses the date an
@@ -119,7 +119,7 @@ sealed interface IssueFilter {
      --- */
     data class ByDateCreated(
         val days: NumberOfDays,
-    ) : IssueFilter
+    ) : IssueFilter()
 }
 
 /** ---

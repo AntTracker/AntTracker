@@ -120,5 +120,6 @@ class Terminal {
         s: String, // in
     ) {
         printLine("== $s ==")
+        printLine()
     }
 }

@@ -44,7 +44,7 @@ fun menu() {
 // ---
 fun selectRelease(
     productName: String, // in
-    nullAction: String? = null // in
+    nullAction: String? = null, // in
 ): Release? {
     val relPage = PageOfReleases(productName)
     relPage.loadRecords()

@@ -14,6 +14,7 @@ import anttracker.db.IssueDescription
 import anttracker.db.Priority
 import anttracker.db.Product
 import anttracker.db.Release
+import anttracker.issues.IssueFilter.*
 import org.jetbrains.exposed.sql.transactions.transaction
 
 // -----
@@ -85,10 +86,22 @@ class SearchByOrGoBackToIssuesMenu(
             filter = createFilter(input)
         }
 
-        t.printLine("Searching for issues matching '$filter'...")
         return displayAllIssuesMenu(page.addFilter(filter))
     }
 }
+
+/** ---
+ * Generates a label for the issue filter.
+--- */
+internal fun IssueFilter.toLabel(): String =
+    when (this) {
+        is ByDescription -> "Description: ${this.description}"
+        is ByPriority -> "Priority: ${this.priority}"
+        is ByProduct -> "Product: ${this.product}"
+        is ByAnticipatedRelease -> "Release: ${this.release}"
+        is ByStatus -> "Status: ${this.statuses.joinToString(", ")}"
+        is ByDateCreated -> "Date created: within the last ${this.days.numOfDays} days"
+    }
 
 /** ----
  * Represents the menu used when filtering an issue by its product

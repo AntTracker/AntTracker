@@ -38,17 +38,6 @@ internal val noIssuesMatching =
  */
 internal val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
 
-private fun requestToRow(
-    request: Request, // in
-): List<Any> =
-    listOf(
-        request.affectedRelease,
-        request.requestDate,
-        request.contact.name,
-        request.contact.email,
-        request.contact.department,
-    )
-
 // This data type represents the mapping between a row
 // number and the issue corresponding to it
 typealias RowToIssuePage = Map<Int, Issue>
@@ -62,7 +51,7 @@ private fun selectIssueToViewMenu(
 ) =
     object : Screen {
         override fun run(t: Terminal): Screen? {
-            t.printLine("== View issue ==")
+            t.title("View issue")
             val mainMenuChoice = "`"
             val backToMainMenuMessage = " Or press ` (backtick) to go back to the main menu:"
             val choices = rows.keys.map { it.toString() } + mainMenuChoice
@@ -150,7 +139,12 @@ fun displayAllIssuesMenu(
     page: PageWithFilter, // in
 ): Screen =
     screenWithTable {
-        title("Search Results")
+        val filters =
+            page.filters
+                .takeIf { it.isNotEmpty() }
+                ?.joinToString(", ", prefix = " (", postfix = ")") { it.toLabel() }
+                ?: ""
+        title("Search Results$filters")
         option("Select filter") { mkIssuesMenu(page) }
         option("View issue") { displayViewIssuesMenu(page) }
         table {
@@ -214,19 +208,6 @@ val searchByOptions =
         "Date range" to ::searchByDaysSinceMenu,
     )
 
-/** ---
- * Generates a label for the issue filter.
---- */
-private fun IssueFilter.toLabel(): String =
-    when (this) {
-        is IssueFilter.ByDescription -> "Description: ${this.description}"
-        is IssueFilter.ByPriority -> "Priority: ${this.priority}"
-        is IssueFilter.ByProduct -> "Product: ${this.product}"
-        is IssueFilter.ByAnticipatedRelease -> "Release: ${this.release}"
-        is IssueFilter.ByStatus -> "Status: ${this.statuses.joinToString(", ")}"
-        is IssueFilter.ByDateCreated -> "Date created: within the last ${this.days.numOfDays} days"
-    }
-
 /** ------
 This function prints out a message asking the user how they would like
 to search for an issue.
@@ -244,7 +225,7 @@ fun mkIssuesMenu(
         option("Clear filters") { mkIssuesMenu(PageWithFilter()) }
         content { t ->
             val activeFilters =
-                page.filters.map(IssueFilter::toLabel).takeUnless { it.isEmpty() } ?: listOf("No filters")
+                page.filters.map(IssueFilter::toString).takeUnless { it.isEmpty() } ?: listOf("No filters")
             t.printLine("Filters Active: ${activeFilters.joinToString(", ")}")
         }
     }
