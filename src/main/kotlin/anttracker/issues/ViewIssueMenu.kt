@@ -172,9 +172,9 @@ private fun <T> editIssueAttribute(
         t.prompt("Please enter ${prop.name}", choices)
     }
 
-/**
+/** ---
  * Displays a screen for editing the passed issue property.
- */
+--- */
 private fun <T> editIssueAttribute(
     prop: KMutableProperty1<Issue, T>, // in
     parse: (String) -> T, // in

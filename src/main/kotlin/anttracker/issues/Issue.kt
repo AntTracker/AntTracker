@@ -16,8 +16,6 @@ package anttracker.issues
 import anttracker.db.Issue
 import anttracker.db.IssueDescription
 import anttracker.db.Priority
-import anttracker.db.Request
-import anttracker.release.ReleaseId
 
 // ------
 
@@ -36,18 +34,9 @@ value class Description(
     }
 }
 
-/** ---
- * This class represents the information of an issue before saving
- * it to the DB.
---- */
-data class IssueInformation(
-    val description: Description,
-    val productName: String,
-    val affectedRelease: ReleaseId,
-    val anticipatedRelease: ReleaseId? = null,
-    val priority: Priority,
-)
-
+/**
+ * Represents a status an issue can have
+ */
 sealed class Status {
     data object Created : Status()
 
@@ -60,22 +49,10 @@ sealed class Status {
     data object Cancelled : Status()
 
     companion object {
+        /**
+         * Generates a list of all the possible statuses an issue can have.
+         */
         fun all() = arrayOf(Created, Assessed, InProgress, Done, Cancelled)
-    }
-}
-
-/** ---
- * This data class represents the valid values an issue id can take on,
- * being between 1-99.
---- */
-@JvmInline
-value class IssueId(
-    private val id: Int,
-) {
-    init {
-        require(id in 1..<100) {
-            "Id must be a positive integer within [1, 99]"
-        }
     }
 }
 
@@ -107,10 +84,16 @@ sealed interface IssueFilter {
         val description: IssueDescription,
     ) : IssueFilter
 
+    /** ---
+     * Represents a filter that uses the anticipated release
+     --- */
     data class ByAnticipatedRelease(
         val release: String,
     ) : IssueFilter
 
+    /** ---
+     * Represents a filter that uses the priority
+     --- */
     data class ByPriority(
         val priority: Priority,
     ) : IssueFilter
@@ -122,10 +105,17 @@ sealed interface IssueFilter {
         val product: String,
     ) : IssueFilter
 
+    /** ---
+     * Represents a filter that uses the status
+     --- */
     data class ByStatus(
         val statuses: List<Status>,
     ) : IssueFilter
 
+    /** ---
+     * Represents a filter that uses the date an
+     * issue was created.
+     --- */
     data class ByDateCreated(
         val days: NumberOfDays,
     ) : IssueFilter
@@ -143,6 +133,9 @@ data class PageOf<T>(
     val limit: Int = 20,
 )
 
+/** ---
+ * Returns a new page with an updated offset.
+--- */
 fun <T> PageOf<T>.next() = this.copy(offset = this.offset + this.limit)
 
 /** ---
@@ -154,72 +147,14 @@ data class PageWithFilter(
     val pageInfo: PageOf<Issue> = PageOf(),
 )
 
-fun PageWithFilter.addFilter(newFilter: IssueFilter): PageWithFilter = PageWithFilter(filters = filters + newFilter)
+/** ---
+ * Adds a new filter to the current set of filters.
+--- */
+fun PageWithFilter.addFilter(
+    newFilter: IssueFilter, // in
+): PageWithFilter = PageWithFilter(filters = filters + newFilter)
 
 /** ---
  * This function generates the next page, updating the offset.
 --- */
 fun PageWithFilter.next(): PageWithFilter = this.copy(pageInfo = pageInfo.copy(offset = pageInfo.offset + 20))
-
-/** ---
- *  Represents a page of requests.
---- */
-data class RequestPage(
-    val pageInfo: PageOf<Request>,
-)
-
-// -----------------
-
-/** ---
- * This function takes in issue information and saves it into the database
- * Returns an Issue object containing the id and createdAt fields populated,
- * according to what was returned by the database
---- */
-fun saveIssue(issueInformation: IssueInformation): Issue? {
-    TODO()
-}
-
-/** ---
- * This function returns the next page of issues to display based on the current page
---- */
-fun nextPage(
-    oldPage: PageWithFilter, // in
-): PageWithFilter {
-    TODO()
-}
-
-/** -----
-//This function takes a predicate to apply on an issue and the maximum number of issues to
-//display at a time and returns the first issue from the database which satisfies the predicate
-//For example, searchIssues(createdYesterday, 10) will return the first issue from the database
-which was created yesterday
-// ----- */
-fun searchIssues(
-    filter: IssueFilter, // in
-    issuesPerPage: Int, // in
-): PageWithFilter {
-    TODO()
-}
-
-/** -------
- * This function takes a predicate to apply on an issue, the number of issues to show per
- * page N, and shows the issues from the database which satisfy the predicate in pages of
- * size N.
- * For example, calling displayIssues(hasLowPriority, 3) will show all the issues
- * with a low priority in pages containing only three issues
-------- */
-fun selectIssue(
-    filter: IssueFilter, // in
-    issuesPerPage: Int, // in
-): Issue? {
-    TODO()
-}
-
-/** ---
- * This function collects from the user all the information needed to create an issue
-by prompting them for the description, product, affectedRelease, and priority.
- * Returns null if the user (somehow) indicates to leave: optional
----- */
-fun enterIssueInformation(): IssueInformation? {
-    TODO()
-}

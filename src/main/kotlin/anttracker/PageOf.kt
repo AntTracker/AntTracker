@@ -47,7 +47,11 @@ abstract class PageOf<T : IntEntity>(
             printRecord(record)
         }
         if (!lastPage()) {
-            println("<Enter> for ${countRemainingRecords()} more.")
+            if (countRemainingRecords() <= queryLimit) {
+                println("<Enter> for ${countRemainingRecords()} more.")
+            } else {
+                println("<Enter> for $queryLimit of ${countRemainingRecords()} more.")
+            }
         }
     }
 
@@ -96,7 +100,7 @@ abstract class PageOf<T : IntEntity>(
     // -------------------------------------------------------------------------------
     // Returns whether a user-entered line number exists on the current page.
     // ---
-    fun isValidLineNum(linenum: Int): Boolean = linenum in (1..20) && linenum < recordsSize()
+    fun isValidLineNum(linenum: Int): Boolean = linenum in (1..20) && linenum < recordsSize() + 1
 
     // -------------------------------------------------------------------------------
     // Used in init/ctor block to calculate the last page number.
