@@ -1,8 +1,8 @@
 /* PageOf.kt
 Revision History:
-Rev. 3 - 2024/07/30 Bug fixes by T. Tracey and M. Baker
-Rev. 2 - 2024/07/20 Improved interface by T. Tracey
-Rev. 1 - 2024/07/15 Original by T. Tracey
+Rev. 1 - 2024/07/15 Original by Tyrus Tracey
+Rev. 2 - 2024/07/20 Improved interface by Tyrus Tracey
+Rev. 3 - 2024/07/30 Bug fixes by Tyrus Tracey and Micah Baker
 ----------------------------------------------------------
 The PageOf module provides an abstract base class to create paginated queries for records in the database.
 Subclasses must define 3 things:

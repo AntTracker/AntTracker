@@ -1,8 +1,8 @@
 /* Release.kt
 Revision History:
-Rev. 3 - 2024/07/29 Bug fixing by T. Tracey
-Rev. 2 - 2024/07/15 Full implementation by T. Tracey
-Rev. 1 - 2024/07/01 Original by T. Tracey
+Rev. 1 - 2024/07/01 Original by Tyrus Tracey
+Rev. 2 - 2024/07/15 Full implementation by Tyrus Tracey
+Rev. 3 - 2024/07/29 Bug fixing by Tyrus Tracey
 ----------------------------------------------------------
 The Release module encapsulates the group of functions related to release creation,
     release selection, and printing releases to console.
