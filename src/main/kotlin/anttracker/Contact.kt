@@ -39,10 +39,10 @@ fun enterContactInformation(): Contact? {
 
     // Enter and validate name
     while (true) {
-        println("Please enter contact name (1-50 characters). ` to abort:")
+        println("Please enter contact name (1-30 characters). ` to abort:")
         name = readln()
         if (name == "`") return null
-        if (name.length !in 1..50) {
+        if (name.length !in 1..30) {
             println("ERROR: Invalid contact name length.")
             continue
         }
@@ -55,10 +55,10 @@ fun enterContactInformation(): Contact? {
 
     // Enter and validate phone number
     while (true) {
-        println("Please enter contact phone number (10-20 characters). ` to abort:")
+        println("Please enter contact phone number (10-11 characters). ` to abort:")
         phone = readln()
         if (phone == "`") return null
-        if (phone.length !in 10..20) {
+        if (phone.length !in 10..11) {
             println("ERROR: Invalid phone number length.")
             continue
         }
@@ -67,11 +67,11 @@ fun enterContactInformation(): Contact? {
 
     // Enter and validate email
     while (true) {
-        println("Please enter contact email address (1-50 characters). ` to abort:")
+        println("Please enter contact email address (1-24 characters). ` to abort:")
         email = readln()
         if (email == "`") return null
         val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$".toRegex()
-        if (email.length !in 1..50 || !email.matches(emailRegex)) {
+        if (email.length !in 1..24 || !email.matches(emailRegex)) {
             println("ERROR: Invalid email. Email must follow the format: name@domain.tld")
             continue
         }
@@ -80,10 +80,10 @@ fun enterContactInformation(): Contact? {
 
     // Enter and validate department
     while (true) {
-        println("Please enter contact department (1-50 characters). <Enter> to leave blank. ` to abort:")
+        println("Please enter contact department (1-12 characters). <Enter> to leave blank. ` to abort:")
         department = readln()
         if (department == "`") return null
-        if (department.isNotBlank() && department.length !in 1..50) {
+        if (department.isNotBlank() && department.length !in 1..12) {
             println("ERROR: Invalid department name.")
             continue
         }
