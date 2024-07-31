@@ -130,7 +130,7 @@ private fun selectIssue(
 
         // prompt user for input
         println() // blank line
-        print("Please select issue. ` to create a new issue: ")
+        print("Please select issue. ` to create issue: ")
 
         // switch on user selection
         when (val selection = readln()) {
@@ -306,7 +306,7 @@ fun enterRequestInformation(): Request? {
     val product = selectProduct() ?: return null
 
     // select release for this request
-    println("Product ${product.name} Releases:")
+    println("${product.name} Releases:")
     val release = selectRelease(product.name) ?: return null
 
     // select contact for this request
