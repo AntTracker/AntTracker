@@ -1,5 +1,6 @@
 /* Release.kt
 Revision History:
+Rev. 3 - 2024/07/29 Bug fixing by T. Tracey
 Rev. 2 - 2024/07/15 Full implementation by T. Tracey
 Rev. 1 - 2024/07/01 Original by T. Tracey
 ----------------------------------------------------------
@@ -17,6 +18,7 @@ import anttracker.db.*
 import anttracker.product.selectProduct
 import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -216,6 +218,9 @@ private class PageOfReleases(
             )
 }
 
+// -------------------------------------------------------------------------------
+// Returns TRUE if a releaseId of a certain product already exists in the database.
+// ---
 fun releaseExists(
     product: ProductEntity,
     releaseId: String,
@@ -223,8 +228,7 @@ fun releaseExists(
     !transaction {
         Release
             .find {
-                Releases.product eq product.id
-                Releases.releaseId eq releaseId
+                (Releases.product eq product.id) and (Releases.releaseId eq releaseId)
             }.toList()
             .isEmpty()
     }
