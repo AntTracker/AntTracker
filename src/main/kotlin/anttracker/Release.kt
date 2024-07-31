@@ -1,13 +1,14 @@
 /* Release.kt
 Revision History:
-Rev. 2 - 2024/07/15 Full implementation by T. Tracey
-Rev. 1 - 2024/07/01 Original by T. Tracey
-----------------------------------------------------------
+Rev. 1 - 2024/07/01 Original by Tyrus Tracey
+Rev. 2 - 2024/07/15 By Tyrus Tracey
+Rev. 3 - 2024/07/30 By Tyrus Tracey
+-------------------------------------------------------------------------------
 The Release module encapsulates the group of functions related to release creation,
     release selection, and printing releases to console.
 The module hides validation of release attributes, the interactive menu prompts during
     the release creation process, as well as interfacing with the database.
-----------------------------------------------------------
+-------------------------------------------------------------------------------
 */
 
 package anttracker.release

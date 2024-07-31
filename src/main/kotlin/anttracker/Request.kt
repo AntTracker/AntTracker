@@ -1,7 +1,8 @@
-/* Revision History:
-Rev. 1 - 2024/07/02 Original by A. Kim
-Rev. 2 - 2024/07/09 by M. Baker
-Rev. 3 - 2024/07/16 by M. Baker
+/* Request.kt
+Revision History:
+Rev. 1 - 2024/07/02 Original by Angela Kim
+Rev. 2 - 2024/07/09 By Micah Baker
+Rev. 3 - 2024/07/16 By Micah Baker
 -------------------------------------------------------------------------------
 The Request module contains all exported classes and functions pertaining to
     the creation or selection of request entities.

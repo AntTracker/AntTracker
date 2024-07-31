@@ -1,14 +1,15 @@
 /* Issue.kt
 Revision History
-Rev 1 - 6/30/2024 Original by Eitan
-Rev 2 - 7/15/2024 by Eitan
+Rev. 1 - 2024/6/30 Original by Eitan Barylko
+Rev. 2 - 2024/7/15 By Eitan Barylko
         - Added next extension function in order to update the offset of the PageWithFilter
--------------------------------------------
+Rev. 3 - 2024/7/30 By Eitan Barylko
+-------------------------------------------------------------------------------
 This file contains the abstraction of the information of an
 issue into a data type representing this information.
 Furthermore, Specific operations on issues, such as creating, editing
 and searching for issues are also present in this file.
----------------------------------
+-------------------------------------------------------------------------------
  */
 
 package anttracker.issues

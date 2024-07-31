@@ -1,11 +1,11 @@
 /* ScreenWithTable.kt
 Revision History
-Rev 1 - 7/30/2024 Original by Eitan
--------------------------------------------
+Rev. 1 - 2024/7/30 Original by Eitan Barylko
+-------------------------------------------------------------------------------
 This file contains the abstraction of the
 configuration for a table and a screen with
 a table.
----------------------------------
+-------------------------------------------------------------------------------
 */
 
 package anttracker.issues

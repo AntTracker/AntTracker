@@ -1,11 +1,11 @@
 /* ScreenWithTable.kt
 Revision History
-Rev 1 - 7/30/2024 Original by Eitan
--------------------------------------------
+Rev. 1 - 2024/7/30 Original by Eitan Barylko
+-------------------------------------------------------------------------------
 This file contains all the menus used
 when filtering an issue by a collection of
 its attributes.
----------------------------------
+-------------------------------------------------------------------------------
 */
 
 package anttracker.issues

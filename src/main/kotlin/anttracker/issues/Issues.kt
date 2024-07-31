@@ -1,10 +1,11 @@
 /* Issues.kt
 Revision History
-Rev 1 - 7/15/2024 Original by Eitan
--------------------------------------------
+Rev. 1 - 2024/7/15 Original by Eitan Barylko
+Rev. 2 - 2024/7/30 By Eitan Barylko
+-------------------------------------------------------------------------------
 This file contains the issues menu and all the
 submenus contained within the user will interact with.
----------------------------------
+-------------------------------------------------------------------------------
  */
 
 package anttracker.issues
