@@ -1,6 +1,7 @@
 /* Revision History:
 Rev. 1 - 2024/07/01 Original by M. Baker
 Rev. 2 - 2024/07/08 Updated by A. Kim
+Rev.3 - 2024/07/30 Updated by A. Kim
 -------------------------------------------------------------------------------
 The Contact module contains all exported classes and functions pertaining to
     the creation or selection of contact entities.
@@ -9,138 +10,78 @@ The Contact module contains all exported classes and functions pertaining to
 
 package anttracker.contact
 
+import anttracker.PageOf
 import anttracker.db.*
-import org.jetbrains.exposed.dao.IntEntity
-
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 
 // ----------------------------------------------------------------------------
 // Displays a sub-menu for creating a new contact and adding it to the
-//     AntTracker database. To be used by the Main module.
+// AntTracker database. To be used by the Main module.
 // Prompts the user for the various fields for the contact, and validates
-//     input when necessary, re-prompting where necessary.
+// input when necessary, re-prompting where necessary.
 // Returns when the user wishes to return to the main menu.
 // ---
 fun menu() {
     println("== NEW CONTACT ==")
-    enterContactInformation()
-}
-
-// PageOf<T>
-open class PageOf<T : IntEntity> {
-    var contents: MutableList<T> = mutableListOf()
-    var pagenum: Int = 0 // decide on 0 or 1 indexed?
-    var lastPageNum: Int = 0 // initialized on construct/init
-    var offset: Int = 0
-    var limit: Int = 20
-
-    open fun loadContents() {
-        // To be overridden in subclasses
-    }
-
-    fun loadNextPage() {
-        if (lastPage()) {
-            throw Exception("Already at the last page")
-        }
-        pagenum++
-        loadContents()
-    }
-
-    fun lastPage(): Boolean {
-        return pagenum >= lastPageNum
-    }
-
-    fun initLastPageNum(totalRecords: Int) {
-        lastPageNum = Math.ceil(totalRecords.toDouble() / limit).toInt()
+    val newContact = enterContactInformation()
+    if (newContact != null) {
+        println("Contact ${newContact.name} has been created.")
     }
 }
 
-// PageOfContact
-class PageOfContact : PageOf<ContactEntity>() {
-    fun display() {
-        for ((index, contactRecord) in contents.withIndex()) {
-            println("${index + 1}. ${contactRecord.name}")
-        }
-    }
+// Displays a sub-menu for entering contact information.
+fun enterContactInformation(): Contact? {
+    var name: String
+    var phone: String
+    var email: String
+    var department: String
 
-    override fun loadContents() {
-        contents.clear()
-        transaction {
-            val output = ContactEntity
-                .all()
-                .limit(limit, offset = (pagenum * limit).toLong())
-            output.forEach {
-                contents.add(it)
-            }
-        }
-    }
-}
-
-// Display pages of contacts to console and select one
-fun selectContact(): ContactEntity? {
-    val contactPage = PageOfContact()
-    contactPage.loadContents()
-    contactPage.display()
-
-    var linenum: Int? = null
-    while (linenum == null) {
-        println("Please select contact. ` to abort: ")
-        when (val userInput = readln()) {
-            "`" -> return null
-            "" -> {
-                if (!contactPage.lastPage()) {
-                    contactPage.loadNextPage()
-                    contactPage.display()
-                }
-            }
-            else -> {
-                linenum = userInput.toIntOrNull()
-                if (linenum == null || linenum !in 1..contactPage.contents.size) {
-                    println("Invalid line number")
-                    linenum = null
-                }
-            }
-        }
-    }
-    return contactPage.contents[linenum - 1]
-}
-
-// ----------------------------------------------------------------------------
-// Displays a sub-menu for creating a new contact and adding it to the
-//     AntTracker database.
-// Prompts the user for the various fields for the contact, and validates
-//     input when necessary, re-prompting where necessary.
-// Returns the created contact.
-// ---
-fun enterContactInformation(): ContactEntity? {
+    // Enter and validate name
     while (true) {
         println("Please enter contact name (1-50 characters). ` to abort:")
-        val name = readln()
+        name = readln()
         if (name == "`") return null
         if (name.length !in 1..50) {
             println("ERROR: Invalid contact name length.")
             continue
         }
+        if (!isUniqueContactName(name)) {
+            println("ERROR: Contact name already exists.")
+            continue
+        }
+        break
+    }
 
+    // Enter and validate phone number
+    while (true) {
         println("Please enter contact phone number (10-20 characters). ` to abort:")
-        val phone = readln()
+        phone = readln()
         if (phone == "`") return null
         if (phone.length !in 10..20) {
             println("ERROR: Invalid phone number length.")
             continue
         }
+        break
+    }
 
+    // Enter and validate email
+    while (true) {
         println("Please enter contact email address (1-50 characters). ` to abort:")
-        val email = readln()
+        email = readln()
         if (email == "`") return null
         val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$".toRegex()
         if (email.length !in 1..50 || !email.matches(emailRegex)) {
             println("ERROR: Invalid email. Email must follow the format: name@domain.tld")
             continue
         }
+        break
+    }
 
+    // Enter and validate department
+    while (true) {
         println("Please enter contact department (1-50 characters). <Enter> to leave blank. ` to abort:")
-        var department = readln()
+        department = readln()
         if (department == "`") return null
         if (department.isNotBlank() && department.length !in 1..50) {
             println("ERROR: Invalid department name.")
@@ -149,26 +90,86 @@ fun enterContactInformation(): ContactEntity? {
         if (department.isBlank()) {
             department = ""
         }
+        break
+    }
 
-        val contact = transaction {
-            ContactEntity.new {
-                this.name = name
-                this.phoneNumber = phone
-                this.email = email
-                this.department = department
-            }
+    return transaction {
+        Contact.new {
+            this.name = name
+            this.phoneNumber = phone
+            this.email = email
+            this.department = department
         }
+    }
+}
 
-        println("Contact ${contact.name} has been created.")
-        return contact
+// Checks if the contact name is unique in the database
+private fun isUniqueContactName(name: String): Boolean {
+    return transaction {
+        Contact.find { Contacts.name eq name }.empty()
     }
 }
 
 // ----------------------------------------------------------------------------
-// Returns all information about the contact identified by a given name.
+// A class that represents a page of contacts.
+// This class handles pagination and display of contacts from the database.
 // ---
-fun getContactInfo(name: String): ContactEntity? {
-    return transaction {
-        ContactEntity.find { Contacts.name eq name }.firstOrNull()
+private class PageOfContact : PageOf<Contact>(Contact) {
+    init {
+        initLastPageNum()
     }
+    // Query object that defines how to retrieve the contacts from the database.
+    //creates a query to select all records from the Contacts table, 
+    //ordering them by the name column in ascending order.
+    override fun getQuery(): Query =
+        Contacts
+            .selectAll()
+            .orderBy(
+                Contacts.name to SortOrder.ASC,
+            )
+    // prints employee info (name, email, phone number, dept (if internal))
+    override fun printRecord(record: Contact) {
+        if (record.department.isEmpty()) {
+            println("${record.name}, <${record.email}>, ${record.phoneNumber}")
+        } else {
+            println("${record.name}, <${record.email}>, ${record.phoneNumber}, ${record.department}")
+        }
+    }
+}
+
+// Display pages of contacts to console and select one
+fun selectContact(): Contact? {
+    val contactPage = PageOfContact()
+    contactPage.loadRecords() // Adjust limit and offset as necessary
+    contactPage.display()
+
+    var linenum: Int? = null
+    while (linenum == null) {
+        println("Please select contact. ` to abort:")
+        val userInput = readln()
+        when (userInput) {
+            "`" -> return null
+            "" -> {
+                if (!contactPage.lastPage()) {
+                    contactPage.loadNextPage()
+                    contactPage.display()
+                }
+            }
+            else -> {
+                try {
+                    // Check if the line number is valid and within the current page's range
+                    val userInputInt = userInput.toInt()
+                    // validate integer selection
+                    if (contactPage.isValidLineNum(userInputInt)) {
+                        linenum = userInputInt
+                    } else {
+                        println("ERROR: Invalid line number.")
+                    }
+                } catch (e: NumberFormatException) {
+                    println("ERROR: Please enter a number.")
+                }
+            }
+        }
+    }
+    return contactPage.getContentAt(linenum - 1)
 }

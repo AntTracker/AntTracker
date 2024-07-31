@@ -1,13 +1,23 @@
+/* ViewIssueMenu.kt
+Revision History
+Rev 1 - 7/30/2024 Original by Eitan
+-------------------------------------------
+This file contains the menu for viewing a single
+issue and all the submenus within.
+---------------------------------
+ */
+
 package anttracker.issues
 
+import anttracker.db.*
 import anttracker.db.Issue
 import anttracker.db.Release
 import anttracker.db.Releases
 import anttracker.db.toStatus
-import org.jetbrains.exposed.sql.StdOutSqlLogger
-import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.reflect.KMutableProperty1
+
+// -----------
 
 /** ----
  * Represents a map between a status and possible transitions.
@@ -23,11 +33,52 @@ private val nextPossibleStates: Map<Status, List<Status>> =
  * Edits the status of the issue using the possible transitions for the current status.
 --- */
 private val editStatus =
-    editIssueAttribute(
+    editWithDynamicOptions(
         Issue::status,
-        { issue -> nextPossibleStates[issue.status]?.map { it.toString() } },
-    ) { issue ->
-        requireNotNull(issue.toStatus())
+        { input: String -> requireNotNull(input.toStatus()) },
+    ) { issue: Issue -> nextPossibleStates[issue.status]?.map { it.toString() } }
+
+/** ---
+ * Extracts out the information contained in a request.
+--- */
+private fun requestToRow(
+    request: Request, // in
+): List<Any> =
+    listOf(
+        request.affectedRelease,
+        request.requestDate,
+        request.contact.name,
+        request.contact.email,
+        request.contact.department,
+    )
+
+/** ---
+ * Displays all the requests associated to the passed issue.
+--- */
+private fun viewRequests(
+    issue: Issue, // in
+    page: PageOf<Request> = PageOf(), // in
+): Screen =
+    screenWithTable {
+        table {
+            columns(
+                "Affected Release" to 17,
+                "Date requested" to 14,
+                "Name" to 32,
+                "Email" to 24,
+                "Department" to 12,
+            )
+            query {
+                Request
+                    .find { Requests.issue eq issue.id }
+                    .limit(page.limit, page.offset)
+                    .map(::requestToRow)
+            }
+
+            emptyMessage("No requests found.")
+            nextPage { viewRequests(issue, page.next()) }
+        }
+        promptMessage("Press 1 to go to the next page. 2 to print.")
     }
 
 /** ----
@@ -44,8 +95,9 @@ internal fun viewIssueMenu(
             option("Description: ${issue.description}") { editDescription(issue) }
             option("Priority: ${issue.priority}") { editPriority(issue) }
             option("Status: ${issue.status} ${canBeChanged(issue.status)}") { editStatus(issue) }
-            option("AntRel: ${issue.anticipatedRelease.releaseId}") { editAnticipatedRelease(issue) }
+            option("AntRel: ${issue.anticipatedRelease?.releaseId}") { editAnticipatedRelease(issue) }
             option("Created: ${issue.creationDate.format(formatter)} (not editable)") { viewIssueMenu(issue) }
+            option("Requests") { viewRequests(issue) }
             option("Print") { noIssuesMatching }
         }
         promptMessage("Enter 1, 2, 3, or 4 to edit the respective fields.")
@@ -63,15 +115,14 @@ private fun canBeChanged(
  * for the updated value of the anticipated release.
 ----- */
 private val editAnticipatedRelease =
-    editIssueAttribute(
+    editWithDynamicOptions(
         Issue::anticipatedRelease,
-        { issue -> transaction { Release.find { Releases.product eq issue.product.id }.map { it.releaseId } } },
-    ) { newVal: String ->
-        transaction {
-            addLogger(StdOutSqlLogger)
-            Release.find { Releases.releaseId eq newVal }.first()
-        }
-    }
+        { newVal: String ->
+            transaction {
+                Release.find { Releases.releaseId eq newVal }.first()
+            }
+        },
+    ) { issue: Issue -> transaction { Release.find { Releases.product eq issue.product.id }.map { it.releaseId } } }
 
 /** ----
  * This function prints out all the information contained within an issue.
@@ -85,38 +136,56 @@ private fun printIssueSummary(
         t.printLine("Description: ${issue.description}")
         t.printLine("Priority: ${issue.priority}")
         t.printLine("Status: ${issue.status}")
-        t.printLine("AntRel: ${issue.anticipatedRelease.releaseId}")
+        t.printLine("AntRel: ${issue.anticipatedRelease?.releaseId}")
         t.printLine("Created: ${issue.creationDate.format(formatter)}")
         t.printLine()
     }
 }
 
-private fun <T> editIssueAttribute(
-    prop: KMutableProperty1<Issue, T>,
-    choicesFn: (Issue) -> List<String>?,
-    parse: (String) -> T,
+/** ---
+ * Displays a screen for editing the issue property if there are options. Returns to the screen
+ * showing the issue information otherwise.
+--- */
+private fun <T> editWithDynamicOptions(
+    prop: KMutableProperty1<Issue, T>, // in
+    parse: (String) -> T, // in
+    choicesFn: (Issue) -> List<String>?, // in
 ): (Issue) -> Screen =
     { issue ->
         val choices = choicesFn(issue)
         if (choices == null) {
             viewIssueMenu(issue)
         } else {
-            editIssueAttribute(prop, choices, parse)(issue)
+            editIssueAttribute(prop, parse, choices)(issue)
         }
     }
 
+/** ---
+ * Displays a screen for editing the passed issue property.
+--- */
 private fun <T> editIssueAttribute(
-    prop: KMutableProperty1<Issue, T>,
-    choices: List<String> = emptyList(),
-    parse: (String) -> T,
+    prop: KMutableProperty1<Issue, T>, // in
+    parse: (String) -> T, // in
+    choices: List<String>, // in
+): (Issue) -> Screen =
+    editIssueAttribute(prop, parse) { t: Terminal ->
+        t.prompt("Please enter ${prop.name}", choices)
+    }
+
+/** ---
+ * Displays a screen for editing the passed issue property.
+--- */
+private fun <T> editIssueAttribute(
+    prop: KMutableProperty1<Issue, T>, // in
+    parse: (String) -> T, // in
+    prompt: (Terminal) -> String, // in
 ): (Issue) -> Screen =
     { issue: Issue ->
         screenWithMenu {
             var newVal = ""
             content { t ->
                 transaction {
-                    t.printLine("Options: ${choices.joinToString(", ")}")
-                    newVal = t.prompt("Please enter ${prop.name}", choices)
+                    newVal = prompt(t)
                     printIssueSummary(t, issue)
                     t.title("Update: ${prop.name}")
                     t.printLine("OLD: ${prop.get(issue)}")
@@ -143,15 +212,22 @@ private fun updateIssueAndGoBackToMenu(
     return viewIssueMenu(updatedIssue)
 }
 
+/** ---
+ * Represents the menu for editing th priority of an issue.
+--- */
 private val editPriority =
     editIssueAttribute(
         Issue::priority,
+        { newVal -> newVal.toShort() },
         (1..5).map(Int::toString),
-    ) { newVal -> newVal.toShort() }
+    )
 
 /** ----
  * This function displays a screen where the user is presented with the
  * option of saving their issue with an edited description or going back
  * to the previous menu.
 ----- */
-private val editDescription = editIssueAttribute(Issue::description) { it }
+private val editDescription =
+    editIssueAttribute(Issue::description, { IssueDescription.maybeParse(it)!! }) { t: Terminal ->
+        t.prompt("Please enter description", false, IssueDescription::isValid)
+    }

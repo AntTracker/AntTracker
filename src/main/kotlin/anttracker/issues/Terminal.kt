@@ -35,19 +35,36 @@ class Terminal {
     }
 
     /** ----
+     * This function displays the list of options a user can enter
+     * and prompts the user for their input.
+     ----- */
+    fun prompt(
+        message: String, // in
+        choices: List<String>, // in
+    ): String {
+        if (choices.isNotEmpty()) {
+            print("Options: ")
+            printLine(choices.joinToString(", "))
+            printLine()
+        }
+        return prompt(message) { input -> choices.contains(input) }
+    }
+
+    /** ----
      * This function prompts the user for input and only returns their
      * input if it is valid. Otherwise, it prompts the user again.
      ----- */
     fun prompt(
         message: String, // in
-        choices: List<String> = emptyList(), // in
+        allowEmpty: Boolean = false, // in
+        isValidChoice: (String) -> Boolean, // in
     ): String {
         println(message)
         val choice = readln()
-        if (choices.isEmpty() || choices.contains(choice)) {
+        if ((choice.isBlank() && allowEmpty) || isValidChoice(choice)) {
             return choice
         }
-        return prompt(message, choices)
+        return prompt(message, allowEmpty, isValidChoice)
     }
 
     /** ---
@@ -67,7 +84,7 @@ class Terminal {
      ----- */
     fun displayTable(
         columns: List<Pair<String, Int>>, // in
-        rows: List<List<Any>>, // in
+        rows: List<List<Any?>>, // in
     ) {
         // This aligns the columns according to their format and then prints them out.
         columns
@@ -87,6 +104,7 @@ class Terminal {
                         when {
                             (col is Number) -> col.toString().padStart(length)
                             (col is LocalDateTime) -> col.format(formatter).padEnd(length)
+                            (col == null) -> "".padEnd(length)
                             else -> col.toString().padEnd(length)
                         }
                     }.joinToString(separator = " | ", postfix = " |", prefix = " | ")

@@ -30,9 +30,10 @@ class ContactTest :
                     val contactCreated = enterContactInformation() ?: throw Exception()
 
                     // find the contact stored in the database identified by the created contact
-                    val contactFound = transaction {
-                        ContactEntity.find {Contacts.id eq contactCreated.id}.firstOrNull()
-                    }
+                    val contactFound =
+                        transaction {
+                            Contact.find { Contacts.id eq contactCreated.id }.firstOrNull()
+                        }
 
                     contactCreated shouldBe contactFound
                 }
@@ -41,15 +42,16 @@ class ContactTest :
                 it("should be findable in the database") {
                     // delete all contacts currently stored in the database
                     transaction {
-                        ContactEntity.all().forEach { it.delete() }
+                        Contact.all().forEach { it.delete() }
                     }
 
                     // prompts user input to create contacts
-                    val contactsCreated = listOf(
-                        enterContactInformation(),
-                        enterContactInformation(),
-                        enterContactInformation()
-                    )
+                    val contactsCreated =
+                        listOf(
+                            enterContactInformation(),
+                            enterContactInformation(),
+                            enterContactInformation(),
+                        )
 
                     // all created contacts should not be null
                     contactsCreated[0] shouldNotBe null
@@ -57,9 +59,10 @@ class ContactTest :
                     contactsCreated[2] shouldNotBe null
 
                     // find the contact stored in the database identified by the created contact
-                    val contactsFound = transaction {
-                        ContactEntity.all()
-                    }
+                    val contactsFound =
+                        transaction {
+                            Contact.all()
+                        }
 
                     contactsFound.shouldContainOnly(contactsCreated)
                 }

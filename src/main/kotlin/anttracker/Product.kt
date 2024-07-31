@@ -83,7 +83,7 @@ fun selectProduct(): ProductEntity? {
             }
         }
     }
-    return productPage.getContentAt(linenum)
+    return productPage.getContentAt(linenum - 1)
 }
 
 // ----------------------------------------------------------------------------
