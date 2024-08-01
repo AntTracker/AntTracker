@@ -153,6 +153,10 @@ private fun displayReleases(
                 relPage.loadNextPage()
                 relPage.display()
             }
+            else -> {
+                println("Error: bad input")
+                relPage.display()
+            }
         }
     }
     return
