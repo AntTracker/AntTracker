@@ -231,13 +231,9 @@ class Issue(
     private var _status by Issues.status
     var status: Status
         set(newStatus) {
-            println(newStatus.toString())
             _status = newStatus.toString()
         }
-        get() {
-            println(_status)
-            return requireNotNull(_status.toStatus())
-        }
+        get() = requireNotNull(_status.toStatus())
     var priority by Issues.priority
 }
 
