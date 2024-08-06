@@ -9,10 +9,12 @@ issue and all the submenus within.
 
 package anttracker.issues
 
-import anttracker.db.*
 import anttracker.db.Issue
+import anttracker.db.IssueDescription
 import anttracker.db.Release
 import anttracker.db.Releases
+import anttracker.db.Request
+import anttracker.db.Requests
 import anttracker.db.toStatus
 import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.reflect.KMutableProperty1

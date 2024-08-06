@@ -259,7 +259,7 @@ internal val issuesMenu = mkIssuesMenu(PageWithFilter())
 ------ */
 fun mainIssuesMenu(
     initScreen: Screen = issuesMenu,
-    t: Terminal = Terminal(),
+    t: DefaultTerminal = DefaultTerminal(),
 ) {
     var currentScreen: Screen? = initScreen
 

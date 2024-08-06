@@ -4,7 +4,6 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import net.bytebuddy.matcher.ElementMatchers.any
 
 class MainIssuesMenuTest :
     DescribeSpec({
@@ -18,6 +17,8 @@ class MainIssuesMenuTest :
                         allScreens += "first"
                         null
                     }
+                    val t = mockk<DefaultTerminal>()
+
                     mainIssuesMenu(screen)
                     allScreens shouldBe listOf("first")
                 }

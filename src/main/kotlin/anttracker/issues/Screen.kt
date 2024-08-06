@@ -102,7 +102,7 @@ open class ScreenWithMenu : Screen {
     override fun run(
         t: Terminal, // in
     ): Screen? {
-        menuTitle?.run { t.printLine("== $menuTitle ==") }
+        menuTitle?.run { t.title(this) }
         displayContent(t)
         t.printLine()
         val byIndex = displayMenu(t)
