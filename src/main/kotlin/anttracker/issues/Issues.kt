@@ -257,9 +257,11 @@ internal val issuesMenu = mkIssuesMenu(PageWithFilter())
  * This function displays the issues menu and transitions to the following menu the
  * user selects.
 ------ */
-fun mainIssuesMenu() {
-    val t = Terminal()
-    var currentScreen: Screen? = issuesMenu
+fun mainIssuesMenu(
+    initScreen: Screen = issuesMenu,
+    t: Terminal = Terminal(),
+) {
+    var currentScreen: Screen? = initScreen
 
     while (currentScreen != null) {
         t.printLine()

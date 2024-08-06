@@ -15,6 +15,7 @@ tasks.named<JavaExec>("run") {
 }
 
 val exposedVersion = "0.52.0"
+val mockkVersion = "1.13.12"
 
 dependencies {
     implementation("com.h2database:h2:2.2.224")
@@ -25,6 +26,7 @@ dependencies {
     testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
     testImplementation("io.kotest:kotest-assertions-core:5.9.1")
     testImplementation("io.kotest:kotest-property:5.9.1")
+    testImplementation("io.mockk:mockk:$mockkVersion")
 }
 
 tasks.test {
