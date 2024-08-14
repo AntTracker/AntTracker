@@ -38,17 +38,6 @@ internal val noIssuesMatching =
  */
 internal val formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
 
-private fun requestToRow(
-    request: Request, // in
-): List<Any> =
-    listOf(
-        request.affectedRelease,
-        request.requestDate,
-        request.contact.name,
-        request.contact.email,
-        request.contact.department,
-    )
-
 // This data type represents the mapping between a row
 // number and the issue corresponding to it
 typealias RowToIssuePage = Map<Int, Issue>
@@ -271,3 +260,5 @@ fun mainIssuesMenu(
         currentScreen = currentScreen.run(t)
     }
 }
+
+fun mainIssuesMenu(t: Terminal = DefaultTerminal()) = mainIssuesMenu(issuesMenu, t)
