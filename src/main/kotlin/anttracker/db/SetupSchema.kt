@@ -18,7 +18,6 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.javatime.CurrentDateTime
 import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
@@ -45,45 +44,38 @@ fun setupSchema(
  * Generates sample data for the database.
  */
 fun populate() {
-    (0..5).forEach { productId ->
-        val prodId = Products.insert { it[name] = "Product $productId" } get Products.id
-        (0..10).forEach { id ->
-            val relId =
-                Releases.insert {
-                    it[product] = prodId
-                    it[releaseId] = "p-$prodId-$id"
-                    it[releaseDate] = LocalDate.now().plusDays((-40..0L).random()).atStartOfDay()
-                } get Releases.id
-            (0..10).forEach { issueId ->
-
-                val issId =
-                    Issues.insert {
-                        it[description] = "Issue $issueId"
-                        it[product] = prodId
-                        it[status] = Status.all()[issueId % 5].toString()
-                        it[priority] = (issueId % 5 + 1).toShort()
-                        it[creationDate] = LocalDate.now().plusDays((-40..0L).random()).atStartOfDay()
-                        it[anticipatedRelease] = relId.takeUnless { issueId % 3 == 0 }
-                    } get Issues.id
-                if (issueId % 3 == 0) {
-                    (0..25).forEach { requestId ->
-                        val contId =
-                            Contacts.insert {
-                                it[name] = "a-$requestId"
-                                it[email] = "a-$requestId@sfu.ca"
-                                it[phoneNumber] = "12345678901"
-                                it[department] = "Marketing"
-                            } get Contacts.id
-                        Requests.insert {
-                            it[affectedRelease] = relId
-                            it[issue] = issId
-                            it[requestDate] = CurrentDateTime
-                            it[contact] = contId
-                        }
-                    }
-                }
-            }
+    val prodId = Products.insert { it[name] = "Product 0" } get Products.id
+    val relId =
+        Releases.insert {
+            it[product] = prodId
+            it[releaseId] = "p-$prodId-0"
+            it[releaseDate] = LocalDate.now().plusDays((-40..0L).random()).atStartOfDay()
+        } get Releases.id
+    (0..1).forEach { issueId ->
+        Issues.insert {
+            it[description] = "Issue $issueId"
+            it[product] = prodId
+            it[status] = Status.all()[issueId % 5].toString()
+            it[priority] = (issueId % 5 + 1).toShort()
+            it[creationDate] = LocalDate.now().atStartOfDay()
+            it[anticipatedRelease] = relId.takeUnless { issueId % 3 == 0 }
         }
+//                if (issueId % 3 == 0) {
+//                    (0..25).forEach { requestId ->
+//                        val contId =
+//                            Contacts.insert {
+//                                it[name] = "a-$requestId"
+//                                it[email] = "a-$requestId@sfu.ca"
+//                                it[phoneNumber] = "12345678901"
+//                                it[department] = "Marketing"
+//                            } get Contacts.id
+//                        Requests.insert {
+//                            it[affectedRelease] = relId
+//                            it[issue] = issId
+//                            it[requestDate] = CurrentDateTime
+//                            it[contact] = contId
+//                        }
+//                    }
     }
 }
 
