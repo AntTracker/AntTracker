@@ -116,26 +116,43 @@ val allIssues: Menu =
         generateOptions("Select filter", "View issue", "Next page", "Print") +
         "Or press ` (backtick) to go back to the main menu:"
 
+val screenContentGen = Arb.list(Arb.string(), 1..30)
+
 val aBunchOfScreensGen =
-    Arb.list(Arb.string(), 1..30).map { messages ->
+    Arb.list(screenContentGen, 1..30).map { messages ->
         messages
-            .fold(null) { acc: Screen?, message ->
-                fakeScreen(message, acc)
+            .fold(null) { acc: Screen?, content ->
+                fakeScreen(content, acc)
             }.let(::requireNotNull)
             .let { messages.reversed() to it }
     }
 
-fun <T> List<T>.interleaveWith(separator: T): List<T> = this.flatMap { listOf(separator, it) }
+// fun <T> List<T>.interleaveWith(separator: T): List<T> = this.flatMap { listOf(separator, it) }
 
-fun <T> List<T>.interleaveWith(separator: List<T>): List<T> = this.flatMap { separator + it }
+// fun <T> List<T>.interleaveWith(separator: List<T>): List<T> = this.flatMap { separator + it }
+
+fun <T> List<List<T>>.interleaveWith(separator: List<T>): List<T> = this.flatMap { separator + it }
 
 class InterleaveWithTest :
     DescribeSpec({
-        describe("When there is a sequence of n elements") {
+        describe(
+            "When there is a sequence of n elements " +
+                "with a separator containing multiple parts",
+        ) {
             it("Interleaves them with a separator") {
-                val separator = "separator"
-                val actual = listOf("hello", "hi").interleaveWith(separator)
-                val expected = listOf(separator, "hello", separator, "hi")
+                val separator = listOf("sep1", "sep2")
+                val actual = listOf(listOf("hello", "goodbye"), listOf("hi", "good")).interleaveWith(separator)
+                val expected =
+                    listOf(
+                        "sep1",
+                        "sep2",
+                        "hello",
+                        "goodbye",
+                        "sep1",
+                        "sep2",
+                        "hi",
+                        "good",
+                    )
                 actual shouldBe expected
             }
         }
@@ -158,13 +175,13 @@ class MainIssuesMenuTest :
     })
 
 private fun fakeScreen(
-    message: String,
+    messages: List<String>,
     nextScreen: Screen? = null,
 ): Screen {
     val terminal = slot<Terminal>()
     val screen = mockk<Screen>()
     every { screen.run(capture(terminal)) } answers {
-        terminal.captured.printLine(message)
+        messages.forEach(terminal.captured::printLine)
         nextScreen
     }
     return screen
