@@ -1,6 +1,12 @@
 plugins {
     kotlin("jvm") version "1.9.23"
     id("application")
+    jacoco
+}
+
+jacoco {
+    toolVersion = "0.8.12"
+    reportsDirectory = layout.buildDirectory.dir("customJacocoReportDir")
 }
 
 group = "org.example"
@@ -29,8 +35,13 @@ dependencies {
     testImplementation("io.mockk:mockk:$mockkVersion")
 }
 
+tasks.jacocoTestReport {
+    dependsOn(tasks.test) // tests are required to run before generating the report
+}
+
 tasks.test {
     useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
 }
 
 application {
