@@ -40,25 +40,45 @@ class IssuesMenuTest :
                     actual shouldBe instanceOf<SearchByOrGoBackToIssuesMenu>()
                 }
             }
-            describe("and the user inputs '1'") {
-                describe("and the user then inputs ''") {
-                    it("shows all the options and returns to the main issues menu") {
-                        val t = FakeTerminal(listOf("1", ""))
-                        val actual = issuesMenu.run(t)
-                        t.output should haveMenus(mainIssuesMenu, filterByDescriptionMenu())
-                        requireNotNull(actual)
-                        actual shouldBe instanceOf<Screen>()
-                    }
+            describe("and the user inputs '1' and then ''") {
+                it("shows all the options and returns to the main issues menu") {
+                    val responses = listOf("1", "")
+                    val (actual, output) = enterResponses(issuesMenu, responses)
+                    output should haveMenus(mainIssuesMenu, filterByDescriptionMenu())
+                    requireNotNull(actual)
+                    actual shouldBe instanceOf<Screen>()
                 }
             }
         }
     })
 
-fun filterByDescriptionMenu(toFilterBy: String = ""): Menu =
-    listOf(
+/**
+ * Starts at initialScreen and enters the text in responses
+ */
+fun enterResponses(
+    initialScreen: Screen,
+    responses: List<String>,
+): Pair<Screen?, List<String>> {
+    val terminals = responses.map { FakeTerminal(listOf(it)) }
+    return terminals.fold(Pair(initialScreen, emptyList())) { (screen, contentSoFar), terminal ->
+        Pair(screen?.run(terminal), contentSoFar + terminal.output)
+    }
+}
+
+/**
+ * Returns the text shown to the user when they
+ * search for issues using the given description
+ */
+fun filterByDescriptionMenu(toFilterBy: String = ""): Menu {
+    val searchMessage =
+        if (toFilterBy.isEmpty()) "Going back to the issues menu..." else "Searching for issues matching 'Description: $toFilterBy"
+    return listOf(
         "== Search by description (1-30 characters) ==",
         "Please enter a description (1-30 characters) to search for or leave it empty to go back to the issues menu",
+        "",
+        searchMessage,
     )
+}
 
 typealias Menu = List<String>
 
