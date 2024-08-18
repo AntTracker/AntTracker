@@ -7,9 +7,14 @@ import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.instanceOf
+import io.kotest.property.Arb
+import io.kotest.property.arbitrary.*
+import io.kotest.property.checkAll
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.LocalDateTime
 
 class IssuesMenuTest :
     DescribeSpec({
@@ -39,21 +44,84 @@ class IssuesMenuTest :
                     requireNotNull(actual)
                     actual shouldBe instanceOf<SearchByOrGoBackToIssuesMenu>()
                 }
-            }
-            describe("and the user inputs '1' and then ''") {
-                it("shows all the options and returns to the main issues menu") {
-                    val responses = listOf("1", "")
-                    val (actual, output) = enterResponses(issuesMenu, responses)
-                    output should haveMenus(mainIssuesMenu, filterByDescriptionMenu())
-                    requireNotNull(actual)
-                    actual shouldBe instanceOf<Screen>()
+                describe("and the user then inputs ''") {
+                    it("shows all the options and returns to the main issues menu") {
+                        val responses = listOf("1", "")
+                        val (actual, output) = enterResponses(issuesMenu, responses)
+                        output should haveMenus(mainIssuesMenu, filterByDescriptionMenu())
+                        requireNotNull(actual)
+                        actual shouldBe instanceOf<Screen>()
+                    }
+                }
+                describe("and the user then inputs a target description matching 1 or more issues") {
+                    it("Shows the first 20 issues containing the target description as a substring of the issue description") {
+                        checkAll(issueArb) { issues: List<Issue> ->
+                            val responses = listOf("1", "Issue", "`")
+                            val (actual, output) = enterResponses(issuesMenu, responses)
+                            val expectedIssues = issues.filter { it.description.description.contains("Issue") }.take(20)
+                            output should
+                                haveMenus(
+                                    mainIssuesMenu,
+                                    filterByDescriptionMenu("Issue"),
+                                    issuesMatchingFilterMenu(expectedIssues),
+                                )
+                            requireNotNull(actual)
+                            actual shouldBe instanceOf<Screen>()
+                        }
+                    }
                 }
             }
         }
     })
 
+fun formatIssues(issues: List<Issues>): List<String> = issues.map(toRow)
+
+fun issuesMatchingFilterMenu(issues: List<Issue>): Menu {
+    val printedIssues = issues.takeIf { it.isNotEmpty() }?.let { "formatIssues(it) " } ?: "No issues found."
+    return listOf("== Search Results ==", printedIssues) +
+        generateOptions(
+            "Select filter",
+            "View issue",
+            "Next page",
+            "Print",
+        )
+}
+
+fun createIssue(
+    description: String,
+    date: LocalDateTime,
+    status: Status,
+    priority: Int,
+    productName: String,
+): Issue =
+    transaction {
+        val prodId =
+            Products.insert {
+                it[name] = productName
+            } get Products.id
+        val issueId =
+            Issues.insert {
+                it[this.description] = description
+                it[this.creationDate] = date
+                it[this.status] = status.toString()
+                it[this.priority] = priority.toShort()
+                it[product] = prodId
+            } get Issues.id
+        Issue.findById(issueId)!!
+    }
+
+val issueArb: Arb<Issue> =
+    Arb.bind(
+        Arb.stringPattern("Issue-.*").filter { it.length <= 30 },
+        Arb.localDateTime(0, 9999),
+        Arb.element(Status.all()),
+        Arb.positiveInt(5),
+        Arb.string(50),
+    )(::createIssue)
+
 /**
- * Starts at initialScreen and enters the text in responses
+ * Starts at initialScreen and enters each of the messages in responses, returning the end screen and all the messages
+ * shown to user
  */
 fun enterResponses(
     initialScreen: Screen,
