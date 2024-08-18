@@ -3,7 +3,7 @@ package anttracker.issues
 /** ---
  * Generates a label for the issue filter.
 --- */
-private fun IssueFilter.toLabel(): String =
+internal fun IssueFilter.toLabel(): String =
     when (this) {
         is IssueFilter.ByDescription -> "Description: ${this.description}"
         is IssueFilter.ByPriority -> "Priority: ${this.priority}"

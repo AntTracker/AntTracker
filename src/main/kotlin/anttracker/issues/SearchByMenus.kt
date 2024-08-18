@@ -85,7 +85,7 @@ class SearchByOrGoBackToIssuesMenu(
             filter = createFilter(input)
         }
 
-        t.printLine("Searching for issues matching '$filter'...")
+        t.printLine("Searching for issues matching '${filter.toLabel()}'...")
         return displayAllIssuesMenu(page.addFilter(filter))
     }
 }
