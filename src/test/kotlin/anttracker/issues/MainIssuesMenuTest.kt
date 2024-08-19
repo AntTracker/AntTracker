@@ -11,25 +11,29 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 
+typealias ScreenOutput = List<String>
+
 class FakeTerminal(
-    private val promptResponses: List<String> = listOf(""),
+    private vararg val promptResponses: String,
 ) : Terminal {
-    val output = mutableListOf<String>()
+    private val _output = mutableListOf<String>()
+    val output: ScreenOutput
+        get() = _output
     var resIndex = 0
 
     override fun printLine() {
-        output += ""
+        _output += ""
     }
 
     override fun printLine(text: String) {
-        output += text
+        _output += text
     }
 
     override fun prompt(
         message: String,
         choices: List<String>,
     ): String {
-        output += message
+        _output += message
         return ""
     }
 
@@ -38,12 +42,12 @@ class FakeTerminal(
         allowEmpty: Boolean,
         isValidChoice: (String) -> Boolean,
     ): String {
-        output += message
+        _output += message
         return promptResponses[resIndex++]
     }
 
     override fun print(message: String) {
-        output += message
+        _output += message
     }
 }
 

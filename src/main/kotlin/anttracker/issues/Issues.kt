@@ -174,7 +174,7 @@ private fun displayViewIssuesMenu(
  * This function takes an issue and extracts out all the
  * information contained within it.
 ----- */
-private fun toRow(
+internal fun toRow(
     anIssue: Issue, // in
 ): List<Any?> {
     val elements = anIssue.anticipatedRelease?.releaseId

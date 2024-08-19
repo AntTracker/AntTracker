@@ -2,10 +2,7 @@ package anttracker.issues
 
 import anttracker.db.*
 import io.kotest.core.spec.style.DescribeSpec
-import io.kotest.matchers.Matcher
-import io.kotest.matchers.MatcherResult
-import io.kotest.matchers.should
-import io.kotest.matchers.shouldBe
+import io.kotest.matchers.*
 import io.kotest.matchers.types.instanceOf
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.*
@@ -30,43 +27,49 @@ class IssuesMenuTest :
         describe("When the menu is displayed") {
             describe("and the user inputs '`'") {
                 it("Shows all the options and exits") {
-                    val t = FakeTerminal(listOf("`"))
+                    val t = FakeTerminal("`")
                     val actual = issuesMenu.run(t)
-                    t.output should haveMenus(mainIssuesMenu)
+                    t.output should matchScreenOutput(mainIssuesMenuOutput)
                     actual shouldBe null
                 }
             }
             describe("and the user inputs '1'") {
                 it("Shows all the options and returns the search by description menu") {
-                    val t = FakeTerminal(listOf("1"))
+                    val t = FakeTerminal("1")
                     val actual = issuesMenu.run(t)
-                    t.output should haveMenus(mainIssuesMenu)
+                    t.output should matchScreenOutput(mainIssuesMenuOutput)
                     requireNotNull(actual)
                     actual shouldBe instanceOf<SearchByOrGoBackToIssuesMenu>()
                 }
                 describe("and the user then inputs ''") {
                     it("shows all the options and returns to the main issues menu") {
-                        val responses = listOf("1", "")
-                        val (actual, output) = enterResponses(issuesMenu, responses)
-                        output should haveMenus(mainIssuesMenu, filterByDescriptionMenu())
+                        val (actual, output) = enterResponses(issuesMenu, "1", "")
+                        output should matchScreenOutputs(mainIssuesMenuOutput, filterByDescriptionOutput())
                         requireNotNull(actual)
                         actual shouldBe instanceOf<Screen>()
                     }
                 }
                 describe("and the user then inputs a target description matching 1 or more issues") {
                     it("Shows the first 20 issues containing the target description as a substring of the issue description") {
-                        checkAll(issueArb) { issues: List<Issue> ->
-                            val responses = listOf("1", "Issue", "`")
-                            val (actual, output) = enterResponses(issuesMenu, responses)
-                            val expectedIssues = issues.filter { it.description.description.contains("Issue") }.take(20)
-                            output should
-                                haveMenus(
-                                    mainIssuesMenu,
-                                    filterByDescriptionMenu("Issue"),
-                                    issuesMatchingFilterMenu(expectedIssues),
+                        checkAll(Arb.list(issueArb, 0..30)) { issues: List<Issue> ->
+                            val filterByDescription = "1"
+                            val matchIssueDescription = { description: String -> description }
+                            val goBackToMainMenu = "`"
+                            val (actual, outputs) =
+                                enterResponses(
+                                    issuesMenu,
+                                    filterByDescription,
+                                    matchIssueDescription("Issue"),
+                                    goBackToMainMenu,
                                 )
-                            requireNotNull(actual)
-                            actual shouldBe instanceOf<Screen>()
+                            val expectedIssues = issues.take(20)
+                            outputs should
+                                matchScreenOutputs(
+                                    mainIssuesMenuOutput,
+                                    filterByDescriptionOutput("Issue"),
+                                    issuesMatchingFilterOutput(expectedIssues),
+                                )
+                            actual shouldNotBe null
                         }
                     }
                 }
@@ -74,11 +77,11 @@ class IssuesMenuTest :
         }
     })
 
-fun formatIssues(issues: List<Issues>): List<String> = issues.map(toRow)
+fun formatIssues(issues: List<Issue>): List<String> = issues.map { it.description.description }
 
-fun issuesMatchingFilterMenu(issues: List<Issue>): Menu {
-    val printedIssues = issues.takeIf { it.isNotEmpty() }?.let { "formatIssues(it) " } ?: "No issues found."
-    return listOf("== Search Results ==", printedIssues) +
+fun issuesMatchingFilterOutput(issues: List<Issue>): ScreenOutput {
+    val printedIssues = issues.takeIf { it.isNotEmpty() }?.let { formatIssues(it) } ?: listOf("No issues found.")
+    return listOf("== Search Results ==") + printedIssues +
         generateOptions(
             "Select filter",
             "View issue",
@@ -114,30 +117,31 @@ val issueArb: Arb<Issue> =
     Arb.bind(
         Arb.stringPattern("Issue-.*").filter { it.length <= 30 },
         Arb.localDateTime(0, 9999),
-        Arb.element(Status.all()),
+        Arb.element(*Status.all()),
         Arb.positiveInt(5),
         Arb.string(50),
-    )(::createIssue)
+        ::createIssue,
+    )
 
 /**
  * Starts at initialScreen and enters each of the messages in responses, returning the end screen and all the messages
  * shown to user
  */
 fun enterResponses(
-    initialScreen: Screen,
-    responses: List<String>,
-): Pair<Screen?, List<String>> {
-    val terminals = responses.map { FakeTerminal(listOf(it)) }
-    return terminals.fold(Pair(initialScreen, emptyList())) { (screen, contentSoFar), terminal ->
-        Pair(screen?.run(terminal), contentSoFar + terminal.output)
+    initialScreen: Screen?,
+    vararg responses: String,
+): Pair<Screen?, List<ScreenOutput>> =
+    responses.fold(initialScreen to mutableListOf<ScreenOutput>()) { (screen, contentSoFar), response ->
+        val terminal = FakeTerminal(response)
+        contentSoFar += terminal.output
+        screen?.run(terminal) to contentSoFar
     }
-}
 
 /**
  * Returns the text shown to the user when they
  * search for issues using the given description
  */
-fun filterByDescriptionMenu(toFilterBy: String = ""): Menu {
+fun filterByDescriptionOutput(toFilterBy: String = ""): ScreenOutput {
     val searchMessage =
         if (toFilterBy.isEmpty()) "Going back to the issues menu..." else "Searching for issues matching 'Description: $toFilterBy"
     return listOf(
@@ -148,19 +152,25 @@ fun filterByDescriptionMenu(toFilterBy: String = ""): Menu {
     )
 }
 
-typealias Menu = List<String>
-
-fun haveMenus(vararg expectedMenus: Menu) =
-    Matcher { actual: Menu ->
-        val expected = expectedMenus.toList().flatten()
+fun matchScreenOutput(expectedOutputs: ScreenOutput) =
+    Matcher { actual: ScreenOutput ->
         MatcherResult(
-            actual == expected,
-            { "The given menus \n$actual\n did not match the expected menus \n$expected" },
-            { "The given menus \n$actual\n should not have matched \n$expected" },
+            actual == expectedOutputs,
+            { "The given menu \n$actual\n did not match the expected menu \n$expectedOutputs" },
+            { "The given menu \n$actual\n should not have matched \n$expectedOutputs" },
         )
     }
 
-val mainIssuesMenu =
+fun matchScreenOutputs(vararg expectedOutputs: ScreenOutput) =
+    Matcher { actual: List<ScreenOutput> ->
+        MatcherResult(
+            actual.zip(expectedOutputs).all { (actualOutput, expectedOutput) -> actualOutput == expectedOutput },
+            { "The given menus \n$actual\n did not match the expected menus \n${expectedOutputs.map { it.toString() }}" },
+            { "The given menus \n$actual\n should not have matched \n$expectedOutputs" },
+        )
+    }
+
+val mainIssuesMenuOutput =
     listOf(
         "== VIEW/EDIT ISSUE ==",
         "Filters Active: No filters",
